@@ -35,7 +35,7 @@ public class UserServiceImpl implements UserService {
         email = userRequest.getEmail();
 
         if (userRepository.existsByEmailIgnoreCase(email.trim())) {
-            throw new Exception("El usuario ya existe con el correo: " 
+            throw new IllegalStateException("El usuario ya existe con el correo: " 
                 + email
             );
         }
