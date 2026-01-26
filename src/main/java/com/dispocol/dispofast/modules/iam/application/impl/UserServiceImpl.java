@@ -6,11 +6,13 @@ import org.springframework.stereotype.Service;
 
 import com.dispocol.dispofast.modules.iam.api.dtos.CreateUserRequestDTO;
 import com.dispocol.dispofast.modules.iam.api.dtos.UserResponseDTO;
+import com.dispocol.dispofast.modules.iam.api.mappers.UserMapper;
 import com.dispocol.dispofast.modules.iam.application.interfaces.UserService;
 import com.dispocol.dispofast.modules.iam.domain.AppUser;
 import com.dispocol.dispofast.modules.iam.infra.persistence.UserRepository;
 import com.dispocol.dispofast.modules.iam.infra.security.PasswordConfig;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -20,8 +22,10 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final PasswordConfig passwordConfig;
+    private final UserMapper userMapper;
 
     @Override
+    @Transactional
     public UserResponseDTO register(CreateUserRequestDTO userRequest) {
 
         AppUser newUser;
@@ -36,7 +40,13 @@ public class UserServiceImpl implements UserService {
             );
         }
 
-        return null;
+        newUser = userMapper.fromCreateUserRequestDTO(userRequest);
+        newUser.setPasswordHash(passwordConfig.passwordEncoder().encode(userRequest.getPassword()));
+        newUser.setActive(true);
+
+        newUser = userRepository.save(newUser);
+
+        return userMapper.toUserResponseDTO(newUser);
     }
 
     @Override

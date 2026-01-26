@@ -10,3 +10,8 @@ spring:
     show-sql: false
   flyway:
     enabled: true
+
+app:
+  jwt:
+    secret: devSecretKey
+    expiration-ms: 3600000
