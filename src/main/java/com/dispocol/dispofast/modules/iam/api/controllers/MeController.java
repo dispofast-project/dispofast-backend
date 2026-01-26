@@ -1,4 +1,4 @@
-package com.dispocol.dispofast.modules.iam.api;
+package com.dispocol.dispofast.modules.iam.api.controllers;
 
 import org.springframework.web.bind.annotation.RestController;
 

@@ -11,4 +11,6 @@ import com.dispocol.dispofast.modules.iam.domain.AppUser;
 @Repository
 public interface UserRepository extends JpaRepository<AppUser, UUID> {
     Optional<AppUser> findByEmailIgnoreCase(String email);
+
+    boolean existsByEmailIgnoreCase(String email);
 }
