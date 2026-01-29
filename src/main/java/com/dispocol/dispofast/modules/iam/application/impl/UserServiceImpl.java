@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.dispocol.dispofast.modules.iam.api.dtos.CreateUserRequestDTO;
@@ -12,7 +13,6 @@ import com.dispocol.dispofast.modules.iam.api.mappers.UserMapper;
 import com.dispocol.dispofast.modules.iam.application.interfaces.UserService;
 import com.dispocol.dispofast.modules.iam.domain.AppUser;
 import com.dispocol.dispofast.modules.iam.infra.persistence.UserRepository;
-import com.dispocol.dispofast.modules.iam.infra.security.PasswordConfig;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +23,7 @@ public class UserServiceImpl implements UserService {
 
 
     private final UserRepository userRepository;
-    private final PasswordConfig passwordConfig;
+    private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
 
     @Override
@@ -43,7 +43,7 @@ public class UserServiceImpl implements UserService {
         }
 
         newUser = userMapper.fromCreateUserRequestDTO(userRequest);
-        newUser.setPasswordHash(passwordConfig.passwordEncoder().encode(userRequest.getPassword()));
+        newUser.setPasswordHash(passwordEncoder.encode(userRequest.getPassword()));
         newUser.setActive(true);
 
         newUser = userRepository.save(newUser);

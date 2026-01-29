@@ -2,6 +2,7 @@ package com.dispocol.dispofast.modules.iam.api.controllers;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -9,7 +10,6 @@ import com.dispocol.dispofast.modules.iam.api.dtos.LoginRequestDTO;
 import com.dispocol.dispofast.modules.iam.api.dtos.LoginResponseDTO;
 import com.dispocol.dispofast.modules.iam.application.interfaces.AuthService;
 
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 

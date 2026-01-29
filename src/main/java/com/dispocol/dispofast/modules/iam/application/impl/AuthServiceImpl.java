@@ -1,5 +1,6 @@
 package com.dispocol.dispofast.modules.iam.application.impl;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.dispocol.dispofast.modules.iam.api.dtos.LoginRequestDTO;
@@ -10,7 +11,6 @@ import com.dispocol.dispofast.modules.iam.application.interfaces.AuthService;
 import com.dispocol.dispofast.modules.iam.domain.AppUser;
 import com.dispocol.dispofast.modules.iam.infra.persistence.UserRepository;
 import com.dispocol.dispofast.modules.iam.infra.security.JWTProvider;
-import com.dispocol.dispofast.modules.iam.infra.security.PasswordConfig;
 
 import lombok.RequiredArgsConstructor;
 
@@ -24,8 +24,7 @@ public class AuthServiceImpl implements AuthService {
     private final AuthUserDetailsMapper authUserDetailsMapper;
     private final UserMapper userMapper;
 
-    private PasswordConfig passwordConfig;
-
+    private final PasswordEncoder passwordEncoder;
     @Override
     public LoginResponseDTO login(LoginRequestDTO loginRequest) {
        AppUser user = 
@@ -33,7 +32,7 @@ public class AuthServiceImpl implements AuthService {
                             .orElseThrow(() -> 
                             new IllegalArgumentException("Invalid email or password"));
         
-        if(!passwordConfig.passwordEncoder().matches(
+        if(!passwordEncoder.matches(
             loginRequest.getPassword(), 
             user.getPasswordHash()
         )) {
