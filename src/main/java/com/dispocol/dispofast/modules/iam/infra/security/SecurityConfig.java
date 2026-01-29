@@ -12,8 +12,10 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -21,11 +23,13 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import com.dispocol.dispofast.modules.iam.infra.security.config.JwtAuthFilter;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
 @RequiredArgsConstructor
+@Slf4j
 public class SecurityConfig {
 
     private final ObjectProvider<JwtAuthFilter> jwtAuthFilterProvider;
@@ -36,6 +40,7 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .exceptionHandling(ex -> ex.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
             .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
             .authorizeHttpRequests(auth -> auth
                 // Permit all preflight requests
@@ -55,7 +60,10 @@ public class SecurityConfig {
 
         JwtAuthFilter jwtFilter = jwtAuthFilterProvider.getIfAvailable();
         if (jwtFilter != null) {
+            log.info("Registering JwtAuthFilter before UsernamePasswordAuthenticationFilter");
             http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+        } else {
+            log.warn("JwtAuthFilter bean not available; requests will not be authenticated via JWT");
         }
 
         return http.build();

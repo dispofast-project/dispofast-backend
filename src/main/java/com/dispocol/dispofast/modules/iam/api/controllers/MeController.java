@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 @RestController()
 public class MeController {
     
-    @GetMapping("/api/me")
+    @GetMapping("/me")
     public Map<String,String> getMethodName(Authentication authentication) {
         return Map.of(
             "username", authentication.getName(),

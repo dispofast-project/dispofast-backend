@@ -29,7 +29,7 @@ public class JWTProvider {
         long expMillis = nowMillis + (jwtProperties.expirationSeconds() * 1000);
         
         return Jwts.builder()
-            .claim("sub", userDetails.getUsername())
+            .subject(userDetails.getUsername())
             .issuedAt(new Date(nowMillis))
             .expiration(new Date(expMillis))
             .signWith(secretKey)

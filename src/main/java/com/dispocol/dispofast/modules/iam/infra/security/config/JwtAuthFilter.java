@@ -4,7 +4,6 @@ import java.io.IOException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -25,7 +24,6 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
-@ConditionalOnBean({ JwtProperties.class, UserDetailService.class })
 @RequiredArgsConstructor
 public class JwtAuthFilter extends OncePerRequestFilter{
 
@@ -44,14 +42,19 @@ public class JwtAuthFilter extends OncePerRequestFilter{
             throws ServletException, IOException {
                 
         String token = extractToken(request);
+        if (token == null) {
+            log.debug("No Authorization Bearer token found for {} {}", request.getMethod(), request.getRequestURI());
+        }
 
         if (token != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             try {
                 String username = jwtProvider.getUsernameFromToken(token);
+                log.debug("Parsed JWT subject='{}' for {} {}", username, request.getMethod(), request.getRequestURI());
 
                 if (username != null) {
                     UserDetails userDetails = userDetailService.loadUserByUsername(username);
                     if (jwtProvider.validateToken(token, userDetails)) {
+                        log.debug("JWT validated for user '{}', granting authorities {}", userDetails.getUsername(), userDetails.getAuthorities());
                         UsernamePasswordAuthenticationToken authenticationToken = 
                             new UsernamePasswordAuthenticationToken(
                                 userDetails, 
@@ -63,6 +66,7 @@ public class JwtAuthFilter extends OncePerRequestFilter{
                     }
                 }
             } catch (Exception e) {
+                log.warn("JWT processing failed for {} {}: {}", request.getMethod(), request.getRequestURI(), e.toString());
                 handlerExceptionResolver.resolveException(request, response, null, e);
                 SecurityContextHolder.clearContext();
                 return;
