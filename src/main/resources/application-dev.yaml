@@ -13,5 +13,5 @@ spring:
 
 app:
   jwt:
-    secret: devSecretKey
-    expiration-ms: 3600000
+    secret: ihavetochangeThisSecretKeysoon1234567890
+    expirationSeconds: 3600000

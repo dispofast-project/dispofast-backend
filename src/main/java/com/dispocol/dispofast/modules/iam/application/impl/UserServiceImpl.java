@@ -2,6 +2,8 @@ package com.dispocol.dispofast.modules.iam.application.impl;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.dispocol.dispofast.modules.iam.api.dtos.CreateUserRequestDTO;
@@ -50,9 +52,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<AppUser> searchUsers(String search) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'searchUsers'");
+    public Page<AppUser> searchUsers(String search, Pageable pageable) {
+        return userRepository.findByFullNameContainingIgnoreCase(search, pageable);
     }
 
     @Override
@@ -63,14 +64,20 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<AppUser> getUsers() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getUsers'");
+        return userRepository.findAll();
     }
 
     @Override
     public AppUser getUserByEmail(String email) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getUserByEmail'");
+        return userRepository.findByEmailIgnoreCase(email)
+            .orElseThrow(() -> new IllegalStateException(
+                "No se encontró un usuario con el correo: " + email
+            ));
+    }
+
+    @Override
+    public Page<AppUser> getUsersPaged(Pageable pageable) {
+        return userRepository.findAll(pageable);
     }
     
 }

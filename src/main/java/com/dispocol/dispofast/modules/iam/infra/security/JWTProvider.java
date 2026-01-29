@@ -11,6 +11,7 @@ import com.dispocol.dispofast.modules.iam.infra.security.config.JwtProperties;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
 
 @Component
 public class JWTProvider {
@@ -20,7 +21,7 @@ public class JWTProvider {
 
     public JWTProvider(JwtProperties jwtProperties) {
         this.jwtProperties = jwtProperties;
-        this.secretKey = io.jsonwebtoken.security.Keys.hmacShaKeyFor(jwtProperties.secret().getBytes());
+        this.secretKey = Keys.hmacShaKeyFor(jwtProperties.secret().getBytes());
     }
 
     public String generateToken(UserDetails userDetails) {
@@ -36,7 +37,7 @@ public class JWTProvider {
     }
 
     public boolean validateToken(String token, UserDetails userDetails) {
-        String username = getClaims(token).getSubject();
+        String username = getUsernameFromToken(token);
 
         return (username.equals(userDetails.getUsername()) && 
             !getClaims(token).getExpiration().before(new Date()));
@@ -49,6 +50,10 @@ public class JWTProvider {
             .build()
             .parseSignedClaims(token)
             .getPayload();
+    }
+
+    public String getUsernameFromToken(String token) {
+       return getClaims(token).getSubject();
     }
 
     

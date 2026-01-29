@@ -2,6 +2,9 @@ package com.dispocol.dispofast.modules.iam.application.interfaces;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import com.dispocol.dispofast.modules.iam.api.dtos.CreateUserRequestDTO;
 import com.dispocol.dispofast.modules.iam.api.dtos.UserResponseDTO;
 import com.dispocol.dispofast.modules.iam.domain.AppUser;
@@ -22,7 +25,7 @@ public interface UserService {
      * @param search the input that user uses to do the searching
      * @return list of users that match the search parameter 
      */
-    List<AppUser> searchUsers(String search);
+    Page<AppUser> searchUsers(String search, Pageable pageable);
 
     /**
      * Deletes a determined user
@@ -37,6 +40,14 @@ public interface UserService {
      * @return all the users in the app
      */
     List<AppUser> getUsers();
+
+    /**
+     * Get all users in a paged way
+     * 
+     * @param pageable pagination information
+     * @return paged users
+     */
+    Page<AppUser> getUsersPaged(Pageable pageable);
 
     /**
      * Search a user given by the email

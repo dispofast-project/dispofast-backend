@@ -1,17 +1,17 @@
 package com.dispocol.dispofast.modules.iam.application.interfaces;
 
-import com.dispocol.dispofast.modules.iam.domain.AppUser;
+import com.dispocol.dispofast.modules.iam.api.dtos.LoginRequestDTO;
+import com.dispocol.dispofast.modules.iam.api.dtos.LoginResponseDTO;
 
 public interface AuthService {
     
     /**
-     * Authetication for a user using email and password
+     * Authenticates a user and returns a JWT token
      * 
-     * @param email user's email
-     * @param password user's password
-     * @return the authenticated user
+     * @param loginRequest The login request DTO containing email and password
+     * @return A LoginResponseDTO containing the JWT token and user info
      */
-    AppUser login(String email, String password);
+    LoginResponseDTO login(LoginRequestDTO loginRequest);
 
     /**
      * Logs out the current user
