@@ -6,12 +6,18 @@ import org.springframework.web.bind.annotation.RestController;
 import com.dispocol.dispofast.modules.iam.api.dtos.CreateUserRequestDTO;
 import com.dispocol.dispofast.modules.iam.api.dtos.UserResponseDTO;
 import com.dispocol.dispofast.modules.iam.application.interfaces.UserService;
+import com.dispocol.dispofast.modules.iam.domain.AppUser;
 
 import lombok.RequiredArgsConstructor;
+
+import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 
 @RestController
@@ -27,5 +33,11 @@ public class UserController {
         
         return ResponseEntity.ok(entity);
     }
+
+    @GetMapping("")
+    public ResponseEntity<List<AppUser>> getMethodName() {
+        return ResponseEntity.ok(userService.getUsers());
+    }
+    
     
 }
