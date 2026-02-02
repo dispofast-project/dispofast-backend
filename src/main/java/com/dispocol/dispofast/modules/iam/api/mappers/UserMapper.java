@@ -40,7 +40,7 @@ public interface UserMapper {
     }
 
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "roles", ignore = true)
+    @Mapping(target = "roles", source = "roles")
     @Mapping(
         target = "email", 
         expression = "java(userRequest != null ? userRequest.getEmail().trim().toLowerCase() : null)"
@@ -49,7 +49,10 @@ public interface UserMapper {
         target = "fullName", 
         expression = "java(userRequest != null ? userRequest.getName().trim() : null)"
     )
-    @Mapping(target = "passwordHash", ignore = true)
+    @Mapping(
+        target = "passwordHash",
+        expression = "java(userRequest != null && userRequest.getPassword() != null ? userRequest.getPassword().trim() : null)"
+    )
     @Mapping(target = "active", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)

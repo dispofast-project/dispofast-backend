@@ -17,7 +17,7 @@ import io.jsonwebtoken.lang.Collections;
 @Component
 public class AuthUserDetailsMapper {
     
-    public static UserDetails toUserDetails(AppUser user) {
+    public UserDetails toUserDetails(AppUser user) {
 
         Collection<GrantedAuthority> authorities = Optional.ofNullable(user.getRoles())
             .orElse(Collections.emptySet())

@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
 
+import com.dispocol.dispofast.modules.iam.api.dtos.CreateUserRequestDTO;
 import com.dispocol.dispofast.modules.iam.api.dtos.UserResponseDTO;
 import com.dispocol.dispofast.modules.iam.api.mappers.UserMapper;
 import com.dispocol.dispofast.modules.iam.api.mappers.UserMapperImpl;
@@ -71,8 +72,30 @@ public class UserMapperTest {
     }
 
     @Test
+    @DisplayName("should map from CreateUserRequestDTO to AppUser correctly")
+    void shouldMapFromCreateUserRequestDTO() {
+       
+        CreateUserRequestDTO createUserRequestDTO = new CreateUserRequestDTO(
+            " Jane Smith ",
+            " jane@email.com",
+            " securePassword ",
+            Set.of(role1)
+        );  
+
+        AppUser appUser = userMapper.fromCreateUserRequestDTO(createUserRequestDTO);
+
+        assert appUser.getFullName().equals("Jane Smith");
+        assert appUser.getEmail().equals("jane@email.com");
+        assert appUser.getPasswordHash().equals("securePassword");
+        assert appUser.getRoles().size() == 1;
+        assert appUser.getRoles().iterator().next().getName().equals("ROLE_USER");
+    }
+
+    @Test
     @DisplayName("should format date-time correctly")
     void shouldFormatDateTimeCorrectly() {
        
     }
+
+    
 }

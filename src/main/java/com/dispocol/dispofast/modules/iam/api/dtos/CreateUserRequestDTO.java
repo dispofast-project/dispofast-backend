@@ -5,9 +5,11 @@ import java.util.Set;
 import com.dispocol.dispofast.modules.iam.domain.Role;
 
 import jakarta.validation.constraints.Email;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
+@AllArgsConstructor
 public class CreateUserRequestDTO {
     
     private String name;
