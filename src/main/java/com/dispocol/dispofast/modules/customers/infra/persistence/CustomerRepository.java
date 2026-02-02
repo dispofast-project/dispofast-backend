@@ -10,5 +10,6 @@ import com.dispocol.dispofast.modules.customers.domain.Customer;
 @Repository
 public interface CustomerRepository extends JpaRepository<Customer, UUID> {
     
+    Customer findByNitCedula(String nitCedula);
     
 }

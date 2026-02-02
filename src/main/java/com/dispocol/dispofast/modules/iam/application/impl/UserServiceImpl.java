@@ -57,9 +57,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void deleteUser(AppUser user) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'deleteUser'");
+    public void deleteUser(String email) {
+        AppUser user = getUserByEmail(email);
+
+        if(user == null){
+            throw new IllegalStateException("No se encontró un usuario con el correo: " + email);
+        }
+        userRepository.delete(user);
     }
 
     @Override

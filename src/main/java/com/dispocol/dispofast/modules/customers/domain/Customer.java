@@ -22,6 +22,9 @@ public class Customer {
     @GeneratedValue
     private UUID id;
 
+    @Column(name = "type_person", nullable = false, length = 100)
+    private String typePerson;
+
     @Column(name = "social_reason", nullable = false, length = 255)
     private String socialReason;
 
