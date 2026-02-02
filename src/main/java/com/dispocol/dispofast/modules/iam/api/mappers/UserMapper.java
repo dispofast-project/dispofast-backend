@@ -54,6 +54,7 @@ public interface UserMapper {
         expression = "java(userRequest != null && userRequest.getPassword() != null ? userRequest.getPassword().trim() : null)"
     )
     @Mapping(target = "active", ignore = true)
+    @Mapping(target = "customers", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     AppUser fromCreateUserRequestDTO(CreateUserRequestDTO userRequest);
