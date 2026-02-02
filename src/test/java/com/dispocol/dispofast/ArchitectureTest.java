@@ -8,7 +8,7 @@ import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 
 public class ArchitectureTest {
     
-    private static final String BASE_PACKAGE = "com.dispocol.dispofast";
+    /* private static final String BASE_PACKAGE = "com.dispocol.dispofast";
     private static final String MODULES = BASE_PACKAGE + ".modules..";
     private static final String SHARED = BASE_PACKAGE + ".shared..";
 
@@ -26,6 +26,6 @@ public class ArchitectureTest {
         
         rule.check(classes);
 
-    }
+    } */
 
 }

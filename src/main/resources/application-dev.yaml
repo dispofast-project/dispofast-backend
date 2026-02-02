@@ -10,3 +10,12 @@ spring:
     show-sql: false
   flyway:
     enabled: true
+
+app:
+  jwt:
+    secret: ihavetochangeThisSecretKeysoon1234567890
+    expirationSeconds: 3600000
+
+logging:
+  level:
+    com.dispocol.dispofast.modules.iam.infra.security: DEBUG
