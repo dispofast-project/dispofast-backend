@@ -5,11 +5,13 @@ import java.util.UUID;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "customer_contacts")
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class CustomerContact {
     
     @Id

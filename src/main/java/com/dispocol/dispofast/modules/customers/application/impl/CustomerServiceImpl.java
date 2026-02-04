@@ -1,13 +1,18 @@
 package com.dispocol.dispofast.modules.customers.application.impl;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import com.dispocol.dispofast.modules.customers.api.dtos.CreateCustomerContactRequestDTO;
 import com.dispocol.dispofast.modules.customers.api.dtos.CreateCustomerRequestDTO;
 import com.dispocol.dispofast.modules.customers.api.dtos.CustomerResponseDTO;
 import com.dispocol.dispofast.modules.customers.api.mappers.CustomerMapper;
 import com.dispocol.dispofast.modules.customers.application.interfaces.CustomerService;
 import com.dispocol.dispofast.modules.customers.domain.Customer;
+import com.dispocol.dispofast.modules.customers.domain.CustomerContact;
 import com.dispocol.dispofast.modules.customers.infra.persistence.CustomerRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -33,8 +38,23 @@ public class CustomerServiceImpl implements CustomerService{
             );
         }
 
+        CustomerContact contact = createCustomerContact(customerRequest.getContact());
+
+        newCustomer = customerMapper.fromCreateCustomerRequestDTO(customerRequest);
+        List<CustomerContact> contacts = newCustomer.getContacts();
+        contacts.add(contact);
+        newCustomer.setContacts(contacts);
+
+        newCustomer = customerRepository.save(newCustomer);
+
         return customerMapper.toCustomerResponseDTO(newCustomer);
 
+    }
+
+    private CustomerContact createCustomerContact(CreateCustomerContactRequestDTO customerRequest) {
+
+    
+        return customerMapper.fromCreateCustomerContactRequestDTO(customerRequest);
     }
 
     @Override
@@ -45,14 +65,17 @@ public class CustomerServiceImpl implements CustomerService{
 
     @Override
     public Page<CustomerResponseDTO> getAllCustomers(int page, int size) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getAllCustomers'");
+        return customerRepository.findAll(PageRequest.of(page, size))
+            .map(customerMapper::toCustomerResponseDTO);
     }
 
     @Override
     public Page<CustomerResponseDTO> searchCustomers(String search, int page, int size) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'searchCustomers'");
+        return customerRepository.findBySocialReasonContainingIgnoreCaseOrNitCedulaContainingIgnoreCase(
+            search, 
+            search, 
+            PageRequest.of(page, size)
+        );
     }
 
     @Override
