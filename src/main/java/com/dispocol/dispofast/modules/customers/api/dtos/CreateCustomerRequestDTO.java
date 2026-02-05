@@ -1,5 +1,7 @@
 package com.dispocol.dispofast.modules.customers.api.dtos;
 
+import java.util.UUID;
+
 import com.dispocol.dispofast.modules.iam.domain.AppUser;
 
 import jakarta.validation.constraints.Email;
@@ -25,7 +27,7 @@ public class CreateCustomerRequestDTO {
     @Email
     private String email;
 
-    private AppUser appUser;
+    private UUID userId;
 
     private CreateCustomerContactRequestDTO contact;
 }

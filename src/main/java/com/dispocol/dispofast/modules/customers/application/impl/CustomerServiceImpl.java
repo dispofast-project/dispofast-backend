@@ -1,5 +1,6 @@
 package com.dispocol.dispofast.modules.customers.application.impl;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -14,6 +15,8 @@ import com.dispocol.dispofast.modules.customers.application.interfaces.CustomerS
 import com.dispocol.dispofast.modules.customers.domain.Customer;
 import com.dispocol.dispofast.modules.customers.domain.CustomerContact;
 import com.dispocol.dispofast.modules.customers.infra.persistence.CustomerRepository;
+import com.dispocol.dispofast.modules.iam.domain.AppUser;
+import com.dispocol.dispofast.modules.iam.infra.persistence.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -23,37 +26,38 @@ public class CustomerServiceImpl implements CustomerService{
 
     private final CustomerRepository customerRepository;
     private final CustomerMapper customerMapper;
+    private final UserRepository userRepository;
 
     @Override
     public CustomerResponseDTO createCustomer(CreateCustomerRequestDTO customerRequest) {
-        Customer newCustomer;
-        String nitCedula;
-
-        newCustomer = new Customer();
-        nitCedula = customerRequest.getNitCedula();
+        
+        String nitCedula = customerRequest.getNitCedula();
 
         if (customerRepository.findByNitCedula(nitCedula) != null) {
-            throw new IllegalStateException("El cliente ya existe con el NIT/Cédula: " 
-                + nitCedula
-            );
+            throw new IllegalStateException("El cliente ya existe con el NIT/Cédula: " + nitCedula);
         }
 
-        CustomerContact contact = createCustomerContact(customerRequest.getContact());
+        if (customerRequest.getUserId() == null) {
+            throw new IllegalStateException("El userId es obligatorio");
+        }
 
-        newCustomer = customerMapper.fromCreateCustomerRequestDTO(customerRequest);
-        List<CustomerContact> contacts = newCustomer.getContacts();
+        AppUser appUser = userRepository.findById(customerRequest.getUserId())
+            .orElseThrow(() -> new IllegalStateException("Usuario no encontrado con ID: " + customerRequest.getUserId()));
+
+        Customer newCustomer = customerMapper.fromCreateCustomerRequestDTO(customerRequest);
+        newCustomer.setUser(appUser);
+
+        CustomerContact contact = createCustomerContact(customerRequest.getContact());
+        List<CustomerContact> contacts = new ArrayList<>();
         contacts.add(contact);
         newCustomer.setContacts(contacts);
 
         newCustomer = customerRepository.save(newCustomer);
-
         return customerMapper.toCustomerResponseDTO(newCustomer);
 
     }
 
     private CustomerContact createCustomerContact(CreateCustomerContactRequestDTO customerRequest) {
-
-    
         return customerMapper.fromCreateCustomerContactRequestDTO(customerRequest);
     }
 
