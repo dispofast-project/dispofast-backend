@@ -2,6 +2,7 @@ package com.dispocol.dispofast.modules.iam.application.impl;
 
 import java.util.List;
 
+import org.mapstruct.control.MappingControl.Use;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -12,6 +13,8 @@ import com.dispocol.dispofast.modules.iam.api.dtos.UserResponseDTO;
 import com.dispocol.dispofast.modules.iam.api.mappers.UserMapper;
 import com.dispocol.dispofast.modules.iam.application.interfaces.UserService;
 import com.dispocol.dispofast.modules.iam.domain.AppUser;
+import com.dispocol.dispofast.modules.iam.infra.exceptions.UserAlreadyExistsException;
+import com.dispocol.dispofast.modules.iam.infra.exceptions.UserNotFoundException;
 import com.dispocol.dispofast.modules.iam.infra.persistence.UserRepository;
 
 import jakarta.transaction.Transactional;
@@ -37,7 +40,7 @@ public class UserServiceImpl implements UserService {
         email = userRequest.getEmail();
 
         if (userRepository.existsByEmailIgnoreCase(email.trim())) {
-            throw new IllegalStateException("El usuario ya existe con el correo: " 
+            throw new UserAlreadyExistsException("El usuario ya existe con el correo: " 
                 + email
             );
         }
@@ -61,7 +64,7 @@ public class UserServiceImpl implements UserService {
         AppUser user = getUserByEmail(email);
 
         if(user == null){
-            throw new IllegalStateException("No se encontró un usuario con el correo: " + email);
+            throw new UserNotFoundException("No se encontró un usuario con el correo: " + email);
         }
         userRepository.delete(user);
     }
@@ -74,7 +77,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public AppUser getUserByEmail(String email) {
         return userRepository.findByEmailIgnoreCase(email)
-            .orElseThrow(() -> new IllegalStateException(
+            .orElseThrow(() -> new UserNotFoundException(
                 "No se encontró un usuario con el correo: " + email
             ));
     }

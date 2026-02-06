@@ -14,8 +14,10 @@ import com.dispocol.dispofast.modules.customers.api.mappers.CustomerMapper;
 import com.dispocol.dispofast.modules.customers.application.interfaces.CustomerService;
 import com.dispocol.dispofast.modules.customers.domain.Customer;
 import com.dispocol.dispofast.modules.customers.domain.CustomerContact;
+import com.dispocol.dispofast.modules.customers.infra.exceptions.CustomerAlreadyExistsException;
 import com.dispocol.dispofast.modules.customers.infra.persistence.CustomerRepository;
 import com.dispocol.dispofast.modules.iam.domain.AppUser;
+import com.dispocol.dispofast.modules.iam.infra.exceptions.UserNotFoundException;
 import com.dispocol.dispofast.modules.iam.infra.persistence.UserRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -34,7 +36,7 @@ public class CustomerServiceImpl implements CustomerService{
         String nitCedula = customerRequest.getNitCedula();
 
         if (customerRepository.findByNitCedula(nitCedula) != null) {
-            throw new IllegalStateException("El cliente ya existe con el NIT/Cédula: " + nitCedula);
+            throw new CustomerAlreadyExistsException("El cliente ya existe con el NIT/Cédula: " + nitCedula);
         }
 
         if (customerRequest.getUserId() == null) {
@@ -42,7 +44,7 @@ public class CustomerServiceImpl implements CustomerService{
         }
 
         AppUser appUser = userRepository.findById(customerRequest.getUserId())
-            .orElseThrow(() -> new IllegalStateException("Usuario no encontrado con ID: " + customerRequest.getUserId()));
+            .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado con ID: " + customerRequest.getUserId()));
 
         Customer newCustomer = customerMapper.fromCreateCustomerRequestDTO(customerRequest);
         newCustomer.setUser(appUser);
