@@ -2,6 +2,7 @@ package com.dispocol.dispofast.modules.customers.application.impl;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -63,8 +64,9 @@ public class CustomerServiceImpl implements CustomerService{
 
     @Override
     public CustomerResponseDTO getCustomerById(String customerId) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getCustomerById'");
+        return customerRepository.findById(UUID.fromString(customerId))
+            .map(customerMapper::toCustomerResponseDTO)
+            .orElseThrow(() -> new IllegalStateException("Cliente no encontrado con ID: " + customerId));
     }
 
     @Override
@@ -84,14 +86,33 @@ public class CustomerServiceImpl implements CustomerService{
 
     @Override
     public void deleteCustomerById(String customerId) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'deleteCustomerById'");
+       
+        Customer customer = customerRepository.findById(UUID.fromString(customerId))
+            .orElseThrow(() -> new IllegalStateException("Cliente no encontrado con ID: " + customerId));
+        
+        customerRepository.delete(customer);
     }
 
     @Override
     public CustomerResponseDTO updateCustomer(String customerId, CreateCustomerRequestDTO customerRequest) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'updateCustomer'");
+        
+        Customer existingCustomer = customerRepository.findById(UUID.fromString(customerId))
+            .orElseThrow(() -> new IllegalStateException("Cliente no encontrado con ID: " + customerId));
+
+        existingCustomer.setTypePerson(customerRequest.getTypePerson().trim());
+        existingCustomer.setSocialReason(customerRequest.getSocialReason().trim());
+        existingCustomer.setNitCedula(customerRequest.getNitCedula().trim());
+        existingCustomer.setWitholdingTax(customerRequest.isWitholdingTax());
+        existingCustomer.setAddress(customerRequest.getAddress().trim());
+        existingCustomer.setZone(customerRequest.getZone().trim());
+        existingCustomer.setCity(customerRequest.getCity().trim());
+        existingCustomer.setCountry(customerRequest.getCountry().trim());
+        existingCustomer.setDepto(customerRequest.getDepto().trim());
+        existingCustomer.setPhone(customerRequest.getPhone().trim());
+        existingCustomer.setEmail(customerRequest.getEmail().trim().toLowerCase());
+
+        Customer updatedCustomer = customerRepository.save(existingCustomer);
+        return customerMapper.toCustomerResponseDTO(updatedCustomer);
     }
     
 }
