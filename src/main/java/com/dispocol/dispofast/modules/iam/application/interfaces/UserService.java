@@ -32,7 +32,7 @@ public interface UserService {
      * 
      * @param user user to be deleted
      */
-    void deleteUser(AppUser user);
+    void deleteUser(String email);
 
     /**
      * Gets all users that have been registered

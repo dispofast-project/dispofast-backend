@@ -7,6 +7,17 @@ spring:
     time-zone: UTC
     serialization:
       write-dates-as-timestamps: false
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5433/dispofast}
+    username: ${DB_USERNAME:dispofast}
+    password: ${DB_PASSWORD:dispofast}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+  flyway:
+    enabled: true
 
 server:
   port: 8080
