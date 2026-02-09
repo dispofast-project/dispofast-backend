@@ -7,6 +7,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.dispocol.dispofast.modules.customers.infra.exceptions.CustomerNotFoundException;
+import com.dispocol.dispofast.modules.iam.infra.exceptions.UserNotFoundException;
+
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,6 +27,18 @@ public class GlobalExceptionHandler {
     public ResponseEntity<GlobalErrorResponse> handleUnsuportedOperation(UnsupportedOperationException ex, HttpServletRequest request){
         log.warn("Unsupported operation {}", ex.getMessage());
         return buildErrorResponseEntity(ex, request, HttpStatus.NOT_IMPLEMENTED);
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<GlobalErrorResponse> handleUserNotFound(RuntimeException ex, HttpServletRequest request){
+        log.warn("El usuario no fue encontrado: {}", ex.getMessage());
+        return buildErrorResponseEntity(ex, request, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(CustomerNotFoundException.class)
+    public ResponseEntity<GlobalErrorResponse> handleCustomerNotFound(RuntimeException ex, HttpServletRequest request){
+        log.warn("El cliente no fue encontrado: {}", ex.getMessage());
+        return buildErrorResponseEntity(ex, request, HttpStatus.NOT_FOUND);
     }
 
     public ResponseEntity<GlobalErrorResponse> handleGenericException(Exception ex, HttpServletRequest request){

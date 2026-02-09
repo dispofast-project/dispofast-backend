@@ -2,8 +2,6 @@ package com.dispocol.dispofast.modules.customers.api.dtos;
 
 import java.util.UUID;
 
-import com.dispocol.dispofast.modules.iam.domain.AppUser;
-
 import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;
 import lombok.Data;
