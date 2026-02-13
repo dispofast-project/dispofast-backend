@@ -9,6 +9,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.Data;
 
@@ -21,10 +22,10 @@ public class InventoryStock {
     @GeneratedValue
     private UUID id;
     
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "int default 0")
     private int quantityAvailable;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "int default 0")
     private int quantityReserved;
 
     @Column(nullable = false)
@@ -36,5 +37,10 @@ public class InventoryStock {
     @OneToOne
     @JoinColumn(name = "product_id", nullable = false, unique = true)
     private Product product;
+
+    @PrePersist
+    public void prePersist() {
+        this.lastUpdated = LocalDateTime.now();
+    }
 
 }

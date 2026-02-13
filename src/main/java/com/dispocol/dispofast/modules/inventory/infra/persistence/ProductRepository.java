@@ -10,5 +10,7 @@ import com.dispocol.dispofast.modules.inventory.domain.Product;
 @Repository
 public interface ProductRepository extends JpaRepository<Product, UUID> {
     
+    Product findBySeoTitle(String seoTitle);
+    boolean existsBySeoTitle(String seoTitle);
     
 }
