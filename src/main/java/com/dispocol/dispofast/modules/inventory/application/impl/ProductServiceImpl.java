@@ -32,7 +32,7 @@ public class ProductServiceImpl implements ProductService {
 
         Product savedProduct = productRepository.save(product);
 
-        inventoryService.addProductToInventory(savedProduct.getId().toString(), request.getInitialStock());
+        inventoryService.addProductToInventory(savedProduct, request.getInitialStock());
 
         return productMapper.toProductResponseDTO(savedProduct);
 

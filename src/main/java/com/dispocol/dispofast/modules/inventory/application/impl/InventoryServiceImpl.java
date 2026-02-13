@@ -8,7 +8,6 @@ import com.dispocol.dispofast.modules.inventory.api.dtos.ProductResponseDTO;
 import com.dispocol.dispofast.modules.inventory.application.interfaces.InventoryService;
 import com.dispocol.dispofast.modules.inventory.domain.InventoryStock;
 import com.dispocol.dispofast.modules.inventory.domain.Product;
-import com.dispocol.dispofast.modules.inventory.infra.exceptions.ProductNotFoundException;
 import com.dispocol.dispofast.modules.inventory.infra.persistence.InventoryStockRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -17,16 +16,13 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class InventoryServiceImpl implements InventoryService {
 
-    private final ProductServiceImpl productService;
     private final InventoryStockRepository inventoryStockRepository;
 
     @Override
-    public void addProductToInventory(String productId, int quantity) {
+    public void addProductToInventory(Product product, int quantity) {
        try {
-            Product product = productService.getProductById(productId);
-            if (product == null) {
-                throw new ProductNotFoundException("No se encontró el producto: " + productId);
-            }
+
+            String state = quantity >= 0 ? "IN_STOCK" : "OUT_OF_STOCK";
 
             inventoryStockRepository.findById(product.getId())
                 .map(stock -> {
@@ -37,6 +33,8 @@ public class InventoryServiceImpl implements InventoryService {
                     InventoryStock newStock = new InventoryStock();
                     newStock.setProduct(product);
                     newStock.setQuantityAvailable(quantity);
+                    newStock.setQuantityReserved(0);
+                    newStock.setState(state);
                     return inventoryStockRepository.save(newStock);
                 });
        } catch (Exception e) {

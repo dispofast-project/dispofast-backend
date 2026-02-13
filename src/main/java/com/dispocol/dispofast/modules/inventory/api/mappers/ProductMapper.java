@@ -60,10 +60,6 @@ public interface ProductMapper {
     Product fromCreateProductRequestDTO(CreateProductRequestDTO dto);
 
     @Mapping(
-        target = "categoryId", 
-        expression = "java(product != null && product.getCategory() != null ? product.getCategory().getId() : null)"
-    )
-    @Mapping(
         target = "categoryName", 
         expression = "java(product != null && product.getCategory() != null ? product.getCategory().getName() : null)"
     )
