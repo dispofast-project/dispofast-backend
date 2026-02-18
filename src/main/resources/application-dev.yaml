@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5433/dispofast
-    username: dispofast
-    password: dispofast
+    url: ${DB_PROTOCOL:jdbc:postgresql}://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:dispofast}
+    username: ${DB_USERNAME:dispofast}
+    password: ${DB_PASSWORD:dispofast}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -13,7 +13,7 @@ spring:
 
 app:
   jwt:
-    secret: ihavetochangeThisSecretKeysoon1234567890
+    secret: ${JWT_SECRET:ihavetochangeThisSecretKeysoon1234567890}
     expirationSeconds: 3600000
 
 logging:
