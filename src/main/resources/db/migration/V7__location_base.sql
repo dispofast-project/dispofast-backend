@@ -1,0 +1,36 @@
+CREATE TABLE location (
+    city_code VARCHAR(10) NOT NULL,
+    city_name VARCHAR(255) NOT NULL,
+    department_code VARCHAR(10) NOT NULL,
+    department_name VARCHAR(255) NOT NULL,
+    CONSTRAINT pk_location PRIMARY KEY (city_code)
+);
+
+INSERT INTO location (city_code, city_name, department_code, department_name) VALUES 
+('11001', 'BOGOTÁ, D.C.', '11', 'BOGOTÁ, D.C.'),
+('05001', 'MEDELLÍN', '05', 'ANTIOQUIA'),
+('76001', 'CALI', '76', 'VALLE DEL CAUCA'),
+('08001', 'BARRANQUILLA', '08', 'ATLÁNTICO'),
+('13001', 'CARTAGENA DE INDIAS', '13', 'BOLÍVAR'),
+('68001', 'BUCARAMANGA', '68', 'SANTANDER'),
+('54001', 'CÚCUTA', '54', 'NORTE DE SANTANDER'),
+('66001', 'PEREIRA', '66', 'RISARALDA'),
+('47001', 'SANTA MARTA', '47', 'MAGDALENA'),
+('73001', 'IBAGUÉ', '73', 'TOLIMA'),
+('50001', 'VILLAVICENCIO', '50', 'META'),
+('17001', 'MANIZALES', '17', 'CALDAS'),
+('63001', 'ARMENIA', '63', 'QUINDIO'),
+('41001', 'NEIVA', '41', 'HUILA'),
+('23001', 'MONTERÍA', '23', 'CÓRDOBA'),
+('52001', 'PASTO', '52', 'NARIÑO'),
+('19001', 'POPAYÁN', '19', 'CAUCA'),
+('20001', 'VALLEDUPAR', '20', 'CESAR'),
+('70001', 'SINCELEJO', '70', 'SUCRE'),
+('05088', 'BELLO', '05', 'ANTIOQUIA'),
+('05360', 'ITAGÜÍ', '05', 'ANTIOQUIA'),
+('05266', 'ENVIGADO', '05', 'ANTIOQUIA'),
+('25754', 'SOACHA', '25', 'CUNDINAMARCA'),
+('68276', 'FLORIDABLANCA', '68', 'SANTANDER'),
+('76520', 'PALMIRA', '76', 'VALLE DEL CAUCA'),
+('76111', 'BUGA', '76', 'VALLE DEL CAUCA'),
+('15001', 'TUNJA', '15', 'BOYACÁ');
