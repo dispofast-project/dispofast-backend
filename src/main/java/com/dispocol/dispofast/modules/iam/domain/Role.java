@@ -1,8 +1,7 @@
 package com.dispocol.dispofast.modules.iam.domain;
 
-import java.util.UUID;
-
 import jakarta.persistence.*;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,12 +12,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Role {
-    
-    @Id
-    @GeneratedValue
-    private UUID id;
 
-    @Column(nullable = false, unique = true)
-    private String name;
+  @Id @GeneratedValue private UUID id;
 
+  @Column(nullable = false, unique = true)
+  private String name;
 }
