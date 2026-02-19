@@ -1,0 +1,32 @@
+name: Spotless Apply Style Check
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+jobs:
+  spotless:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      - name: Configurar JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Hacer ejecutable el wrapper de Gradle
+        run: chmod +x gradlew
+
+      - name: Ejecutar Spotless Check
+        run: ./gradlew spotlessCheck
+
+      # Paso opcional: Si el check falla, este paso da un mensaje claro
+      - name: Reporte de error
+        if: failure()
+        run: |
+          echo "❌ El código no cumple con las reglas de estilo."
+          echo "Por favor, ejecuta './gradlew spotlessApply' localmente y vuelve a subir tus cambios."
