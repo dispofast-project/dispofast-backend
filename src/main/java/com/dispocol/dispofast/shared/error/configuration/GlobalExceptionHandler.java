@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.dispocol.dispofast.modules.customers.infra.exceptions.CustomerNotFoundException;
 import com.dispocol.dispofast.modules.iam.infra.exceptions.UserNotFoundException;
+import com.dispocol.dispofast.shared.error.ResourceNotFoundException;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -41,7 +42,14 @@ public class GlobalExceptionHandler {
         return buildErrorResponseEntity(ex, request, HttpStatus.NOT_FOUND);
     }
 
-    public ResponseEntity<GlobalErrorResponse> handleGenericException(Exception ex, HttpServletRequest request){
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<GlobalErrorResponse> handleResourceNotFound(ResourceNotFoundException ex,
+            HttpServletRequest request) {
+        log.warn("Resource not found: {}", ex.getMessage());
+        return buildErrorResponseEntity(ex, request, HttpStatus.NOT_FOUND);
+    }
+
+    public ResponseEntity<GlobalErrorResponse> handleGenericException(Exception ex, HttpServletRequest request) {
         log.error("Internal server error", ex);
         return buildErrorResponseEntity(ex, request, HttpStatus.INTERNAL_SERVER_ERROR);
     }
