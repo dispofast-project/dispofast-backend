@@ -4,8 +4,8 @@ import lombok.Data;
 
 @Data
 public class LocationDTO {
-    private String cityCode;
-    private String cityName;
-    private String departmentCode;
-    private String departmentName;
+  private String cityCode;
+  private String cityName;
+  private String departmentCode;
+  private String departmentName;
 }

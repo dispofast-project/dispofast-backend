@@ -1,11 +1,7 @@
 package com.dispocol.dispofast.modules.quotes.infra.persistence;
 
+import com.dispocol.dispofast.modules.quotes.domain.Quotes;
 import java.util.UUID;
-
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.dispocol.dispofast.modules.quotes.domain.Quotes;
-
-public interface QuotesRepository extends JpaRepository<Quotes, UUID> {
-
-}
+public interface QuotesRepository extends JpaRepository<Quotes, UUID> {}

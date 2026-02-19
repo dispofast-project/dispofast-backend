@@ -6,11 +6,11 @@ import lombok.Getter;
 @AllArgsConstructor
 @Getter
 public enum QuoteStatus {
-    DRAFT("borrador"),
-    SENT("enviada"),
-    ACCEPTED("aceptada"),
-    REJECTED("rechazada"),
-    EXPIRED("caducada");
+  DRAFT("borrador"),
+  SENT("enviada"),
+  ACCEPTED("aceptada"),
+  REJECTED("rechazada"),
+  EXPIRED("caducada");
 
-    private final String value;
+  private final String value;
 }

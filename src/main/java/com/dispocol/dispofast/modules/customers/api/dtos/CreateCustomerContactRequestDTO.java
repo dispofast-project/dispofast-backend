@@ -7,13 +7,11 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class CreateCustomerContactRequestDTO {
-    
-    private String name;
-    private String lastName;
-    private String position;
-    private String phone;
 
-    @Email
-    private String email;
+  private String name;
+  private String lastName;
+  private String position;
+  private String phone;
 
+  @Email private String email;
 }

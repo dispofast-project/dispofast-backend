@@ -9,13 +9,13 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class LoginRequestDTO {
-    
-    @NotBlank
-    @Email
-    @Size(max = 100)
-    private String email;
 
-    @NotBlank
-    @Size(min = 8, max = 100)
-    private String password;
+  @NotBlank
+  @Email
+  @Size(max = 100)
+  private String email;
+
+  @NotBlank
+  @Size(min = 8, max = 100)
+  private String password;
 }

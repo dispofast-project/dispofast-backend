@@ -1,79 +1,79 @@
 package com.dispocol.dispofast.shared.error.configuration;
 
+import com.dispocol.dispofast.modules.customers.infra.exceptions.CustomerNotFoundException;
+import com.dispocol.dispofast.modules.iam.infra.exceptions.UserNotFoundException;
+import com.dispocol.dispofast.shared.error.ResourceNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import java.time.Instant;
-
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import com.dispocol.dispofast.modules.customers.infra.exceptions.CustomerNotFoundException;
-import com.dispocol.dispofast.modules.iam.infra.exceptions.UserNotFoundException;
-import com.dispocol.dispofast.shared.error.ResourceNotFoundException;
-
-import jakarta.servlet.http.HttpServletRequest;
-import lombok.extern.slf4j.Slf4j;
-
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-    
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<GlobalErrorResponse> handleBadRequest(IllegalArgumentException ex, HttpServletRequest request){
-        log.warn("Bad request {}", ex.getMessage());
-        return buildErrorResponseEntity(ex, request, HttpStatus.BAD_REQUEST);
-    }
 
-    @ExceptionHandler(UnsupportedOperationException.class)
-    public ResponseEntity<GlobalErrorResponse> handleUnsuportedOperation(UnsupportedOperationException ex, HttpServletRequest request){
-        log.warn("Unsupported operation {}", ex.getMessage());
-        return buildErrorResponseEntity(ex, request, HttpStatus.NOT_IMPLEMENTED);
-    }
+  @ExceptionHandler(IllegalArgumentException.class)
+  public ResponseEntity<GlobalErrorResponse> handleBadRequest(
+      IllegalArgumentException ex, HttpServletRequest request) {
+    log.warn("Bad request {}", ex.getMessage());
+    return buildErrorResponseEntity(ex, request, HttpStatus.BAD_REQUEST);
+  }
 
-    @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<GlobalErrorResponse> handleUserNotFound(RuntimeException ex, HttpServletRequest request){
-        log.warn("El usuario no fue encontrado: {}", ex.getMessage());
-        return buildErrorResponseEntity(ex, request, HttpStatus.NOT_FOUND);
-    }
+  @ExceptionHandler(UnsupportedOperationException.class)
+  public ResponseEntity<GlobalErrorResponse> handleUnsuportedOperation(
+      UnsupportedOperationException ex, HttpServletRequest request) {
+    log.warn("Unsupported operation {}", ex.getMessage());
+    return buildErrorResponseEntity(ex, request, HttpStatus.NOT_IMPLEMENTED);
+  }
 
-    @ExceptionHandler(CustomerNotFoundException.class)
-    public ResponseEntity<GlobalErrorResponse> handleCustomerNotFound(RuntimeException ex, HttpServletRequest request){
-        log.warn("El cliente no fue encontrado: {}", ex.getMessage());
-        return buildErrorResponseEntity(ex, request, HttpStatus.NOT_FOUND);
-    }
+  @ExceptionHandler(UserNotFoundException.class)
+  public ResponseEntity<GlobalErrorResponse> handleUserNotFound(
+      RuntimeException ex, HttpServletRequest request) {
+    log.warn("El usuario no fue encontrado: {}", ex.getMessage());
+    return buildErrorResponseEntity(ex, request, HttpStatus.NOT_FOUND);
+  }
 
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<GlobalErrorResponse> handleResourceNotFound(ResourceNotFoundException ex,
-            HttpServletRequest request) {
-        log.warn("Resource not found: {}", ex.getMessage());
-        return buildErrorResponseEntity(ex, request, HttpStatus.NOT_FOUND);
-    }
+  @ExceptionHandler(CustomerNotFoundException.class)
+  public ResponseEntity<GlobalErrorResponse> handleCustomerNotFound(
+      RuntimeException ex, HttpServletRequest request) {
+    log.warn("El cliente no fue encontrado: {}", ex.getMessage());
+    return buildErrorResponseEntity(ex, request, HttpStatus.NOT_FOUND);
+  }
 
-    public ResponseEntity<GlobalErrorResponse> handleGenericException(Exception ex, HttpServletRequest request) {
-        log.error("Internal server error", ex);
-        return buildErrorResponseEntity(ex, request, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+  @ExceptionHandler(ResourceNotFoundException.class)
+  public ResponseEntity<GlobalErrorResponse> handleResourceNotFound(
+      ResourceNotFoundException ex, HttpServletRequest request) {
+    log.warn("Resource not found: {}", ex.getMessage());
+    return buildErrorResponseEntity(ex, request, HttpStatus.NOT_FOUND);
+  }
 
-    /**
-     * Builds a GlobalErrorResponse and wraps it in a ResponseEntity with the given status.
-     * @param ex the exception that was thrown
-     * @param request the HTTP request that caused the exception
-     * @param status the HTTP status to return
-     * @return a ResponseEntity containing the GlobalErrorResponse
-     */
-    private ResponseEntity<GlobalErrorResponse> buildErrorResponseEntity(
-        Exception ex,
-        HttpServletRequest request,
-        HttpStatus status
-    ) {
-        GlobalErrorResponse errorResponse = new GlobalErrorResponse(
+  public ResponseEntity<GlobalErrorResponse> handleGenericException(
+      Exception ex, HttpServletRequest request) {
+    log.error("Internal server error", ex);
+    return buildErrorResponseEntity(ex, request, HttpStatus.INTERNAL_SERVER_ERROR);
+  }
+
+  /**
+   * Builds a GlobalErrorResponse and wraps it in a ResponseEntity with the given status.
+   *
+   * @param ex the exception that was thrown
+   * @param request the HTTP request that caused the exception
+   * @param status the HTTP status to return
+   * @return a ResponseEntity containing the GlobalErrorResponse
+   */
+  private ResponseEntity<GlobalErrorResponse> buildErrorResponseEntity(
+      Exception ex, HttpServletRequest request, HttpStatus status) {
+    GlobalErrorResponse errorResponse =
+        new GlobalErrorResponse(
             Instant.now(),
             status.value(),
             ex.getClass().getSimpleName(),
             ex.getMessage(),
-            request.getRequestURI()
-        );
+            request.getRequestURI());
 
-        return ResponseEntity.status(status).body(errorResponse);
-    }
+    return ResponseEntity.status(status).body(errorResponse);
+  }
 }
