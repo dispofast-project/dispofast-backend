@@ -9,5 +9,4 @@ import com.dispocol.dispofast.modules.inventory.domain.InventoryStock;
 
 @Repository
 public interface InventoryStockRepository extends JpaRepository<InventoryStock, UUID> {
-    
 }

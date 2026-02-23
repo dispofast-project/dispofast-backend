@@ -9,7 +9,7 @@ public interface InventoryService {
     
     void addProductToInventory(Product product, int quantity);
 
-    void removeProductFromInventory(String productId, int quantity);
+    void reduceProductFromInventory(String productId, int quantity);
     
     List<ProductResponseDTO> getAllProductsInInventory();
 

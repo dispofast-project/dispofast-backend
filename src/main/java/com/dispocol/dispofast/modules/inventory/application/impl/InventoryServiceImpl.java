@@ -1,6 +1,7 @@
 package com.dispocol.dispofast.modules.inventory.application.impl;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
@@ -43,15 +44,36 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     @Override
-    public void removeProductFromInventory(String productId, int quantity) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'removeProductFromInventory'");
+    public void reduceProductFromInventory(String productId, int quantity) {
+        try {
+            inventoryStockRepository.findById(UUID.fromString(productId))
+                .ifPresent(stock -> {
+                    int newQuantity = stock.getQuantityAvailable() - quantity;
+                    String newState = newQuantity > 0 ? "IN_STOCK" : "OUT_OF_STOCK";
+                    stock.setQuantityAvailable(newQuantity);
+                    stock.setState(newState);
+                    inventoryStockRepository.save(stock);
+                });
+        } catch (Exception e) {
+
+            throw new RuntimeException("Error al reducir producto del inventario: " + e.getMessage(), e);
+
+        }
     }
 
     @Override
     public List<ProductResponseDTO> getAllProductsInInventory() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getAllProductsInInventory'");
+        List<InventoryStock> stocks = inventoryStockRepository.findAll();
+        return stocks.stream()
+            .map(stock -> {
+                ProductResponseDTO dto = new ProductResponseDTO();
+                dto.setId(stock.getProduct().getId());
+                dto.setName(stock.getProduct().getName());
+                dto.setSeoTitle(stock.getProduct().getSeoTitle());
+                dto.setState(stock.getState());
+                return dto;
+            })
+            .toList(); 
     }
     
 }
