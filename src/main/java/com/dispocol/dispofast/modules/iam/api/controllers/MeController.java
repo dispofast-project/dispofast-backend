@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class MeController {
     
     @GetMapping("/me")
-    public Map<String,String> getMethodName(Authentication authentication) {
+    public Map<String,String> getMe(Authentication authentication) {
         return Map.of(
             "username", authentication.getName(),
             "authorities", authentication.getAuthorities().toString()
