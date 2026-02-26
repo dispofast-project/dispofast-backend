@@ -1,6 +1,7 @@
 package com.dispocol.dispofast.modules.quotes.application.interfaces;
 
 import com.dispocol.dispofast.modules.quotes.api.dtos.CreateQuoteRequestDTO;
+import com.dispocol.dispofast.modules.quotes.api.dtos.QuotePreviewResponseDTO;
 import com.dispocol.dispofast.modules.quotes.api.dtos.QuoteResponseDTO;
 import com.dispocol.dispofast.modules.quotes.api.dtos.UpdateQuoteRequestDTO;
 import java.util.UUID;
@@ -15,5 +16,5 @@ public interface QuoteService {
 
   QuoteResponseDTO updateQuote(UUID id, UpdateQuoteRequestDTO build);
 
-  Page<QuoteResponseDTO> getAllQuotes(Pageable pageable);
+  Page<QuotePreviewResponseDTO> getAllQuotes(String text, String key, Pageable pageable);
 }

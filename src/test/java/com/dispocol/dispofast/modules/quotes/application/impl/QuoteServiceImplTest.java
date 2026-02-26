@@ -7,6 +7,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.dispocol.dispofast.modules.quotes.api.dtos.CreateQuoteRequestDTO;
+import com.dispocol.dispofast.modules.quotes.api.dtos.QuotePreviewResponseDTO;
 import com.dispocol.dispofast.modules.quotes.api.dtos.QuoteResponseDTO;
 import com.dispocol.dispofast.modules.quotes.api.dtos.UpdateQuoteRequestDTO;
 import com.dispocol.dispofast.modules.quotes.api.mappers.QuoteMapper;
@@ -178,18 +179,18 @@ public class QuoteServiceImplTest {
     List<Quotes> quotesList = Collections.singletonList(quote);
     Page<Quotes> quotesPage = new PageImpl<>(quotesList, pageable, quotesList.size());
 
-    QuoteResponseDTO responseDTO = new QuoteResponseDTO();
+    QuotePreviewResponseDTO responseDTO = new QuotePreviewResponseDTO();
 
     when(quotesRepository.findAll(pageable)).thenReturn(quotesPage);
-    when(quoteMapper.toResponseDTO(quote)).thenReturn(responseDTO);
+    when(quoteMapper.toPreviewResponseDTO(quote)).thenReturn(responseDTO);
 
     // When
-    Page<QuoteResponseDTO> result = quoteService.getAllQuotes(pageable);
+    Page<QuotePreviewResponseDTO> result = quoteService.getAllQuotes(null, null, pageable);
 
     // Then
     assertThat(result).isNotNull();
     assertThat(result.getContent()).hasSize(1);
     verify(quotesRepository).findAll(pageable);
-    verify(quoteMapper).toResponseDTO(quote);
+    verify(quoteMapper).toPreviewResponseDTO(quote);
   }
 }

@@ -1,6 +1,7 @@
 package com.dispocol.dispofast.modules.quotes.api.mappers;
 
 import com.dispocol.dispofast.modules.quotes.api.dtos.CreateQuoteRequestDTO;
+import com.dispocol.dispofast.modules.quotes.api.dtos.QuotePreviewResponseDTO;
 import com.dispocol.dispofast.modules.quotes.api.dtos.QuoteResponseDTO;
 import com.dispocol.dispofast.modules.quotes.api.dtos.UpdateQuoteRequestDTO;
 import com.dispocol.dispofast.modules.quotes.domain.Quotes;
@@ -47,6 +48,9 @@ public interface QuoteMapper {
       expression = "java(quotes.getSeller() != null ? quotes.getSeller().getFullName() : null)")
   @Mapping(target = "location", source = "location")
   QuoteResponseDTO toResponseDTO(Quotes quotes);
+
+  @Mapping(source = "account.name", target = "accountName")
+  QuotePreviewResponseDTO toPreviewResponseDTO(Quotes quote);
 
   List<QuoteResponseDTO> toResponseDTOList(List<Quotes> quotesList);
 

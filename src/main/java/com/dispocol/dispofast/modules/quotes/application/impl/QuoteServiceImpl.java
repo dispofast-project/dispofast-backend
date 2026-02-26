@@ -1,6 +1,7 @@
 package com.dispocol.dispofast.modules.quotes.application.impl;
 
 import com.dispocol.dispofast.modules.quotes.api.dtos.CreateQuoteRequestDTO;
+import com.dispocol.dispofast.modules.quotes.api.dtos.QuotePreviewResponseDTO;
 import com.dispocol.dispofast.modules.quotes.api.dtos.QuoteResponseDTO;
 import com.dispocol.dispofast.modules.quotes.api.dtos.UpdateQuoteRequestDTO;
 import com.dispocol.dispofast.modules.quotes.api.mappers.QuoteMapper;
@@ -68,8 +69,14 @@ public class QuoteServiceImpl implements QuoteService {
 
   @Override
   @Transactional(readOnly = true)
-  public Page<QuoteResponseDTO> getAllQuotes(Pageable pageable) {
-    Page<Quotes> quotesPage = quotesRepository.findAll(pageable);
-    return quotesPage.map(quoteMapper::toResponseDTO);
+  public Page<QuotePreviewResponseDTO> getAllQuotes(String text, String key, Pageable pageable) {
+    Page<Quotes> quotesPage;
+    if (text != null && !text.isBlank()) {
+      String effectiveKey = (key != null && !key.isBlank()) ? key.trim().toLowerCase() : "";
+      quotesPage = quotesRepository.searchByText(text.trim(), effectiveKey, pageable);
+    } else {
+      quotesPage = quotesRepository.findAll(pageable);
+    }
+    return quotesPage.map(quoteMapper::toPreviewResponseDTO);
   }
 }

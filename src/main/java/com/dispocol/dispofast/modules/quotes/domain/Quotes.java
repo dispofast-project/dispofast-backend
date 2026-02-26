@@ -37,6 +37,9 @@ public class Quotes {
   @Column(name = "tax_total", nullable = false)
   private double taxTotal;
 
+  @Column(name = "total_amount", nullable = false)
+  private double totalAmount;
+
   @Column(name = "expiration_date", nullable = false)
   private OffsetDateTime expirationDate;
 
