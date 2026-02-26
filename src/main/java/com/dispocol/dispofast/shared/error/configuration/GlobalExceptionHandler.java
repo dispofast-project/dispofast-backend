@@ -4,8 +4,8 @@ import java.time.Instant;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.dispocol.dispofast.modules.customers.infra.exceptions.CustomerNotFoundException;
 import com.dispocol.dispofast.modules.iam.infra.exceptions.UserNotFoundException;
@@ -14,7 +14,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@RestControllerAdvice
+@ControllerAdvice
 public class GlobalExceptionHandler {
     
     @ExceptionHandler(IllegalArgumentException.class)
@@ -41,6 +41,7 @@ public class GlobalExceptionHandler {
         return buildErrorResponseEntity(ex, request, HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(Exception.class)
     public ResponseEntity<GlobalErrorResponse> handleGenericException(Exception ex, HttpServletRequest request){
         log.error("Internal server error", ex);
         return buildErrorResponseEntity(ex, request, HttpStatus.INTERNAL_SERVER_ERROR);
