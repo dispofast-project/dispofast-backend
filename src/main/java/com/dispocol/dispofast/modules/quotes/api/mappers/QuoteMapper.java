@@ -49,7 +49,10 @@ public interface QuoteMapper {
   @Mapping(target = "location", source = "location")
   QuoteResponseDTO toResponseDTO(Quotes quotes);
 
-  @Mapping(source = "account.name", target = "accountName")
+  @Mapping(
+      target = "accountName",
+      expression =
+          "java(quote.getAccount() != null ? (quote.getAccount().getFirstName() + \" \" + quote.getAccount().getLastName()) : null)")
   QuotePreviewResponseDTO toPreviewResponseDTO(Quotes quote);
 
   List<QuoteResponseDTO> toResponseDTOList(List<Quotes> quotesList);

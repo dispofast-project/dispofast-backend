@@ -1,7 +1,7 @@
 package com.dispocol.dispofast.modules.quotes.domain;
 
 import com.dispocol.dispofast.modules.iam.domain.AppUser;
-import com.dispocol.dispofast.modules.temp.Account;
+import com.dispocol.dispofast.modules.temp.Person;
 import com.dispocol.dispofast.modules.temp.PriceList;
 import com.dispocol.dispofast.shared.location.domain.Location;
 import jakarta.persistence.*;
@@ -45,7 +45,7 @@ public class Quotes {
 
   @ManyToOne
   @JoinColumn(name = "account_id", nullable = false)
-  private Account account;
+  private Person account;
 
   @ManyToOne
   @JoinColumn(name = "seller_id", nullable = false)

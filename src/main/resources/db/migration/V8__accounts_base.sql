@@ -1,8 +1,24 @@
--- Migration: create accounts table expected by the `Account` entity
-CREATE TABLE IF NOT EXISTS accounts (
-    id uuid NOT NULL PRIMARY KEY,
+-- Organization categories (lookup table)
+CREATE SEQUENCE organization_categories_seq START WITH 1 INCREMENT BY 50;
+
+CREATE TABLE organization_categories (
+    id BIGINT NOT NULL DEFAULT nextval('organization_categories_seq') PRIMARY KEY,
     name VARCHAR(255) NOT NULL
 );
 
-INSERT INTO accounts (id, name) VALUES ('3fa85f64-5717-4562-b3fc-2c963f66afa6', 'Account One') ON CONFLICT DO NOTHING;
-INSERT INTO accounts (id, name) VALUES ('11111111-1111-1111-1111-111111111111', 'Account Two') ON CONFLICT DO NOTHING;
+INSERT INTO organization_categories (id, name) VALUES (1, 'Distribuidor');
+INSERT INTO organization_categories (id, name) VALUES (2, 'Constructor');
+
+-- Media assets (standalone, used by legal_documents)
+CREATE TABLE media_assets (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    filename VARCHAR(255),
+    storage_path TEXT,
+    mime_type VARCHAR(100),
+    file_size BIGINT,
+    type VARCHAR(255),
+    metadata JSONB,
+    
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);

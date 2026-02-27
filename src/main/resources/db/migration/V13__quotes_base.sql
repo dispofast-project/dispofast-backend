@@ -16,7 +16,7 @@ CREATE TABLE quotes (
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     
-    CONSTRAINT fk_quotes_account FOREIGN KEY (account_id) REFERENCES accounts(id),
+    CONSTRAINT fk_quotes_account FOREIGN KEY (account_id) REFERENCES persons(id),
     CONSTRAINT fk_quotes_seller FOREIGN KEY (seller_id) REFERENCES users(id),
     CONSTRAINT fk_quotes_location FOREIGN KEY (location_id) REFERENCES location(city_code),
     CONSTRAINT fk_quotes_price_list FOREIGN KEY (price_list_id) REFERENCES price_lists(id)

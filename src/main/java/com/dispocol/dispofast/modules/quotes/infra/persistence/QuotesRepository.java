@@ -23,20 +23,20 @@ public interface QuotesRepository extends JpaRepository<Quotes, UUID> {
    */
   @Query(
       """
-            SELECT q FROM Quotes q
-            WHERE
-              CASE :key
-                WHEN 'seller'  THEN LOWER(q.seller.fullName)
-                WHEN 'number'  THEN LOWER(q.number)
-                WHEN 'account' THEN LOWER(q.account.name)
-                ELSE ''
-              END LIKE LOWER(CONCAT('%', :text, '%'))
-              OR (:key NOT IN ('seller', 'number', 'account') AND (
-                    LOWER(q.seller.fullName) LIKE LOWER(CONCAT('%', :text, '%'))
-                 OR LOWER(q.number)         LIKE LOWER(CONCAT('%', :text, '%'))
-                 OR LOWER(q.account.name)   LIKE LOWER(CONCAT('%', :text, '%'))
-              ))
-            """)
+      SELECT q FROM Quotes q
+      WHERE
+        CASE :key
+          WHEN 'seller'  THEN LOWER(q.seller.fullName)
+          WHEN 'number'  THEN LOWER(q.number)
+          WHEN 'account' THEN LOWER(CONCAT(q.account.firstName, ' ', q.account.lastName))
+          ELSE ''
+        END LIKE LOWER(CONCAT('%', :text, '%'))
+        OR (:key NOT IN ('seller', 'number', 'account') AND (
+              LOWER(q.seller.fullName) LIKE LOWER(CONCAT('%', :text, '%'))
+           OR LOWER(q.number)         LIKE LOWER(CONCAT('%', :text, '%'))
+           OR LOWER(CONCAT(q.account.firstName, ' ', q.account.lastName)) LIKE LOWER(CONCAT('%', :text, '%'))
+        ))
+      """)
   Page<Quotes> searchByText(
       @Param("text") String text, @Param("key") String key, Pageable pageable);
 }
