@@ -1,5 +1,7 @@
 package com.dispocol.dispofast.modules.inventory.application.impl;
 
+import java.util.UUID;
+
 import org.springframework.stereotype.Service;
 
 import com.dispocol.dispofast.modules.inventory.api.dtos.CreateProductRequestDTO;
@@ -9,6 +11,7 @@ import com.dispocol.dispofast.modules.inventory.application.interfaces.Inventory
 import com.dispocol.dispofast.modules.inventory.application.interfaces.ProductService;
 import com.dispocol.dispofast.modules.inventory.domain.Product;
 import com.dispocol.dispofast.modules.inventory.infra.exceptions.ProductAlreadyExistsException;
+import com.dispocol.dispofast.modules.inventory.infra.exceptions.ProductNotFoundException;
 import com.dispocol.dispofast.modules.inventory.infra.persistence.ProductRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -40,14 +43,14 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Product getProductById(String productId) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getProductById'");
+        Product product = productRepository.findById(UUID.fromString(productId))
+            .orElseThrow(() -> new ProductNotFoundException("Producto no encontrado con ID: " + productId));
+        return product;
     }
 
     @Override
     public void deleteProduct(String productId) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'deleteProduct'");
+        productRepository.deleteById(UUID.fromString(productId));
     }
 
     @Override
