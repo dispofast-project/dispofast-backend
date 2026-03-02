@@ -1,5 +1,7 @@
 package com.dispocol.dispofast.modules.quotes.application.impl;
 
+import com.dispocol.dispofast.modules.customers.domain.Client;
+import com.dispocol.dispofast.modules.customers.infra.persistence.ClientRepository;
 import com.dispocol.dispofast.modules.quotes.api.dtos.CreateQuoteRequestDTO;
 import com.dispocol.dispofast.modules.quotes.api.dtos.QuotePreviewResponseDTO;
 import com.dispocol.dispofast.modules.quotes.api.dtos.QuoteResponseDTO;
@@ -9,8 +11,6 @@ import com.dispocol.dispofast.modules.quotes.application.interfaces.QuoteService
 import com.dispocol.dispofast.modules.quotes.domain.QuoteStatus;
 import com.dispocol.dispofast.modules.quotes.domain.Quotes;
 import com.dispocol.dispofast.modules.quotes.infra.persistence.QuotesRepository;
-import com.dispocol.dispofast.modules.temp.account.Person;
-import com.dispocol.dispofast.modules.temp.account.infra.persistence.PersonRepository;
 import com.dispocol.dispofast.shared.error.ResourceNotFoundException;
 import com.dispocol.dispofast.shared.location.application.interfaces.LocationService;
 import com.dispocol.dispofast.shared.location.domain.Location;
@@ -29,22 +29,22 @@ public class QuoteServiceImpl implements QuoteService {
   private final QuotesRepository quotesRepository;
   private final QuoteMapper quoteMapper;
   private final LocationService locationService;
-  private final PersonRepository personRepository;
+  private final ClientRepository clientRepository;
 
   @Override
   @Transactional
   public QuoteResponseDTO createQuote(CreateQuoteRequestDTO createQuoteRequestDTO) {
     Quotes quotes = quoteMapper.toEntity(createQuoteRequestDTO);
 
-    Person person =
-        personRepository
+    Client client =
+        clientRepository
             .findById(createQuoteRequestDTO.getAccountId())
             .orElseThrow(
                 () ->
                     new ResourceNotFoundException(
                         "Client not found with id: " + createQuoteRequestDTO.getAccountId()));
 
-    quotes.setAccount(person);
+    quotes.setAccount(client);
     quotes.setNumber("QT-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
     quotes.setStatus(QuoteStatus.PENDING);
     quotes.setSubtotalAmount(0.0);
@@ -53,11 +53,9 @@ public class QuoteServiceImpl implements QuoteService {
     quotes.setTotalAmount(0.0);
     quotes.setExpirationDate(OffsetDateTime.now().plusDays(30));
 
-    if (person.getOrganization() != null) {
-      quotes.setLocation(person.getOrganization().getLocation());
-      quotes.setPriceList(person.getOrganization().getPriceList());
-      quotes.setSeller(person.getOrganization().getAssignedSalesRep());
-    }
+    quotes.setLocation(client.getLocation());
+    quotes.setPriceList(client.getPriceList());
+    quotes.setSeller(client.getDefaultAdvisor());
 
     Quotes savedQuotes = quotesRepository.save(quotes);
     return quoteMapper.toResponseDTO(savedQuotes);

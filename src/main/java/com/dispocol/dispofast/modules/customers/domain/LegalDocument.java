@@ -1,4 +1,4 @@
-package com.dispocol.dispofast.modules.temp.account;
+package com.dispocol.dispofast.modules.customers.domain;
 
 import com.dispocol.dispofast.modules.temp.MediaAsset;
 import jakarta.persistence.Column;
@@ -27,8 +27,8 @@ public class LegalDocument {
   @Id @GeneratedValue private UUID id;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "owner_id", nullable = false)
-  private Person owner;
+  @JoinColumn(name = "client_id", nullable = false)
+  private Client client;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "file_attachment_id")

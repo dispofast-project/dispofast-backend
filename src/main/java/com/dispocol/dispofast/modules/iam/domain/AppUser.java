@@ -1,6 +1,6 @@
 package com.dispocol.dispofast.modules.iam.domain;
 
-import com.dispocol.dispofast.modules.customers.domain.Customer;
+import com.dispocol.dispofast.modules.customers.domain.Client;
 import jakarta.persistence.*;
 import java.time.OffsetDateTime;
 import java.util.HashSet;
@@ -37,8 +37,8 @@ public class AppUser {
   @Column(nullable = false, name = "updated_at")
   private OffsetDateTime updatedAt;
 
-  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-  private Set<Customer> customers = new HashSet<>();
+  @OneToMany(mappedBy = "defaultAdvisor", cascade = CascadeType.ALL, orphanRemoval = true)
+  private Set<Client> customers = new HashSet<>();
 
   @ManyToMany(fetch = FetchType.EAGER)
   @JoinTable(
@@ -47,14 +47,14 @@ public class AppUser {
       inverseJoinColumns = @JoinColumn(name = "role_id"))
   private Set<Role> roles = new HashSet<>();
 
-  public void addCustomer(Customer customer) {
+  public void addCustomer(Client customer) {
     customers.add(customer);
-    customer.setUser(this);
+    customer.setDefaultAdvisor(this);
   }
 
-  public void removeCustomer(Customer customer) {
+  public void removeCustomer(Client customer) {
     customers.remove(customer);
-    customer.setUser(null);
+    customer.setDefaultAdvisor(null);
   }
 
   @PrePersist

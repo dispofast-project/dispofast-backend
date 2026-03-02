@@ -1,8 +1,8 @@
 package com.dispocol.dispofast.modules.quotes.domain;
 
+import com.dispocol.dispofast.modules.customers.domain.Client;
 import com.dispocol.dispofast.modules.iam.domain.AppUser;
 import com.dispocol.dispofast.modules.pricelist.domain.PriceList;
-import com.dispocol.dispofast.modules.temp.account.Person;
 import com.dispocol.dispofast.shared.location.domain.Location;
 import jakarta.persistence.*;
 import java.time.OffsetDateTime;
@@ -45,7 +45,7 @@ public class Quotes {
 
   @ManyToOne
   @JoinColumn(name = "account_id", nullable = false)
-  private Person account;
+  private Client account;
 
   @ManyToOne
   @JoinColumn(name = "seller_id", nullable = false)

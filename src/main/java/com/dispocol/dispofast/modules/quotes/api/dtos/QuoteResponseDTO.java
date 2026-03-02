@@ -1,8 +1,8 @@
 package com.dispocol.dispofast.modules.quotes.api.dtos;
 
+import com.dispocol.dispofast.modules.customers.api.dtos.ClientPreviewDTO;
 import com.dispocol.dispofast.modules.pricelist.api.dtos.PriceListResponseDTO;
 import com.dispocol.dispofast.modules.quotes.domain.QuoteStatus;
-import com.dispocol.dispofast.modules.temp.account.api.dtos.PersonResponseDTO;
 import com.dispocol.dispofast.shared.location.api.dto.LocationDTO;
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -25,7 +25,7 @@ public class QuoteResponseDTO {
   private double taxTotal;
   private double totalAmount;
   private OffsetDateTime expirationDate;
-  private PersonResponseDTO account;
+  private ClientPreviewDTO account;
   private String sellerName;
   private LocationDTO location;
   private PriceListResponseDTO priceList;

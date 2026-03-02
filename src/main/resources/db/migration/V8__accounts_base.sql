@@ -1,13 +1,13 @@
--- Organization categories (lookup table)
-CREATE SEQUENCE organization_categories_seq START WITH 1 INCREMENT BY 50;
+-- Client types (lookup table)
+CREATE SEQUENCE client_types_seq START WITH 1 INCREMENT BY 50;
 
-CREATE TABLE organization_categories (
-    id BIGINT NOT NULL DEFAULT nextval('organization_categories_seq') PRIMARY KEY,
+CREATE TABLE client_types (
+    id BIGINT NOT NULL DEFAULT nextval('client_types_seq') PRIMARY KEY,
     name VARCHAR(255) NOT NULL
 );
 
-INSERT INTO organization_categories (id, name) VALUES (1, 'Distribuidor');
-INSERT INTO organization_categories (id, name) VALUES (2, 'Constructor');
+INSERT INTO client_types (id, name) VALUES (1, 'Distribuidor');
+INSERT INTO client_types (id, name) VALUES (2, 'Constructor');
 
 -- Media assets (standalone, used by legal_documents)
 CREATE TABLE media_assets (

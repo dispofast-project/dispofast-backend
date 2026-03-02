@@ -16,7 +16,7 @@ CREATE TABLE quotes (
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     
-    CONSTRAINT fk_quotes_account FOREIGN KEY (account_id) REFERENCES persons(id),
+    CONSTRAINT fk_quotes_account FOREIGN KEY (account_id) REFERENCES clients(id),
     CONSTRAINT fk_quotes_seller FOREIGN KEY (seller_id) REFERENCES users(id),
     CONSTRAINT fk_quotes_location FOREIGN KEY (location_id) REFERENCES location(city_code),
     CONSTRAINT fk_quotes_price_list FOREIGN KEY (price_list_id) REFERENCES price_lists(id)
@@ -46,7 +46,7 @@ VALUES
     28500.00,
     178500.00,
     now() + INTERVAL '30 days',
-    '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+    '44444444-4444-4444-4444-444444444444',
     (SELECT id FROM users WHERE email = 'vendedor@dispocol.com' LIMIT 1),
     '11001',
     '3fa85f64-5717-4562-b3fc-2c963f66afa6'
@@ -60,7 +60,7 @@ VALUES
     38000.00,
     238000.00,
     now() + INTERVAL '30 days',
-    '11111111-1111-1111-1111-111111111111',
+    '55555555-5555-5555-5555-555555555555',
     (SELECT id FROM users WHERE email = 'vendedor@dispocol.com' LIMIT 1),
     '11001',
     '3fa85f64-5717-4562-b3fc-2c963f66afa6'
@@ -74,7 +74,7 @@ VALUES
     9500.00,
     59500.00,
     now() + INTERVAL '30 days',
-    '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+    '44444444-4444-4444-4444-444444444444',
     (SELECT id FROM users WHERE email = 'admin@dispocol.com' LIMIT 1),
     '11001',
     '3fa85f64-5717-4562-b3fc-2c963f66afa6'
@@ -88,7 +88,7 @@ VALUES
     22800.00,
     142800.00,
     now() - INTERVAL '5 days',
-    '11111111-1111-1111-1111-111111111111',
+    '55555555-5555-5555-5555-555555555555',
     (SELECT id FROM users WHERE email = 'admin@dispocol.com' LIMIT 1),
     '11001',
     '3fa85f64-5717-4562-b3fc-2c963f66afa6'

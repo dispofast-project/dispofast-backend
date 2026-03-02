@@ -1,46 +1,75 @@
-CREATE TABLE organizations (
+CREATE TABLE clients (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    nit VARCHAR(20),
-    legal_name VARCHAR(255),
+    legal_entity_type VARCHAR(50) NOT NULL,
+    identification_number VARCHAR(100) UNIQUE NOT NULL,
+    email_address VARCHAR(255) UNIQUE NOT NULL,
+    phone_number VARCHAR(50) UNIQUE NOT NULL,
+    is_active BOOLEAN NOT NULL DEFAULT true,
+    retefuente_applies BOOLEAN NOT NULL DEFAULT false,
+    address TEXT NOT NULL,
+    default_advisor_id UUID NOT NULL,
+    location_id VARCHAR(10) NOT NULL,
     default_discount_rate INTEGER,
-    address TEXT,
-    billing_email VARCHAR(255),
-    general_email VARCHAR(255),
-    phone VARCHAR(20),
-    price_list_id UUID,
-    location_city_code VARCHAR(10),
-    assigned_sales_rep_id UUID,
-    CONSTRAINT fk_org_price_list FOREIGN KEY (price_list_id) REFERENCES price_lists(id),
-    CONSTRAINT fk_org_location FOREIGN KEY (location_city_code) REFERENCES location(city_code),
-    CONSTRAINT fk_org_sales_rep FOREIGN KEY (assigned_sales_rep_id) REFERENCES users(id)
+    price_list_id UUID NOT NULL,
+    client_type_id BIGINT NOT NULL,
+    
+    CONSTRAINT fk_client_advisor FOREIGN KEY (default_advisor_id) REFERENCES users(id),
+    CONSTRAINT fk_client_location FOREIGN KEY (location_id) REFERENCES location(city_code),
+    CONSTRAINT fk_client_price_list FOREIGN KEY (price_list_id) REFERENCES price_lists(id),
+    CONSTRAINT fk_client_type FOREIGN KEY (client_type_id) REFERENCES client_types(id)
 );
 
-INSERT INTO organizations (id, nit, legal_name, default_discount_rate, address, billing_email, general_email, phone, price_list_id, location_city_code, assigned_sales_rep_id)
+CREATE TABLE organizations (
+    id UUID PRIMARY KEY,
+    legal_name VARCHAR(255),
+    billing_email VARCHAR(255),
+    CONSTRAINT fk_org_client FOREIGN KEY (id) REFERENCES clients(id) ON DELETE CASCADE
+);
+
+INSERT INTO clients (id, legal_entity_type, identification_number, email_address, phone_number, is_active, retefuente_applies, address, default_advisor_id, location_id, default_discount_rate, price_list_id, client_type_id)
 VALUES (
     '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+    'LEGAL',
     '900123456-1',
-    'Distribuciones ABC S.A.S',
-    5,
-    'Cra 45 #26-85, Bogotá',
-    'facturacion@abc.com',
     'contacto@abc.com',
     '3001234567',
-    '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+    true,
+    false,
+    'Cra 45 #26-85, Bogotá',
+    (SELECT id FROM users WHERE email = 'vendedor@dispocol.com' LIMIT 1),
     '11001',
-    (SELECT id FROM users WHERE email = 'vendedor@dispocol.com' LIMIT 1)
+    5,
+    '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+    1
 );
 
-INSERT INTO organizations (id, nit, legal_name, default_discount_rate, address, billing_email, general_email, phone, price_list_id, location_city_code, assigned_sales_rep_id)
+INSERT INTO organizations (id, legal_name, billing_email)
+VALUES (
+    '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+    'Distribuciones ABC S.A.S',
+    'facturacion@abc.com'
+);
+
+INSERT INTO clients (id, legal_entity_type, identification_number, email_address, phone_number, is_active, retefuente_applies, address, default_advisor_id, location_id, default_discount_rate, price_list_id, client_type_id)
 VALUES (
     '11111111-1111-1111-1111-111111111111',
+    'LEGAL',
     '800987654-2',
-    'Constructora XYZ Ltda',
-    3,
-    'Calle 100 #15-20, Medellín',
-    'facturacion@xyz.com',
     'info@xyz.com',
     '3109876543',
-    '22222222-2222-2222-2222-222222222222',
+    true,
+    true,
+    'Calle 100 #15-20, Medellín',
+    (SELECT id FROM users WHERE email = 'admin@dispocol.com' LIMIT 1),
     '05001',
-    (SELECT id FROM users WHERE email = 'admin@dispocol.com' LIMIT 1)
+    3,
+    '22222222-2222-2222-2222-222222222222',
+    2
+);
+
+INSERT INTO organizations (id, legal_name, billing_email)
+VALUES (
+    '11111111-1111-1111-1111-111111111111',
+    'Constructora XYZ Ltda',
+    'facturacion@xyz.com'
 );

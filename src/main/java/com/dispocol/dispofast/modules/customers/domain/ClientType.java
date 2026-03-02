@@ -1,4 +1,4 @@
-package com.dispocol.dispofast.modules.temp.account;
+package com.dispocol.dispofast.modules.customers.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -10,11 +10,11 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "organization_categories")
+@Table(name = "client_types")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ClientClasification {
+public class ClientType {
 
   @Id @GeneratedValue private Long id;
 

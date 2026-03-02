@@ -11,20 +11,24 @@ public enum LocationZone {
   NORTE("norte"),
   SUR("sur"),
   ORIENTE("oriente"),
-  OCCIDENTE("occidente"),
-  CENTRO("centro"),
-  METROPOLITANO("metropolitano"),
-  OTRO("otro");
+  OCCIDENTE("occidente");
 
-  @JsonValue private final String value;
+  private final String value;
+
+  @JsonValue
+  public String getFormattedValue() {
+    return "zona " + value;
+  }
 
   @JsonCreator
   public static LocationZone fromValue(String value) {
+    String cleanValue = value.toLowerCase().replace("zona ", "").trim();
+
     for (LocationZone zone : values()) {
-      if (zone.value.equalsIgnoreCase(value) || zone.name().equalsIgnoreCase(value)) {
+      if (zone.value.equalsIgnoreCase(cleanValue) || zone.name().equalsIgnoreCase(cleanValue)) {
         return zone;
       }
     }
-    throw new IllegalArgumentException("Zona no valida: " + value);
+    throw new IllegalArgumentException("zona no valida: " + value);
   }
 }

@@ -1,6 +1,5 @@
 package com.dispocol.dispofast.shared.error.configuration;
 
-import com.dispocol.dispofast.modules.customers.infra.exceptions.CustomerNotFoundException;
 import com.dispocol.dispofast.modules.iam.infra.exceptions.UserNotFoundException;
 import com.dispocol.dispofast.shared.error.ResourceNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -33,13 +32,6 @@ public class GlobalExceptionHandler {
   public ResponseEntity<GlobalErrorResponse> handleUserNotFound(
       RuntimeException ex, HttpServletRequest request) {
     log.warn("El usuario no fue encontrado: {}", ex.getMessage());
-    return buildErrorResponseEntity(ex, request, HttpStatus.NOT_FOUND);
-  }
-
-  @ExceptionHandler(CustomerNotFoundException.class)
-  public ResponseEntity<GlobalErrorResponse> handleCustomerNotFound(
-      RuntimeException ex, HttpServletRequest request) {
-    log.warn("El cliente no fue encontrado: {}", ex.getMessage());
     return buildErrorResponseEntity(ex, request, HttpStatus.NOT_FOUND);
   }
 
