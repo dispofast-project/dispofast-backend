@@ -20,11 +20,11 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
     uses = {PersonMapper.class})
 public interface QuoteMapper {
 
-  @Mapping(target = "status", source = "status")
   @Mapping(target = "account.id", source = "accountId")
-  @Mapping(target = "seller.id", source = "sellerId")
+  @Mapping(target = "status", ignore = true)
+  @Mapping(target = "seller", ignore = true)
   @Mapping(target = "location", ignore = true)
-  @Mapping(target = "priceList.id", source = "priceListId")
+  @Mapping(target = "priceList", ignore = true)
   @Mapping(target = "id", ignore = true)
   @Mapping(target = "createdAt", ignore = true)
   @Mapping(target = "updatedAt", ignore = true)

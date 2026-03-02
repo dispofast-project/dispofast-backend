@@ -13,6 +13,9 @@ import com.dispocol.dispofast.modules.quotes.api.dtos.UpdateQuoteRequestDTO;
 import com.dispocol.dispofast.modules.quotes.api.mappers.QuoteMapper;
 import com.dispocol.dispofast.modules.quotes.domain.Quotes;
 import com.dispocol.dispofast.modules.quotes.infra.persistence.QuotesRepository;
+import com.dispocol.dispofast.modules.temp.account.Organization;
+import com.dispocol.dispofast.modules.temp.account.Person;
+import com.dispocol.dispofast.modules.temp.account.infra.persistence.PersonRepository;
 import com.dispocol.dispofast.shared.error.ResourceNotFoundException;
 import com.dispocol.dispofast.shared.location.application.interfaces.LocationService;
 import com.dispocol.dispofast.shared.location.domain.Location;
@@ -40,25 +43,33 @@ public class QuoteServiceImplTest {
 
   @Mock private LocationService locationService;
 
+  @Mock private PersonRepository personRepository;
+
   @InjectMocks private QuoteServiceImpl quoteService;
 
   @Test
   @DisplayName("Should create quote successfully")
   public void shouldCreateQuote() {
     // Given
+    UUID accountId = UUID.randomUUID();
     CreateQuoteRequestDTO requestDTO = new CreateQuoteRequestDTO();
+    requestDTO.setAccountId(accountId);
+
+    Person person = new Person();
+    person.setId(accountId);
+    Organization org = new Organization();
+    Location location = new Location();
+    org.setLocation(location);
+    person.setOrganization(org);
+
     Quotes quoteEntity = new Quotes();
     Quotes savedQuote = new Quotes();
     savedQuote.setId(UUID.randomUUID());
     QuoteResponseDTO responseDTO = new QuoteResponseDTO();
     responseDTO.setId(savedQuote.getId());
 
-    requestDTO.setLocationId("LOC-001");
-    Location location = new Location();
-    location.setCityCode("LOC-001");
-
     when(quoteMapper.toEntity(requestDTO)).thenReturn(quoteEntity);
-    when(locationService.findEntityById("LOC-001")).thenReturn(location);
+    when(personRepository.findById(accountId)).thenReturn(Optional.of(person));
     when(quotesRepository.save(quoteEntity)).thenReturn(savedQuote);
     when(quoteMapper.toResponseDTO(savedQuote)).thenReturn(responseDTO);
 
@@ -68,7 +79,7 @@ public class QuoteServiceImplTest {
     // Then
     assertThat(result).isNotNull();
     assertThat(result.getId()).isEqualTo(savedQuote.getId());
-    verify(locationService).findEntityById("LOC-001");
+    verify(personRepository).findById(accountId);
     verify(quotesRepository).save(quoteEntity);
     verify(quoteMapper).toEntity(requestDTO);
     verify(quoteMapper).toResponseDTO(savedQuote);
