@@ -5,6 +5,7 @@ import com.dispocol.dispofast.modules.quotes.api.dtos.QuotePreviewResponseDTO;
 import com.dispocol.dispofast.modules.quotes.api.dtos.QuoteResponseDTO;
 import com.dispocol.dispofast.modules.quotes.api.dtos.UpdateQuoteRequestDTO;
 import com.dispocol.dispofast.modules.quotes.domain.Quotes;
+import com.dispocol.dispofast.modules.temp.account.api.mappers.PersonMapper;
 import com.dispocol.dispofast.shared.location.api.dto.LocationDTO;
 import com.dispocol.dispofast.shared.location.domain.Location;
 import java.util.List;
@@ -14,7 +15,9 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
-@Mapper(componentModel = "spring")
+@Mapper(
+    componentModel = "spring",
+    uses = {PersonMapper.class})
 public interface QuoteMapper {
 
   @Mapping(target = "status", source = "status")
@@ -41,8 +44,8 @@ public interface QuoteMapper {
       UpdateQuoteRequestDTO updateQuoteRequestDTO, @MappingTarget Quotes quotes);
 
   @Mapping(target = "status", source = "status")
-  @Mapping(target = "accountId", source = "account.id")
-  @Mapping(target = "priceListId", source = "priceList.id")
+  @Mapping(target = "account", source = "account")
+  @Mapping(target = "priceList", source = "priceList")
   @Mapping(
       target = "sellerName",
       expression = "java(quotes.getSeller() != null ? quotes.getSeller().getFullName() : null)")

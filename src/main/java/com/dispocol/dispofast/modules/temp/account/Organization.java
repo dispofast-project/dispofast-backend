@@ -1,6 +1,7 @@
-package com.dispocol.dispofast.modules.temp;
+package com.dispocol.dispofast.modules.temp.account;
 
 import com.dispocol.dispofast.modules.iam.domain.AppUser;
+import com.dispocol.dispofast.modules.pricelist.domain.PriceList;
 import com.dispocol.dispofast.shared.location.domain.Location;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -24,6 +25,9 @@ import lombok.NoArgsConstructor;
 public class Organization {
 
   @Id @GeneratedValue private UUID id;
+
+  @Column(name = "nit")
+  private String nit;
 
   @Column(name = "legal_name")
   private String legalName;

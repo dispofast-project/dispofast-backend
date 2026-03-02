@@ -1,4 +1,4 @@
-package com.dispocol.dispofast.modules.temp;
+package com.dispocol.dispofast.modules.temp.account;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;

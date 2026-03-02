@@ -1,5 +1,6 @@
 CREATE TABLE organizations (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    nit VARCHAR(20),
     legal_name VARCHAR(255),
     default_discount_rate INTEGER,
     address TEXT,
@@ -14,9 +15,10 @@ CREATE TABLE organizations (
     CONSTRAINT fk_org_sales_rep FOREIGN KEY (assigned_sales_rep_id) REFERENCES users(id)
 );
 
-INSERT INTO organizations (id, legal_name, default_discount_rate, address, billing_email, general_email, phone, price_list_id, location_city_code, assigned_sales_rep_id)
+INSERT INTO organizations (id, nit, legal_name, default_discount_rate, address, billing_email, general_email, phone, price_list_id, location_city_code, assigned_sales_rep_id)
 VALUES (
     '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+    '900123456-1',
     'Distribuciones ABC S.A.S',
     5,
     'Cra 45 #26-85, Bogotá',
@@ -28,9 +30,10 @@ VALUES (
     (SELECT id FROM users WHERE email = 'vendedor@dispocol.com' LIMIT 1)
 );
 
-INSERT INTO organizations (id, legal_name, default_discount_rate, address, billing_email, general_email, phone, price_list_id, location_city_code, assigned_sales_rep_id)
+INSERT INTO organizations (id, nit, legal_name, default_discount_rate, address, billing_email, general_email, phone, price_list_id, location_city_code, assigned_sales_rep_id)
 VALUES (
     '11111111-1111-1111-1111-111111111111',
+    '800987654-2',
     'Constructora XYZ Ltda',
     3,
     'Calle 100 #15-20, Medellín',

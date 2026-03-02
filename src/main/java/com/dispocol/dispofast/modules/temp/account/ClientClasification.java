@@ -1,19 +1,23 @@
-package com.dispocol.dispofast.modules.temp;
+package com.dispocol.dispofast.modules.temp.account;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "price_lists")
+@Table(name = "organization_categories")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class PriceList {
-  @Id @GeneratedValue private UUID id;
+public class ClientClasification {
+
+  @Id @GeneratedValue private Long id;
+
+  @Column(name = "name", nullable = false)
+  private String name;
 }

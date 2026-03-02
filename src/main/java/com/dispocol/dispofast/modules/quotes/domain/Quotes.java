@@ -1,8 +1,8 @@
 package com.dispocol.dispofast.modules.quotes.domain;
 
 import com.dispocol.dispofast.modules.iam.domain.AppUser;
-import com.dispocol.dispofast.modules.temp.Person;
-import com.dispocol.dispofast.modules.temp.PriceList;
+import com.dispocol.dispofast.modules.pricelist.domain.PriceList;
+import com.dispocol.dispofast.modules.temp.account.Person;
 import com.dispocol.dispofast.shared.location.domain.Location;
 import jakarta.persistence.*;
 import java.time.OffsetDateTime;
