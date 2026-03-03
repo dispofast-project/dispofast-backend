@@ -15,7 +15,6 @@ import com.dispocol.dispofast.modules.inventory.application.interfaces.Inventory
 import com.dispocol.dispofast.modules.inventory.domain.InventoryStock;
 import com.dispocol.dispofast.modules.inventory.domain.Product;
 import com.dispocol.dispofast.modules.inventory.infra.persistence.InventoryStockRepository;
-
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -26,29 +25,32 @@ public class InventoryServiceImpl implements InventoryService {
     private InventoryMapper inventoryMapper;
     private ProductMapper productMapper;
 
-    @Override
-    public void addProductToInventory(Product product, int quantity) {
-       try {
+  @Override
+  public void addProductToInventory(Product product, int quantity) {
+    try {
 
-            String state = quantity >= 0 ? "IN_STOCK" : "OUT_OF_STOCK";
+      String state = quantity >= 0 ? "IN_STOCK" : "OUT_OF_STOCK";
 
-            inventoryStockRepository.findById(product.getId())
-                .map(stock -> {
-                    stock.setQuantityAvailable(stock.getQuantityAvailable() + quantity);
-                    return inventoryStockRepository.save(stock);
-                })
-                .orElseGet(() -> {
-                    InventoryStock newStock = new InventoryStock();
-                    newStock.setProduct(product);
-                    newStock.setQuantityAvailable(quantity);
-                    newStock.setQuantityReserved(0);
-                    newStock.setState(state);
-                    return inventoryStockRepository.save(newStock);
-                });
-       } catch (Exception e) {
-            throw new RuntimeException("Error al agregar producto al inventario: " + e.getMessage(), e);
-       }
+      inventoryStockRepository
+          .findById(product.getId())
+          .map(
+              stock -> {
+                stock.setQuantityAvailable(stock.getQuantityAvailable() + quantity);
+                return inventoryStockRepository.save(stock);
+              })
+          .orElseGet(
+              () -> {
+                InventoryStock newStock = new InventoryStock();
+                newStock.setProduct(product);
+                newStock.setQuantityAvailable(quantity);
+                newStock.setQuantityReserved(0);
+                newStock.setState(state);
+                return inventoryStockRepository.save(newStock);
+              });
+    } catch (Exception e) {
+      throw new RuntimeException("Error al agregar producto al inventario: " + e.getMessage(), e);
     }
+  }
 
     @Override
     public void reduceProductFromInventory(String productId, int quantity) {

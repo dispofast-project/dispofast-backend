@@ -13,24 +13,25 @@ import com.dispocol.dispofast.modules.inventory.domain.Product;
 import com.dispocol.dispofast.modules.inventory.infra.exceptions.ProductAlreadyExistsException;
 import com.dispocol.dispofast.modules.inventory.infra.exceptions.ProductNotFoundException;
 import com.dispocol.dispofast.modules.inventory.infra.persistence.ProductRepository;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
 
-    private final ProductRepository productRepository;
-    private final ProductMapper productMapper;
-    private final InventoryService inventoryService;
+  private final ProductRepository productRepository;
+  private final ProductMapper productMapper;
+  private final InventoryService inventoryService;
 
     @Override
     public ProductResponseDTO createProduct(CreateProductRequestDTO request) {
-        
+
         Product product = productMapper.fromCreateProductRequestDTO(request);
 
-        if(productRepository.existsBySeoTitle(request.getSeoTitle())){
-            throw new ProductAlreadyExistsException("El producto con el SEO Title '" + request.getSeoTitle() + "' ya existe.");
+        if (productRepository.existsBySeoTitle(request.getSeoTitle())) {
+        throw new ProductAlreadyExistsException(
+            "El producto con el SEO Title '" + request.getSeoTitle() + "' ya existe.");
         }
 
         Product savedProduct = productRepository.save(product);
@@ -38,8 +39,8 @@ public class ProductServiceImpl implements ProductService {
         inventoryService.addProductToInventory(savedProduct, request.getInitialStock());
 
         return productMapper.toProductResponseDTO(savedProduct);
-
     }
+
 
     @Override
     public Product getProductById(String productId) {
@@ -52,11 +53,10 @@ public class ProductServiceImpl implements ProductService {
     public void deleteProduct(String productId) {
         productRepository.deleteById(UUID.fromString(productId));
     }
-
+    
     @Override
     public ProductResponseDTO updateProduct(String productId, CreateProductRequestDTO request) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'updateProduct'");
     }
-    
 }

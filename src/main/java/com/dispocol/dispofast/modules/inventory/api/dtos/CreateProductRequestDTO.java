@@ -1,9 +1,8 @@
 package com.dispocol.dispofast.modules.inventory.api.dtos;
 
-import java.util.UUID;
-
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,46 +11,45 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreateProductRequestDTO {
-    
-    @NotBlank(message = "Nombre es requerido")
-    private String name;
 
-    @NotBlank(message = "Descripción corta es requerida")
-    private String shortDescription;
+  @NotBlank(message = "Nombre es requerido")
+  private String name;
 
-    @NotBlank(message = "Descripción larga es requerida")
-    private String longDescription;
+  @NotBlank(message = "Descripción corta es requerida")
+  private String shortDescription;
 
-    @NotBlank(message = "URL de la imagen es requerida")
-    private String imageUrl;
+  @NotBlank(message = "Descripción larga es requerida")
+  private String longDescription;
 
-    @NotNull(message = "Indicador de libre de impuestos es requerido")
-    private Boolean taxFree;
+  @NotBlank(message = "URL de la imagen es requerida")
+  private String imageUrl;
 
-    @NotBlank(message = "SKU es requerido")
-    private String sku;
+  @NotNull(message = "Indicador de libre de impuestos es requerido")
+  private Boolean taxFree;
 
-    @NotBlank(message = "Referencia es requerida")
-    private String reference;
+  @NotBlank(message = "SKU es requerido")
+  private String sku;
 
-    @NotBlank(message = "Tamaño es requerido")
-    private String size;
+  @NotBlank(message = "Referencia es requerida")
+  private String reference;
 
-    @NotBlank(message = "Título SEO es requerido")
-    private String seoTitle;
+  @NotBlank(message = "Tamaño es requerido")
+  private String size;
 
-    @NotBlank(message = "Descripción SEO es requerida")
-    private String seoDescription;
+  @NotBlank(message = "Título SEO es requerido")
+  private String seoTitle;
 
-    @NotBlank(message = "Palabras clave SEO son requeridas")
-    private String seoKeywords;
+  @NotBlank(message = "Descripción SEO es requerida")
+  private String seoDescription;
 
-    @NotBlank(message = "Estado es requerido")
-    private String state;
+  @NotBlank(message = "Palabras clave SEO son requeridas")
+  private String seoKeywords;
 
-    @NotNull(message = "ID de categoría es requerido")
-    private UUID categoryId;
+  @NotBlank(message = "Estado es requerido")
+  private String state;
 
-    private int initialStock;
+  @NotNull(message = "ID de categoría es requerido")
+  private UUID categoryId;
 
+  private int initialStock;
 }

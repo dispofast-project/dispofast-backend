@@ -10,15 +10,15 @@ import com.dispocol.dispofast.modules.inventory.api.dtos.ProductResponseDTO;
 import com.dispocol.dispofast.modules.inventory.domain.Product;
 
 public interface InventoryService {
-    
-    void addProductToInventory(Product product, int quantity);
 
-    void reduceProductFromInventory(String productId, int quantity);
-    
-    List<ProductResponseDTO> getAllProductsInInventory();
+  void addProductToInventory(Product product, int quantity);
 
-    Page<InventoryResponseDTO> getInventoryStockForAllProducts(Pageable pageable);
+  void reduceProductFromInventory(String productId, int quantity);
+  
+  List<ProductResponseDTO> getAllProductsInInventory();
 
-    String addProductQuantity(String productId, int quantity);
+  Page<InventoryResponseDTO> getInventoryStockForAllProducts(Pageable pageable);
+
+  String addProductQuantity(String productId, int quantity);
 
 }

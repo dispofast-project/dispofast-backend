@@ -9,9 +9,30 @@ services:
       POSTGRES_USER: dispofast
       POSTGRES_PASSWORD: dispofast
     ports:
-      - "5433:5432"
+      - "5432:5432"
     volumes:
       - dispofast_data:/var/lib/postgresql/data
+    networks:
+      - dispofast-network
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: dispofast-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: dispofast@admin.com
+      PGADMIN_DEFAULT_PASSWORD: dispofast
+    ports:
+      - "5050:80"
+    volumes:
+      - dispofast_pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - postgres
+    networks:
+      - dispofast-network
 
 volumes:
   dispofast_data:
+  dispofast_pgadmin_data:
+
+networks:
+  dispofast-network:

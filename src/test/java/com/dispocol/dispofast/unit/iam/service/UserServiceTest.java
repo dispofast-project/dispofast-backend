@@ -5,8 +5,4 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
 @DisplayName("UserService - Unit Test")
-public class UserServiceTest {
-    
-    
-
-}
+public class UserServiceTest {}

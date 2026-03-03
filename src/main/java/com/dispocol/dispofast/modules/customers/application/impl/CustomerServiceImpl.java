@@ -1,13 +1,5 @@
 package com.dispocol.dispofast.modules.customers.application.impl;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.stereotype.Service;
-
 import com.dispocol.dispofast.modules.customers.api.dtos.CreateCustomerContactRequestDTO;
 import com.dispocol.dispofast.modules.customers.api.dtos.CreateCustomerRequestDTO;
 import com.dispocol.dispofast.modules.customers.api.dtos.CustomerResponseDTO;
@@ -20,101 +12,117 @@ import com.dispocol.dispofast.modules.customers.infra.persistence.CustomerReposi
 import com.dispocol.dispofast.modules.iam.domain.AppUser;
 import com.dispocol.dispofast.modules.iam.infra.exceptions.UserNotFoundException;
 import com.dispocol.dispofast.modules.iam.infra.persistence.UserRepository;
-
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class CustomerServiceImpl implements CustomerService{
+public class CustomerServiceImpl implements CustomerService {
 
-    private final CustomerRepository customerRepository;
-    private final CustomerMapper customerMapper;
-    private final UserRepository userRepository;
+  private final CustomerRepository customerRepository;
+  private final CustomerMapper customerMapper;
+  private final UserRepository userRepository;
 
-    @Override
-    public CustomerResponseDTO createCustomer(CreateCustomerRequestDTO customerRequest) {
-        
-        String nitCedula = customerRequest.getNitCedula();
+  @Override
+  public CustomerResponseDTO createCustomer(CreateCustomerRequestDTO customerRequest) {
 
-        if (customerRepository.findByNitCedula(nitCedula) != null) {
-            throw new CustomerAlreadyExistsException("El cliente ya existe con el NIT/Cédula: " + nitCedula);
-        }
+    String nitCedula = customerRequest.getNitCedula();
 
-        if (customerRequest.getUserId() == null) {
-            throw new IllegalStateException("El userId es obligatorio");
-        }
-
-        AppUser appUser = userRepository.findById(customerRequest.getUserId())
-            .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado con ID: " + customerRequest.getUserId()));
-
-        Customer newCustomer = customerMapper.fromCreateCustomerRequestDTO(customerRequest);
-        newCustomer.setUser(appUser);
-
-        CustomerContact contact = createCustomerContact(customerRequest.getContact());
-        List<CustomerContact> contacts = new ArrayList<>();
-        contacts.add(contact);
-        newCustomer.setContacts(contacts);
-
-        newCustomer = customerRepository.save(newCustomer);
-        return customerMapper.toCustomerResponseDTO(newCustomer);
-
+    if (customerRepository.findByNitCedula(nitCedula) != null) {
+      throw new CustomerAlreadyExistsException(
+          "El cliente ya existe con el NIT/Cédula: " + nitCedula);
     }
 
-    private CustomerContact createCustomerContact(CreateCustomerContactRequestDTO customerRequest) {
-        return customerMapper.fromCreateCustomerContactRequestDTO(customerRequest);
+    if (customerRequest.getUserId() == null) {
+      throw new IllegalStateException("El userId es obligatorio");
     }
 
-    @Override
-    public CustomerResponseDTO getCustomerById(String customerId) {
-        return customerRepository.findById(UUID.fromString(customerId))
-            .map(customerMapper::toCustomerResponseDTO)
-            .orElseThrow(() -> new IllegalStateException("Cliente no encontrado con ID: " + customerId));
-    }
+    AppUser appUser =
+        userRepository
+            .findById(customerRequest.getUserId())
+            .orElseThrow(
+                () ->
+                    new UserNotFoundException(
+                        "Usuario no encontrado con ID: " + customerRequest.getUserId()));
 
-    @Override
-    public Page<CustomerResponseDTO> getAllCustomers(int page, int size) {
-        return customerRepository.findAll(PageRequest.of(page, size))
-            .map(customerMapper::toCustomerResponseDTO);
-    }
+    Customer newCustomer = customerMapper.fromCreateCustomerRequestDTO(customerRequest);
+    newCustomer.setUser(appUser);
 
-    @Override
-    public Page<CustomerResponseDTO> searchCustomers(String search, int page, int size) {
-        return customerRepository.findBySocialReasonContainingIgnoreCaseOrNitCedulaContainingIgnoreCase(
-            search, 
-            search, 
-            PageRequest.of(page, size)
-        );
-    }
+    CustomerContact contact = createCustomerContact(customerRequest.getContact());
+    List<CustomerContact> contacts = new ArrayList<>();
+    contacts.add(contact);
+    newCustomer.setContacts(contacts);
 
-    @Override
-    public void deleteCustomerById(String customerId) {
-       
-        Customer customer = customerRepository.findById(UUID.fromString(customerId))
-            .orElseThrow(() -> new IllegalStateException("Cliente no encontrado con ID: " + customerId));
-        
-        customerRepository.delete(customer);
-    }
+    newCustomer = customerRepository.save(newCustomer);
+    return customerMapper.toCustomerResponseDTO(newCustomer);
+  }
 
-    @Override
-    public CustomerResponseDTO updateCustomer(String customerId, CreateCustomerRequestDTO customerRequest) {
-        
-        Customer existingCustomer = customerRepository.findById(UUID.fromString(customerId))
-            .orElseThrow(() -> new IllegalStateException("Cliente no encontrado con ID: " + customerId));
+  private CustomerContact createCustomerContact(CreateCustomerContactRequestDTO customerRequest) {
+    return customerMapper.fromCreateCustomerContactRequestDTO(customerRequest);
+  }
 
-        existingCustomer.setTypePerson(customerRequest.getTypePerson().trim());
-        existingCustomer.setSocialReason(customerRequest.getSocialReason().trim());
-        existingCustomer.setNitCedula(customerRequest.getNitCedula().trim());
-        existingCustomer.setWitholdingTax(customerRequest.isWitholdingTax());
-        existingCustomer.setAddress(customerRequest.getAddress().trim());
-        existingCustomer.setZone(customerRequest.getZone().trim());
-        existingCustomer.setCity(customerRequest.getCity().trim());
-        existingCustomer.setCountry(customerRequest.getCountry().trim());
-        existingCustomer.setDepto(customerRequest.getDepto().trim());
-        existingCustomer.setPhone(customerRequest.getPhone().trim());
-        existingCustomer.setEmail(customerRequest.getEmail().trim().toLowerCase());
+  @Override
+  public CustomerResponseDTO getCustomerById(String customerId) {
+    return customerRepository
+        .findById(UUID.fromString(customerId))
+        .map(customerMapper::toCustomerResponseDTO)
+        .orElseThrow(
+            () -> new IllegalStateException("Cliente no encontrado con ID: " + customerId));
+  }
 
-        Customer updatedCustomer = customerRepository.save(existingCustomer);
-        return customerMapper.toCustomerResponseDTO(updatedCustomer);
-    }
-    
+  @Override
+  public Page<CustomerResponseDTO> getAllCustomers(int page, int size) {
+    return customerRepository
+        .findAll(PageRequest.of(page, size))
+        .map(customerMapper::toCustomerResponseDTO);
+  }
+
+  @Override
+  public Page<CustomerResponseDTO> searchCustomers(String search, int page, int size) {
+    return customerRepository.findBySocialReasonContainingIgnoreCaseOrNitCedulaContainingIgnoreCase(
+        search, search, PageRequest.of(page, size));
+  }
+
+  @Override
+  public void deleteCustomerById(String customerId) {
+
+    Customer customer =
+        customerRepository
+            .findById(UUID.fromString(customerId))
+            .orElseThrow(
+                () -> new IllegalStateException("Cliente no encontrado con ID: " + customerId));
+
+    customerRepository.delete(customer);
+  }
+
+  @Override
+  public CustomerResponseDTO updateCustomer(
+      String customerId, CreateCustomerRequestDTO customerRequest) {
+
+    Customer existingCustomer =
+        customerRepository
+            .findById(UUID.fromString(customerId))
+            .orElseThrow(
+                () -> new IllegalStateException("Cliente no encontrado con ID: " + customerId));
+
+    existingCustomer.setTypePerson(customerRequest.getTypePerson().trim());
+    existingCustomer.setSocialReason(customerRequest.getSocialReason().trim());
+    existingCustomer.setNitCedula(customerRequest.getNitCedula().trim());
+    existingCustomer.setWitholdingTax(customerRequest.isWitholdingTax());
+    existingCustomer.setAddress(customerRequest.getAddress().trim());
+    existingCustomer.setZone(customerRequest.getZone().trim());
+    existingCustomer.setCity(customerRequest.getCity().trim());
+    existingCustomer.setCountry(customerRequest.getCountry().trim());
+    existingCustomer.setDepto(customerRequest.getDepto().trim());
+    existingCustomer.setPhone(customerRequest.getPhone().trim());
+    existingCustomer.setEmail(customerRequest.getEmail().trim().toLowerCase());
+
+    Customer updatedCustomer = customerRepository.save(existingCustomer);
+    return customerMapper.toCustomerResponseDTO(updatedCustomer);
+  }
 }
