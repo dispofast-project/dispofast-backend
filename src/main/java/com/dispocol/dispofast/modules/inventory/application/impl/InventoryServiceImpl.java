@@ -103,5 +103,6 @@ public class InventoryServiceImpl implements InventoryService {
             throw new RuntimeException("Error al actualizar cantidad del producto: " + e.getMessage(), e);
         }
     }
+
     
 }

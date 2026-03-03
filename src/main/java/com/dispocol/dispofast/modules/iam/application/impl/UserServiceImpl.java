@@ -9,7 +9,6 @@ import com.dispocol.dispofast.modules.iam.infra.exceptions.UserAlreadyExistsExce
 import com.dispocol.dispofast.modules.iam.infra.exceptions.UserNotFoundException;
 import com.dispocol.dispofast.modules.iam.infra.persistence.UserRepository;
 import jakarta.transaction.Transactional;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -62,16 +61,6 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
-  public Page<UserResponseDTO> getUsersPaged(Pageable pageable) {
-      return userRepository.findAll(pageable).map(userMapper::toUserResponseDTO);
-  }
-  
-  @Override
-  public List<AppUser> getUsers() {
-    return userRepository.findAll();
-  }
-
-  @Override
   public AppUser getUserByEmail(String email) {
     return userRepository
         .findByEmailIgnoreCase(email)
@@ -80,7 +69,8 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
-  public Page<AppUser> getUsersPaged(Pageable pageable) {
-    return userRepository.findAll(pageable);
+  public Page<UserResponseDTO> getUsersPaged(Pageable pageable) {
+    Page<AppUser> users = userRepository.findAll(pageable);
+    return users.map(userMapper::toUserResponseDTO);
   }
 }
