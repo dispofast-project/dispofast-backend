@@ -35,30 +35,31 @@ public class SecurityConfig {
   private AuthenticationEntryPoint authEntryPoint;
 
   private final ObjectProvider<JwtAuthFilter> jwtAuthFilterProvider;
-  
+
   @Bean
   SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-      http
-          .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-          .csrf(csrf -> csrf.disable())
-          .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-          .exceptionHandling(ex -> ex.authenticationEntryPoint(authEntryPoint))
-          .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
-          .authorizeHttpRequests(auth -> auth
-              // Permit all preflight requests
-              .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-              // Permit actuator health and info endpoints
-              .requestMatchers("/actuator/health", "/actuator/info").permitAll()
-              // Permit Swagger UI resources
-              .requestMatchers(
-                  "/v3/api-docs/**", 
-                  "/swagger-ui/**", 
-                  "/swagger-ui.html"
-              ).permitAll()
-              // Permit authentication endpoints
-              .requestMatchers("/auth/**").permitAll()
-              .anyRequest().authenticated()
-          );
+    http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
+        .csrf(csrf -> csrf.disable())
+        .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .exceptionHandling(ex -> ex.authenticationEntryPoint(authEntryPoint))
+        .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
+        .authorizeHttpRequests(
+            auth ->
+                auth
+                    // Permit all preflight requests
+                    .requestMatchers(HttpMethod.OPTIONS, "/**")
+                    .permitAll()
+                    // Permit actuator health and info endpoints
+                    .requestMatchers("/actuator/health", "/actuator/info")
+                    .permitAll()
+                    // Permit Swagger UI resources
+                    .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
+                    .permitAll()
+                    // Permit authentication endpoints
+                    .requestMatchers("/auth/**")
+                    .permitAll()
+                    .anyRequest()
+                    .authenticated());
 
     JwtAuthFilter jwtFilter = jwtAuthFilterProvider.getIfAvailable();
     if (jwtFilter != null) {
