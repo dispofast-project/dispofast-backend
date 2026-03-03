@@ -10,7 +10,7 @@ import com.dispocol.dispofast.modules.quotes.api.dtos.QuoteResponseDTO;
 import com.dispocol.dispofast.modules.quotes.api.dtos.UpdateQuoteRequestDTO;
 import com.dispocol.dispofast.modules.quotes.domain.Quotes;
 import com.dispocol.dispofast.shared.location.api.dto.LocationDTO;
-import com.dispocol.dispofast.shared.location.domain.Location;
+import com.dispocol.dispofast.shared.location.domain.City;
 import java.util.List;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
@@ -28,7 +28,8 @@ public interface QuoteMapper {
   @Mapping(target = "account", ignore = true)
   @Mapping(target = "status", ignore = true)
   @Mapping(target = "seller", ignore = true)
-  @Mapping(target = "location", ignore = true)
+  @Mapping(target = "city", ignore = true)
+  @Mapping(target = "zone", ignore = true)
   @Mapping(target = "priceList", ignore = true)
   @Mapping(target = "id", ignore = true)
   @Mapping(target = "createdAt", ignore = true)
@@ -38,7 +39,8 @@ public interface QuoteMapper {
   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
   @Mapping(target = "status", source = "status")
   @Mapping(target = "seller.id", source = "sellerId")
-  @Mapping(target = "location", ignore = true)
+  @Mapping(target = "city", ignore = true)
+  @Mapping(target = "zone", ignore = true)
   @Mapping(target = "priceList.id", source = "priceListId")
   @Mapping(target = "id", ignore = true)
   @Mapping(target = "number", ignore = true)
@@ -54,7 +56,7 @@ public interface QuoteMapper {
   @Mapping(
       target = "sellerName",
       expression = "java(quotes.getSeller() != null ? quotes.getSeller().getFullName() : null)")
-  @Mapping(target = "location", source = "location")
+  @Mapping(target = "location", source = "city", qualifiedByName = "cityToLocationDTO")
   QuoteResponseDTO toResponseDTO(Quotes quotes);
 
   @Mapping(target = "accountName", source = "account", qualifiedByName = "clientToName")
@@ -75,7 +77,18 @@ public interface QuoteMapper {
     return "";
   }
 
-  List<QuoteResponseDTO> toResponseDTOList(List<Quotes> quotesList);
+  @Named("cityToLocationDTO")
+  default LocationDTO cityToLocationDTO(City city) {
+    if (city == null) return null;
+    LocationDTO dto = new LocationDTO();
+    dto.setCityCode(city.getCode());
+    dto.setCityName(city.getName());
+    if (city.getDepartment() != null) {
+      dto.setDepartmentCode(city.getDepartment().getCode());
+      dto.setDepartmentName(city.getDepartment().getName());
+    }
+    return dto;
+  }
 
-  LocationDTO toLocationDTO(Location location);
+  List<QuoteResponseDTO> toResponseDTOList(List<Quotes> quotesList);
 }

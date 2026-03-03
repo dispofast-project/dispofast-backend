@@ -2,7 +2,8 @@ package com.dispocol.dispofast.modules.customers.domain;
 
 import com.dispocol.dispofast.modules.iam.domain.AppUser;
 import com.dispocol.dispofast.modules.pricelist.domain.PriceList;
-import com.dispocol.dispofast.shared.location.domain.Location;
+import com.dispocol.dispofast.shared.location.domain.City;
+import com.dispocol.dispofast.shared.location.domain.LocationZone;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -60,8 +61,12 @@ public abstract class Client {
   private AppUser defaultAdvisor;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @JoinColumn(name = "location_id", nullable = false)
-  private Location location;
+  @JoinColumn(name = "city_id")
+  private City city;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "location_zone")
+  private LocationZone zone;
 
   @Column(name = "default_discount_rate")
   private Integer defaultDiscountRate;

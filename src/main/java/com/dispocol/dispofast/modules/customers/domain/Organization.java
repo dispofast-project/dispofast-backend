@@ -2,13 +2,16 @@ package com.dispocol.dispofast.modules.customers.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Entity
-@Table(name = "organizations")
+@Table(
+    name = "organizations",
+    indexes = {@Index(name = "idx_organization_legal_name", columnList = "legal_name")})
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class Organization extends Client {

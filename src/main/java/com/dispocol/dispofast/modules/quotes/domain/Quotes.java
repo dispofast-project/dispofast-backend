@@ -3,7 +3,8 @@ package com.dispocol.dispofast.modules.quotes.domain;
 import com.dispocol.dispofast.modules.customers.domain.Client;
 import com.dispocol.dispofast.modules.iam.domain.AppUser;
 import com.dispocol.dispofast.modules.pricelist.domain.PriceList;
-import com.dispocol.dispofast.shared.location.domain.Location;
+import com.dispocol.dispofast.shared.location.domain.City;
+import com.dispocol.dispofast.shared.location.domain.LocationZone;
 import jakarta.persistence.*;
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -52,8 +53,12 @@ public class Quotes {
   private AppUser seller;
 
   @ManyToOne
-  @JoinColumn(name = "location_id", nullable = false)
-  private Location location;
+  @JoinColumn(name = "city_id", nullable = false)
+  private City city;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "location_zone")
+  private LocationZone zone;
 
   @ManyToOne
   @JoinColumn(name = "price_list_id", nullable = false)

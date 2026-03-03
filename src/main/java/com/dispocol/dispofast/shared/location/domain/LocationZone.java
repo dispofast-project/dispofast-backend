@@ -11,7 +11,8 @@ public enum LocationZone {
   NORTE("norte"),
   SUR("sur"),
   ORIENTE("oriente"),
-  OCCIDENTE("occidente");
+  OCCIDENTE("occidente"),
+  CENTRO("centro");
 
   private final String value;
 

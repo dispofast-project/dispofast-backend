@@ -13,7 +13,6 @@ import com.dispocol.dispofast.modules.quotes.domain.Quotes;
 import com.dispocol.dispofast.modules.quotes.infra.persistence.QuotesRepository;
 import com.dispocol.dispofast.shared.error.ResourceNotFoundException;
 import com.dispocol.dispofast.shared.location.application.interfaces.LocationService;
-import com.dispocol.dispofast.shared.location.domain.Location;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -53,7 +52,6 @@ public class QuoteServiceImpl implements QuoteService {
     quotes.setTotalAmount(0.0);
     quotes.setExpirationDate(OffsetDateTime.now().plusDays(30));
 
-    quotes.setLocation(client.getLocation());
     quotes.setPriceList(client.getPriceList());
     quotes.setSeller(client.getDefaultAdvisor());
 
@@ -80,11 +78,6 @@ public class QuoteServiceImpl implements QuoteService {
             .orElseThrow(() -> new ResourceNotFoundException("Quote not found with id: " + id));
 
     quoteMapper.updateEntityFromDTO(updateQuoteRequestDTO, quotes);
-
-    if (updateQuoteRequestDTO.getLocationId() != null) {
-      Location location = locationService.findEntityById(updateQuoteRequestDTO.getLocationId());
-      quotes.setLocation(location);
-    }
 
     Quotes updatedQuotes = quotesRepository.save(quotes);
     return quoteMapper.toResponseDTO(updatedQuotes);

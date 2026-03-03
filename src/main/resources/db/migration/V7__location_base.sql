@@ -1,37 +1,26 @@
-CREATE TABLE location (
-    city_code VARCHAR(10) NOT NULL,
-    city_name VARCHAR(255) NOT NULL,
-    department_code VARCHAR(10) NOT NULL,
-    department_name VARCHAR(255) NOT NULL,
-    zone VARCHAR(255),
-    CONSTRAINT pk_location PRIMARY KEY (city_code)
+-- Departments table (matches Department entity)
+CREATE TABLE departments (
+    code VARCHAR(5) PRIMARY KEY,
+    name VARCHAR(255) NOT NULL
 );
 
-INSERT INTO location (city_code, city_name, department_code, department_name, zone) VALUES 
-('11001', 'BOGOTÁ, D.C.', '11', 'BOGOTÁ, D.C.', 'CENTRO'),
-('05001', 'MEDELLÍN', '05', 'ANTIOQUIA', 'NORTE'),
-('76001', 'CALI', '76', 'VALLE DEL CAUCA', 'OCCIDENTE'),
-('08001', 'BARRANQUILLA', '08', 'ATLÁNTICO', 'NORTE'),
-('13001', 'CARTAGENA DE INDIAS', '13', 'BOLÍVAR', 'NORTE'),
-('68001', 'BUCARAMANGA', '68', 'SANTANDER', 'ORIENTE'),
-('54001', 'CÚCUTA', '54', 'NORTE DE SANTANDER', 'ORIENTE'),
-('66001', 'PEREIRA', '66', 'RISARALDA', 'OCCIDENTE'),
-('47001', 'SANTA MARTA', '47', 'MAGDALENA', 'NORTE'),
-('73001', 'IBAGUÉ', '73', 'TOLIMA', 'CENTRO'),
-('50001', 'VILLAVICENCIO', '50', 'META', 'ORIENTE'),
-('17001', 'MANIZALES', '17', 'CALDAS', 'CENTRO'),
-('63001', 'ARMENIA', '63', 'QUINDIO', 'CENTRO'),
-('41001', 'NEIVA', '41', 'HUILA', 'SUR'),
-('23001', 'MONTERÍA', '23', 'CÓRDOBA', 'NORTE'),
-('52001', 'PASTO', '52', 'NARIÑO', 'SUR'),
-('19001', 'POPAYÁN', '19', 'CAUCA', 'SUR'),
-('20001', 'VALLEDUPAR', '20', 'CESAR', 'NORTE'),
-('70001', 'SINCELEJO', '70', 'SUCRE', 'NORTE'),
-('05088', 'BELLO', '05', 'ANTIOQUIA', 'NORTE'),
-('05360', 'ITAGÜÍ', '05', 'ANTIOQUIA', 'NORTE'),
-('05266', 'ENVIGADO', '05', 'ANTIOQUIA', 'NORTE'),
-('25754', 'SOACHA', '25', 'CUNDINAMARCA', 'CENTRO'),
-('68276', 'FLORIDABLANCA', '68', 'SANTANDER', 'ORIENTE'),
-('76520', 'PALMIRA', '76', 'VALLE DEL CAUCA', 'OCCIDENTE'),
-('76111', 'BUGA', '76', 'VALLE DEL CAUCA', 'OCCIDENTE'),
-('15001', 'TUNJA', '15', 'BOYACÁ', 'CENTRO');
+CREATE UNIQUE INDEX idx_dept_name ON departments(name);
+
+-- Cities table (matches City entity)
+CREATE TABLE cities (
+    code VARCHAR(10) PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    department_code VARCHAR(5) NOT NULL,
+    CONSTRAINT fk_city_department FOREIGN KEY (department_code) REFERENCES departments(code) ON DELETE RESTRICT
+);
+
+CREATE INDEX idx_city_name ON cities(name);
+CREATE INDEX idx_city_dept_code ON cities(department_code);
+
+-- Seed: fictional test departments (codes that don't exist in real Colombian data)
+INSERT INTO departments (code, name) VALUES ('99', 'Depto Test A');
+INSERT INTO departments (code, name) VALUES ('98', 'Depto Test B');
+
+-- Seed: fictional test cities referenced by client seed data
+INSERT INTO cities (code, name, department_code) VALUES ('99001', 'Ciudad Test A', '99');
+INSERT INTO cities (code, name, department_code) VALUES ('98001', 'Ciudad Test B', '98');

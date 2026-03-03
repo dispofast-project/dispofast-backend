@@ -11,7 +11,8 @@ CREATE TABLE individuals (
     CONSTRAINT fk_indiv_client FOREIGN KEY (id) REFERENCES clients(id) ON DELETE CASCADE
 );
 
-INSERT INTO clients (id, legal_entity_type, identification_number, email_address, phone_number, is_active, retefuente_applies, address, default_advisor_id, location_id, default_discount_rate, price_list_id, client_type_id)
+-- Seed: Individual 1 (Persona Natural en Bogotá)
+INSERT INTO clients (id, legal_entity_type, identification_number, email_address, phone_number, is_active, retefuente_applies, address, default_advisor_id, city_id, location_zone, default_discount_rate, price_list_id, client_type_id)
 VALUES (
     '44444444-4444-4444-4444-444444444444',
     'NATURAL',
@@ -22,7 +23,8 @@ VALUES (
     false,
     'Calle 80 #10-10, Bogotá',
     (SELECT id FROM users WHERE email = 'vendedor@dispocol.com' LIMIT 1),
-    '11001',
+    '99001',
+    'CENTRO',
     0,
     '3fa85f64-5717-4562-b3fc-2c963f66afa6',
     1
@@ -36,7 +38,8 @@ VALUES (
     NULL, NULL, NULL, NULL, NULL, NULL
 );
 
-INSERT INTO clients (id, legal_entity_type, identification_number, email_address, phone_number, is_active, retefuente_applies, address, default_advisor_id, location_id, default_discount_rate, price_list_id, client_type_id)
+-- Seed: Individual 2 (Persona Natural en Medellín)
+INSERT INTO clients (id, legal_entity_type, identification_number, email_address, phone_number, is_active, retefuente_applies, address, default_advisor_id, city_id, location_zone, default_discount_rate, price_list_id, client_type_id)
 VALUES (
     '55555555-5555-5555-5555-555555555555',
     'NATURAL',
@@ -47,7 +50,8 @@ VALUES (
     true,
     'Cra 50 #30-30, Medellín',
     (SELECT id FROM users WHERE email = 'admin@dispocol.com' LIMIT 1),
-    '05001',
+    '98001',
+    'NORTE',
     0,
     '22222222-2222-2222-2222-222222222222',
     2

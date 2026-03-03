@@ -8,13 +8,14 @@ CREATE TABLE clients (
     retefuente_applies BOOLEAN NOT NULL DEFAULT false,
     address TEXT NOT NULL,
     default_advisor_id UUID NOT NULL,
-    location_id VARCHAR(10) NOT NULL,
+    city_id VARCHAR(10) NOT NULL,
+    location_zone VARCHAR(50),
     default_discount_rate INTEGER,
     price_list_id UUID NOT NULL,
     client_type_id BIGINT NOT NULL,
     
     CONSTRAINT fk_client_advisor FOREIGN KEY (default_advisor_id) REFERENCES users(id),
-    CONSTRAINT fk_client_location FOREIGN KEY (location_id) REFERENCES location(city_code),
+    CONSTRAINT fk_client_location FOREIGN KEY (city_id) REFERENCES cities(code),
     CONSTRAINT fk_client_price_list FOREIGN KEY (price_list_id) REFERENCES price_lists(id),
     CONSTRAINT fk_client_type FOREIGN KEY (client_type_id) REFERENCES client_types(id)
 );
@@ -26,7 +27,8 @@ CREATE TABLE organizations (
     CONSTRAINT fk_org_client FOREIGN KEY (id) REFERENCES clients(id) ON DELETE CASCADE
 );
 
-INSERT INTO clients (id, legal_entity_type, identification_number, email_address, phone_number, is_active, retefuente_applies, address, default_advisor_id, location_id, default_discount_rate, price_list_id, client_type_id)
+-- Seed: Organization 1 (Distribuidor en Bogotá)
+INSERT INTO clients (id, legal_entity_type, identification_number, email_address, phone_number, is_active, retefuente_applies, address, default_advisor_id, city_id, location_zone, default_discount_rate, price_list_id, client_type_id)
 VALUES (
     '3fa85f64-5717-4562-b3fc-2c963f66afa6',
     'LEGAL',
@@ -37,7 +39,8 @@ VALUES (
     false,
     'Cra 45 #26-85, Bogotá',
     (SELECT id FROM users WHERE email = 'vendedor@dispocol.com' LIMIT 1),
-    '11001',
+    '99001',
+    'CENTRO',
     5,
     '3fa85f64-5717-4562-b3fc-2c963f66afa6',
     1
@@ -50,7 +53,8 @@ VALUES (
     'facturacion@abc.com'
 );
 
-INSERT INTO clients (id, legal_entity_type, identification_number, email_address, phone_number, is_active, retefuente_applies, address, default_advisor_id, location_id, default_discount_rate, price_list_id, client_type_id)
+-- Seed: Organization 2 (Constructor en Medellín)
+INSERT INTO clients (id, legal_entity_type, identification_number, email_address, phone_number, is_active, retefuente_applies, address, default_advisor_id, city_id, location_zone, default_discount_rate, price_list_id, client_type_id)
 VALUES (
     '11111111-1111-1111-1111-111111111111',
     'LEGAL',
@@ -61,7 +65,8 @@ VALUES (
     true,
     'Calle 100 #15-20, Medellín',
     (SELECT id FROM users WHERE email = 'admin@dispocol.com' LIMIT 1),
-    '05001',
+    '98001',
+    'NORTE',
     3,
     '22222222-2222-2222-2222-222222222222',
     2
