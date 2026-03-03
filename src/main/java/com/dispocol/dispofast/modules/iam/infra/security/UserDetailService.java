@@ -25,7 +25,7 @@ public class UserDetailService implements UserDetailsService {
             .orElseThrow(
                 () -> new UsernameNotFoundException("User not found with email: " + username));
 
-    String[] roles =
+    String[] permissions =
         user.getRoles().stream()
             .map(role -> role.getName().replace("ROLE_", ""))
             .toArray(String[]::new);
@@ -33,7 +33,7 @@ public class UserDetailService implements UserDetailsService {
     return User.builder()
         .username(user.getEmail())
         .password(user.getPasswordHash())
-        .roles(roles)
+        .roles(permissions)
         .build();
   }
 }

@@ -1,5 +1,10 @@
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
+CREATE TABLE permissions(
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(255) NOT NULL UNIQUE
+);
+
 CREATE TABLE roles(
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(255) NOT NULL UNIQUE
@@ -22,7 +27,6 @@ CREATE TABLE user_roles(
     CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     CONSTRAINT fk_role FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE RESTRICT
 );
-
 
 CREATE INDEX idx_user_email ON users(email);
 CREATE INDEX idx_user_roles_user_id ON user_roles(user_id);

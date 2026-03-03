@@ -1,10 +1,24 @@
 package com.dispocol.dispofast.modules.iam.domain;
 
-import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Entity
 @Table(name = "roles")
@@ -12,9 +26,21 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Role {
+    
+    @Id
+    @GeneratedValue
+    private UUID id;
 
-  @Id @GeneratedValue private UUID id;
+    @Column(nullable = false, unique = true)    
+    private String name;
 
-  @Column(nullable = false, unique = true)
-  private String name;
+    @ManyToMany(fetch = FetchType.EAGER)
+	@JoinTable(
+			name = "roles_permissions",
+			joinColumns = @JoinColumn(name = "roles_id"),
+			inverseJoinColumns = @JoinColumn(name = "permissions_id"))
+	@JsonIgnore
+	@ToString.Exclude
+	private List<Permission> permissions = new ArrayList<>();
+
 }
