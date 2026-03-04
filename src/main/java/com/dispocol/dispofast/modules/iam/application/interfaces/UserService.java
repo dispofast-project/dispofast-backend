@@ -1,9 +1,11 @@
 package com.dispocol.dispofast.modules.iam.application.interfaces;
 
 import com.dispocol.dispofast.modules.iam.api.dtos.CreateUserRequestDTO;
+import com.dispocol.dispofast.modules.iam.api.dtos.UpdateUserRequestDTO;
 import com.dispocol.dispofast.modules.iam.api.dtos.UserResponseDTO;
 import com.dispocol.dispofast.modules.iam.domain.AppUser;
 import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -54,4 +56,6 @@ public interface UserService {
    * @return the user that matches that email
    */
   AppUser getUserByEmail(String email);
+
+  UserResponseDTO updatedUser(String id, UpdateUserRequestDTO user);
 }

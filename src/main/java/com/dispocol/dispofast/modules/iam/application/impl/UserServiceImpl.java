@@ -1,6 +1,7 @@
 package com.dispocol.dispofast.modules.iam.application.impl;
 
 import com.dispocol.dispofast.modules.iam.api.dtos.CreateUserRequestDTO;
+import com.dispocol.dispofast.modules.iam.api.dtos.UpdateUserRequestDTO;
 import com.dispocol.dispofast.modules.iam.api.dtos.UserResponseDTO;
 import com.dispocol.dispofast.modules.iam.api.mappers.UserMapper;
 import com.dispocol.dispofast.modules.iam.application.interfaces.UserService;
@@ -78,5 +79,11 @@ public class UserServiceImpl implements UserService {
   @Override
   public Page<AppUser> getUsersPaged(Pageable pageable) {
     return userRepository.findAll(pageable);
+  }
+
+  @Override
+  public UserResponseDTO updatedUser(String id, UpdateUserRequestDTO user) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'updatedUser'");
   }
 }

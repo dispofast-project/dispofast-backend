@@ -2,22 +2,7 @@
 -- V11: IAM – Permissions seeding and role_permissions table
 -- ============================================================
 
--- 1. Role-permissions join table
---    Allows assigning a set of default permissions to a role.
---    Individual overrides can still be added via user_permissions.
--- ------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS role_permissions (
-    role_id       UUID NOT NULL,
-    permission_id UUID NOT NULL,
-    PRIMARY KEY (role_id, permission_id),
-    CONSTRAINT fk_rp_role       FOREIGN KEY (role_id)       REFERENCES roles(id)       ON DELETE CASCADE,
-    CONSTRAINT fk_rp_permission FOREIGN KEY (permission_id) REFERENCES permissions(id) ON DELETE CASCADE
-);
-
-CREATE INDEX IF NOT EXISTS idx_role_permissions_role_id       ON role_permissions(role_id);
-CREATE INDEX IF NOT EXISTS idx_role_permissions_permission_id ON role_permissions(permission_id);
-
--- 2. Seed all system permissions
+-- 1. Seed all system permissions
 --    Convention: {MODULE}_{ACTION}
 --    Actions: VIEW | CREATE | EDIT | DELETE
 --    Non-ADMIN roles can only receive VIEW, CREATE, EDIT –
@@ -74,7 +59,7 @@ INSERT INTO permissions (name) VALUES
 
 ON CONFLICT (name) DO NOTHING;
 
--- 3. ADMIN: acceso total a todos los módulos y acciones
+-- 2. ADMIN: acceso total a todos los módulos y acciones
 -- ------------------------------------------------------------
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT r.id, p.id
@@ -83,7 +68,7 @@ CROSS  JOIN permissions p
 WHERE  r.name = 'ADMIN'
 ON CONFLICT DO NOTHING;
 
--- 4. VENDEDOR: permisos base – ver, crear y editar en sus módulos;
+-- 3. VENDEDOR: permisos base – ver, crear y editar en sus módulos;
 --    sin acceso a eliminación ni a módulos de gestión interna (IAM, Inventario).
 --    Permisos adicionales pueden asignarse por usuario mediante user_permissions.
 -- ------------------------------------------------------------
@@ -107,7 +92,14 @@ JOIN   permissions p ON p.name IN (
 WHERE  r.name = 'VENDEDOR'
 ON CONFLICT DO NOTHING;
 
--- 5. BODEGA: sin permisos base predefinidos.
---    Los permisos se asignan individualmente a cada usuario mediante user_permissions
---    según las necesidades operativas (típicamente módulos de Inventario).
+-- 4. BODEGA: módulos operativos de inventario
 -- ------------------------------------------------------------
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT r.id, p.id
+FROM   roles r
+JOIN   permissions p ON p.name IN (
+    'INVENTORY_VIEW',       'INVENTORY_CREATE',        'INVENTORY_EDIT',
+    'PURCHASE_ORDERS_VIEW'
+)
+WHERE  r.name = 'BODEGA'
+ON CONFLICT DO NOTHING;

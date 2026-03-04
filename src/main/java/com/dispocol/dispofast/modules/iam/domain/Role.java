@@ -1,7 +1,9 @@
 package com.dispocol.dispofast.modules.iam.domain;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -35,12 +37,12 @@ public class Role {
     private String name;
 
     @ManyToMany(fetch = FetchType.EAGER)
-	@JoinTable(
-			name = "roles_permissions",
-			joinColumns = @JoinColumn(name = "roles_id"),
-			inverseJoinColumns = @JoinColumn(name = "permissions_id"))
-	@JsonIgnore
-	@ToString.Exclude
-	private List<Permission> permissions = new ArrayList<>();
+    @JoinTable(
+        name = "role_permissions",
+        joinColumns = @JoinColumn(name = "role_id"),
+        inverseJoinColumns = @JoinColumn(name = "permission_id"))
+    @JsonIgnore
+    @ToString.Exclude
+    private Set<Permission> permissions = new HashSet<>();
 
 }

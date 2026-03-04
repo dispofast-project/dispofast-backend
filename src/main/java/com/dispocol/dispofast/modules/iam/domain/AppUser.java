@@ -42,10 +42,10 @@ public class AppUser {
 
   @ManyToMany(fetch = FetchType.EAGER)
   @JoinTable(
-      name = "user_roles",
+      name = "user_permissions",
       joinColumns = @JoinColumn(name = "user_id"),
-      inverseJoinColumns = @JoinColumn(name = "role_id"))
-  private Set<Role> roles = new HashSet<>();
+      inverseJoinColumns = @JoinColumn(name = "permission_id"))
+  private Set<Permission> permissions = new HashSet<>();
 
   public void addCustomer(Customer customer) {
     customers.add(customer);
