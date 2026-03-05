@@ -137,16 +137,10 @@ public class UserServiceImpl implements UserService {
   @Override
   public void deleteUser(String email) {
     AppUser user = getUserByEmail(email);
-
     if (user == null) {
       throw new UserNotFoundException("No se encontró un usuario con el correo: " + email);
     }
     userRepository.delete(user);
-  }
-
-  @Override
-  public List<AppUser> getUsers() {
-    return userRepository.findAll();
   }
 
   @Override
@@ -158,8 +152,9 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
-  public Page<AppUser> getUsersPaged(Pageable pageable) {
-    return userRepository.findAll(pageable);
+  public Page<UserResponseDTO> getUsersPaged(Pageable pageable) {
+    Page<AppUser> users = userRepository.findAll(pageable);
+    return users.map(userMapper::toUserResponseDTO);
   }
 
   @Override

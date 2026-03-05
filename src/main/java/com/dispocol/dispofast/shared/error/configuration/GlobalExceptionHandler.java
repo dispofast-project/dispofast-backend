@@ -1,6 +1,5 @@
 package com.dispocol.dispofast.shared.error.configuration;
 
-import com.dispocol.dispofast.modules.customers.infra.exceptions.CustomerNotFoundException;
 import com.dispocol.dispofast.modules.iam.infra.exceptions.UserNotFoundException;
 import com.dispocol.dispofast.shared.error.ResourceNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -8,11 +7,11 @@ import java.time.Instant;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @Slf4j
-@RestControllerAdvice
+@ControllerAdvice
 public class GlobalExceptionHandler {
 
   @ExceptionHandler(IllegalArgumentException.class)
@@ -33,13 +32,6 @@ public class GlobalExceptionHandler {
   public ResponseEntity<GlobalErrorResponse> handleUserNotFound(
       RuntimeException ex, HttpServletRequest request) {
     log.warn("El usuario no fue encontrado: {}", ex.getMessage());
-    return buildErrorResponseEntity(ex, request, HttpStatus.NOT_FOUND);
-  }
-
-  @ExceptionHandler(CustomerNotFoundException.class)
-  public ResponseEntity<GlobalErrorResponse> handleCustomerNotFound(
-      RuntimeException ex, HttpServletRequest request) {
-    log.warn("El cliente no fue encontrado: {}", ex.getMessage());
     return buildErrorResponseEntity(ex, request, HttpStatus.NOT_FOUND);
   }
 

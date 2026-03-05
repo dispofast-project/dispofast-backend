@@ -70,7 +70,7 @@ public interface UserService {
    * @param pageable pagination information
    * @return paged users
    */
-  Page<AppUser> getUsersPaged(Pageable pageable);
+  Page<UserResponseDTO> getUsersPaged(Pageable pageable);
 
   /**
    * Search a user given by the email
