@@ -5,5 +5,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface ClientService {
-  Page<ClientPreviewDTO> getAllClients(Pageable pageable);
+  Page<ClientPreviewDTO> getAllClients(
+      Pageable pageable, String text, String key, Boolean isActive, String city);
 }

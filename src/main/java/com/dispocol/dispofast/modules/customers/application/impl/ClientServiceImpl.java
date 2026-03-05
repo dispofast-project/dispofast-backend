@@ -4,10 +4,18 @@ import com.dispocol.dispofast.modules.customers.api.dtos.ClientPreviewDTO;
 import com.dispocol.dispofast.modules.customers.api.mappers.ClientMapper;
 import com.dispocol.dispofast.modules.customers.application.interfaces.ClientService;
 import com.dispocol.dispofast.modules.customers.domain.Client;
+import com.dispocol.dispofast.modules.customers.domain.Individual;
+import com.dispocol.dispofast.modules.customers.domain.Organization;
 import com.dispocol.dispofast.modules.customers.infra.persistence.ClientRepository;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,8 +28,62 @@ public class ClientServiceImpl implements ClientService {
 
   @Override
   @Transactional(readOnly = true)
-  public Page<ClientPreviewDTO> getAllClients(Pageable pageable) {
-    Page<Client> clientPage = clientRepository.findAll(pageable);
+  public Page<ClientPreviewDTO> getAllClients(
+      Pageable pageable, String text, String key, Boolean isActive, String city) {
+    Specification<Client> spec = Specification.where(null);
+
+    if (text != null && !text.isBlank()) {
+      spec = spec.and(buildSearchSpec(text.trim().toLowerCase(), key));
+    }
+
+    if (isActive != null) {
+      spec = spec.and((root, query, cb) -> cb.equal(root.get("isActive"), isActive));
+    }
+
+    if (city != null && !city.isBlank()) {
+      spec = spec.and((root, query, cb) -> cb.equal(root.get("city").get("code"), city.trim()));
+    }
+
+    Page<Client> clientPage = clientRepository.findAll(spec, pageable);
     return clientPage.map(clientMapper::toPreviewDTO);
+  }
+
+  private Specification<Client> buildSearchSpec(String text, String key) {
+    return (root, query, cb) -> {
+      String pattern = "%" + text + "%";
+
+      if (key != null) {
+        return switch (key) {
+          case "name" -> buildNamePredicate(root, cb, pattern);
+          case "identification" -> cb.like(cb.lower(root.get("identificationNumber")), pattern);
+          case "advisor" -> cb.like(cb.lower(root.get("defaultAdvisor").get("fullName")), pattern);
+          default -> buildNamePredicate(root, cb, pattern);
+        };
+      }
+
+      // No key: search across name, identification, and email
+      List<Predicate> predicates = new ArrayList<>();
+      predicates.add(buildNamePredicate(root, cb, pattern));
+      predicates.add(cb.like(cb.lower(root.get("identificationNumber")), pattern));
+      predicates.add(cb.like(cb.lower(root.get("email")), pattern));
+      return cb.or(predicates.toArray(new Predicate[0]));
+    };
+  }
+
+  private Predicate buildNamePredicate(Root<Client> root, CriteriaBuilder cb, String pattern) {
+    // Search in Individual (firstName + lastName) or Organization (legalName)
+    Predicate individualName =
+        cb.and(
+            cb.equal(root.type(), Individual.class),
+            cb.or(
+                cb.like(cb.lower(cb.treat(root, Individual.class).get("firstName")), pattern),
+                cb.like(cb.lower(cb.treat(root, Individual.class).get("lastName")), pattern)));
+
+    Predicate orgName =
+        cb.and(
+            cb.equal(root.type(), Organization.class),
+            cb.like(cb.lower(cb.treat(root, Organization.class).get("legalName")), pattern));
+
+    return cb.or(individualName, orgName);
   }
 }

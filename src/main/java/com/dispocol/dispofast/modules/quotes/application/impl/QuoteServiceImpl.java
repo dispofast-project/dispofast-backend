@@ -12,7 +12,6 @@ import com.dispocol.dispofast.modules.quotes.domain.QuoteStatus;
 import com.dispocol.dispofast.modules.quotes.domain.Quotes;
 import com.dispocol.dispofast.modules.quotes.infra.persistence.QuotesRepository;
 import com.dispocol.dispofast.shared.error.ResourceNotFoundException;
-import com.dispocol.dispofast.shared.location.application.interfaces.LocationService;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +26,6 @@ public class QuoteServiceImpl implements QuoteService {
 
   private final QuotesRepository quotesRepository;
   private final QuoteMapper quoteMapper;
-  private final LocationService locationService;
   private final ClientRepository clientRepository;
 
   @Override
