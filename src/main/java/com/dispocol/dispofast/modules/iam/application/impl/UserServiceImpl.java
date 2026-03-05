@@ -9,7 +9,6 @@ import com.dispocol.dispofast.modules.iam.infra.exceptions.UserAlreadyExistsExce
 import com.dispocol.dispofast.modules.iam.infra.exceptions.UserNotFoundException;
 import com.dispocol.dispofast.modules.iam.infra.persistence.UserRepository;
 import jakarta.transaction.Transactional;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -55,16 +54,10 @@ public class UserServiceImpl implements UserService {
   @Override
   public void deleteUser(String email) {
     AppUser user = getUserByEmail(email);
-
     if (user == null) {
       throw new UserNotFoundException("No se encontró un usuario con el correo: " + email);
     }
     userRepository.delete(user);
-  }
-
-  @Override
-  public List<AppUser> getUsers() {
-    return userRepository.findAll();
   }
 
   @Override
@@ -76,7 +69,8 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
-  public Page<AppUser> getUsersPaged(Pageable pageable) {
-    return userRepository.findAll(pageable);
+  public Page<UserResponseDTO> getUsersPaged(Pageable pageable) {
+    Page<AppUser> users = userRepository.findAll(pageable);
+    return users.map(userMapper::toUserResponseDTO);
   }
 }

@@ -3,7 +3,6 @@ package com.dispocol.dispofast.modules.iam.application.interfaces;
 import com.dispocol.dispofast.modules.iam.api.dtos.CreateUserRequestDTO;
 import com.dispocol.dispofast.modules.iam.api.dtos.UserResponseDTO;
 import com.dispocol.dispofast.modules.iam.domain.AppUser;
-import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -33,19 +32,12 @@ public interface UserService {
   void deleteUser(String email);
 
   /**
-   * Gets all users that have been registered
-   *
-   * @return all the users in the app
-   */
-  List<AppUser> getUsers();
-
-  /**
    * Get all users in a paged way
    *
    * @param pageable pagination information
    * @return paged users
    */
-  Page<AppUser> getUsersPaged(Pageable pageable);
+  Page<UserResponseDTO> getUsersPaged(Pageable pageable);
 
   /**
    * Search a user given by the email
