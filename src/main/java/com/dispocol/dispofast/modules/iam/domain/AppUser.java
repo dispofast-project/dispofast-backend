@@ -19,9 +19,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class AppUser {
 
-  @Id @GeneratedValue
-  @EqualsAndHashCode.Include
-  private UUID id;
+  @Id @GeneratedValue @EqualsAndHashCode.Include private UUID id;
 
   @Column(nullable = false, unique = true, length = 255)
   private String email;

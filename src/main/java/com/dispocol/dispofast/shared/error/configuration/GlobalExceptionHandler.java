@@ -14,7 +14,6 @@ import com.dispocol.dispofast.shared.error.ResourceNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.Instant;
 import java.util.stream.Collectors;
-
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -65,12 +64,14 @@ public class GlobalExceptionHandler {
   public ResponseEntity<GlobalErrorResponse> handleValidationErrors(
       MethodArgumentNotValidException ex, HttpServletRequest request) {
 
-    String message = ex.getBindingResult().getFieldErrors().stream()
-        .map(error -> error.getField() + ": " + error.getDefaultMessage())
-        .collect(Collectors.joining(", "));
+    String message =
+        ex.getBindingResult().getFieldErrors().stream()
+            .map(error -> error.getField() + ": " + error.getDefaultMessage())
+            .collect(Collectors.joining(", "));
 
     log.warn("Validation failed: {}", message);
-    return buildErrorResponseEntity(message, ex.getClass().getSimpleName(), request, HttpStatus.BAD_REQUEST);
+    return buildErrorResponseEntity(
+        message, ex.getClass().getSimpleName(), request, HttpStatus.BAD_REQUEST);
   }
 
   @ExceptionHandler(UserAlreadyExistsException.class)
@@ -159,12 +160,9 @@ public class GlobalExceptionHandler {
 
   private ResponseEntity<GlobalErrorResponse> buildErrorResponseEntity(
       String message, String error, HttpServletRequest request, HttpStatus status) {
-    GlobalErrorResponse response = new GlobalErrorResponse(
-        Instant.now(),
-        status.value(),
-        error,
-        message,
-        request.getRequestURI());
+    GlobalErrorResponse response =
+        new GlobalErrorResponse(
+            Instant.now(), status.value(), error, message, request.getRequestURI());
     return ResponseEntity.status(status).body(response);
   }
 }

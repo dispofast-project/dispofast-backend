@@ -14,9 +14,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class UserPermission {
 
-  @EmbeddedId
-  @EqualsAndHashCode.Include
-  private UserPermissionId id = new UserPermissionId();
+  @EmbeddedId @EqualsAndHashCode.Include private UserPermissionId id = new UserPermissionId();
 
   @ManyToOne(fetch = FetchType.LAZY)
   @MapsId("userId")

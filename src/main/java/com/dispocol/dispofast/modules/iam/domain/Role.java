@@ -27,9 +27,7 @@ import lombok.ToString;
 @NoArgsConstructor
 public class Role {
 
-  @Id @GeneratedValue
-  @EqualsAndHashCode.Include
-  private UUID id;
+  @Id @GeneratedValue @EqualsAndHashCode.Include private UUID id;
 
   @Column(nullable = false, unique = true)
   private String name;
