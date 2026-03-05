@@ -7,9 +7,11 @@ import jakarta.validation.constraints.Size;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class CreateUserRequestDTO {
 
   @NotBlank(message = "El nombre no puede estar vacío")
