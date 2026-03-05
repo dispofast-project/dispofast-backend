@@ -26,8 +26,8 @@ public class UserDetailService implements UserDetailsService {
                 () -> new UsernameNotFoundException("User not found with email: " + username));
 
     String[] permissions =
-        user.getRoles().stream()
-            .map(role -> role.getName().replace("ROLE_", ""))
+        user.getPermissions().stream()
+            .map(permission -> permission.getPermission().getName().replace("PERMISSION_", ""))
             .toArray(String[]::new);
 
     return User.builder()

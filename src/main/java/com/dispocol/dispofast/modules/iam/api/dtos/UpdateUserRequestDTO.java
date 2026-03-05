@@ -1,8 +1,6 @@
 package com.dispocol.dispofast.modules.iam.api.dtos;
 
-import java.util.Set;
-
-import com.dispocol.dispofast.modules.iam.domain.Role;
+import java.util.UUID;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -24,6 +22,6 @@ public class UpdateUserRequestDTO {
     @Email(message = "El email debe ser válido")
     private String email;
 
-    @NotNull(message = "La lista de roles no puede estar vacía  ")
-    private Set<Role> roles;
+    @NotNull(message = "El rol es obligatorio")
+    private UUID roleId;
 }

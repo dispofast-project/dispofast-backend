@@ -18,7 +18,7 @@ public class AuthUserDetailsMapper {
 
     Collection<GrantedAuthority> authorities =
         Optional.ofNullable(user.getPermissions()).orElse(Collections.emptySet()).stream()
-            .map(permission -> new SimpleGrantedAuthority(permission.getName()))
+            .map(permission -> new SimpleGrantedAuthority(permission.getPermission().getName()))
             .collect(Collectors.toList());
 
     return User.builder()

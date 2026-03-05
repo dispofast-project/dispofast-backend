@@ -3,7 +3,9 @@ package com.dispocol.dispofast.modules.iam.api.mappers;
 import com.dispocol.dispofast.modules.iam.api.dtos.CreateUserRequestDTO;
 import com.dispocol.dispofast.modules.iam.api.dtos.UserResponseDTO;
 import com.dispocol.dispofast.modules.iam.domain.AppUser;
+import com.dispocol.dispofast.modules.iam.domain.Permission;
 import com.dispocol.dispofast.modules.iam.domain.Role;
+
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Set;
@@ -16,17 +18,22 @@ import org.mapstruct.Named;
 public interface UserMapper {
 
   @Mapping(target = "name", source = "fullName")
-  @Mapping(target = "roles", source = "roles", qualifiedByName = "mapRoles")
-  @Mapping(target = "createdAt", source = "createdAt", qualifiedByName = "formatDateTime")
-  @Mapping(target = "updatedAt", source = "updatedAt", qualifiedByName = "formatDateTime")
+  @Mapping(target = "permissions", source = "permissions", qualifiedByName = "mapPermissions")
+  @Mapping(target = "role", source = "roles", qualifiedByName = "mapRole")
   UserResponseDTO toUserResponseDTO(AppUser user);
 
-  @Named("mapRoles")
-  default List<String> mapRoles(Set<Role> roles) {
-    if (roles == null || roles.isEmpty()) {
+  @Named("mapPermissions")
+  default List<String> mapPermissions(Set<Permission> permissions) {
+    if (permissions == null || permissions.isEmpty()) {
       return java.util.Collections.emptyList();
     }
-    return roles.stream().map(Role::getName).collect(Collectors.toList());
+    return permissions.stream().map(Permission::getName).collect(Collectors.toList());
+  }
+
+  @Named("mapRole")
+  default String mapRole(Set<Role> roles) {
+    if (roles == null || roles.isEmpty()) return null;
+    return roles.iterator().next().getName();
   }
 
   @Named("formatDateTime")
@@ -35,6 +42,7 @@ public interface UserMapper {
   }
 
   @Mapping(target = "id", ignore = true)
+  @Mapping(target = "permissions", source = "permissions")
   @Mapping(target = "roles", source = "roles")
   @Mapping(
       target = "email",
