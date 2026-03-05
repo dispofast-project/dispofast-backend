@@ -7,7 +7,6 @@ import com.dispocol.dispofast.modules.iam.api.dtos.UserPermissionsDetailDTO;
 import com.dispocol.dispofast.modules.iam.api.dtos.UserResponseDTO;
 import com.dispocol.dispofast.modules.iam.domain.AppUser;
 import com.dispocol.dispofast.modules.iam.infra.exceptions.UserNotFoundException;
-import java.util.List;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -47,7 +46,7 @@ public interface UserService {
    *
    * @param user user to be deleted
    */
-  void deleteUser(String email);
+  void deleteUser(UUID id);
 
   /**
    * Search the users by name matching the parameter that the user is entering
@@ -55,14 +54,7 @@ public interface UserService {
    * @param search the input that user uses to do the searching
    * @return list of users that match the search parameter
    */
-  Page<AppUser> searchUsers(String search, Pageable pageable);
-
-  /**
-   * Gets all users that have been registered
-   *
-   * @return all the users in the app
-   */
-  List<AppUser> getUsers();
+  Page<UserResponseDTO> searchUsers(String search, Pageable pageable);
 
   /**
    * Get all users in a paged way

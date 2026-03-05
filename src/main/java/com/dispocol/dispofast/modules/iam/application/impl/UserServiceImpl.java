@@ -130,16 +130,14 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
-  public Page<AppUser> searchUsers(String search, Pageable pageable) {
-    return userRepository.findByFullNameContainingIgnoreCase(search, pageable);
+  public Page<UserResponseDTO> searchUsers(String search, Pageable pageable) {
+    return userRepository.findByFullNameContainingIgnoreCase(search, pageable).map(userMapper::toUserResponseDTO);
   }
 
   @Override
-  public void deleteUser(String email) {
-    AppUser user = getUserByEmail(email);
-    if (user == null) {
-      throw new UserNotFoundException("No se encontró un usuario con el correo: " + email);
-    }
+  public void deleteUser(UUID id) {
+    AppUser user = getUserById(id);
+    
     userRepository.delete(user);
   }
 
@@ -167,4 +165,5 @@ public class UserServiceImpl implements UserService {
         .findById(id)
         .orElseThrow(() -> new UserNotFoundException("No se encontró un usuario con el id: " + id));
   }
+
 }

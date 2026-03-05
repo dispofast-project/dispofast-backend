@@ -15,17 +15,21 @@ import java.util.Set;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 @Entity
 @Table(name = "roles")
 @Data
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @AllArgsConstructor
 @NoArgsConstructor
 public class Role {
 
-  @Id @GeneratedValue private UUID id;
+  @Id @GeneratedValue
+  @EqualsAndHashCode.Include
+  private UUID id;
 
   @Column(nullable = false, unique = true)
   private String name;
