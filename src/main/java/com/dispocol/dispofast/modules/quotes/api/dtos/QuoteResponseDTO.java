@@ -3,7 +3,7 @@ package com.dispocol.dispofast.modules.quotes.api.dtos;
 import com.dispocol.dispofast.modules.customers.api.dtos.ClientPreviewDTO;
 import com.dispocol.dispofast.modules.pricelist.api.dtos.PriceListResponseDTO;
 import com.dispocol.dispofast.modules.quotes.domain.QuoteStatus;
-import com.dispocol.dispofast.shared.location.api.dto.LocationDTO;
+import com.dispocol.dispofast.shared.location.api.dto.CityDTO;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -27,7 +27,7 @@ public class QuoteResponseDTO {
   private OffsetDateTime expirationDate;
   private ClientPreviewDTO account;
   private String sellerName;
-  private LocationDTO location;
+  private CityDTO city;
   private PriceListResponseDTO priceList;
   private OffsetDateTime createdAt;
   private OffsetDateTime updatedAt;

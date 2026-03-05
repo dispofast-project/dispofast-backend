@@ -9,8 +9,7 @@ import com.dispocol.dispofast.modules.quotes.api.dtos.QuotePreviewResponseDTO;
 import com.dispocol.dispofast.modules.quotes.api.dtos.QuoteResponseDTO;
 import com.dispocol.dispofast.modules.quotes.api.dtos.UpdateQuoteRequestDTO;
 import com.dispocol.dispofast.modules.quotes.domain.Quotes;
-import com.dispocol.dispofast.shared.location.api.dto.LocationDTO;
-import com.dispocol.dispofast.shared.location.domain.City;
+import com.dispocol.dispofast.shared.location.api.mappers.CityMapper;
 import java.util.List;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
@@ -21,7 +20,7 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 
 @Mapper(
     componentModel = "spring",
-    uses = {ClientMapper.class},
+    uses = {ClientMapper.class, CityMapper.class},
     unmappedTargetPolicy = org.mapstruct.ReportingPolicy.IGNORE)
 public interface QuoteMapper {
 
@@ -56,7 +55,6 @@ public interface QuoteMapper {
   @Mapping(
       target = "sellerName",
       expression = "java(quotes.getSeller() != null ? quotes.getSeller().getFullName() : null)")
-  @Mapping(target = "location", source = "city", qualifiedByName = "cityToLocationDTO")
   QuoteResponseDTO toResponseDTO(Quotes quotes);
 
   @Mapping(target = "accountName", source = "account", qualifiedByName = "clientToName")
@@ -75,19 +73,6 @@ public interface QuoteMapper {
       return org.getLegalName();
     }
     return "";
-  }
-
-  @Named("cityToLocationDTO")
-  default LocationDTO cityToLocationDTO(City city) {
-    if (city == null) return null;
-    LocationDTO dto = new LocationDTO();
-    dto.setCityCode(city.getCode());
-    dto.setCityName(city.getName());
-    if (city.getDepartment() != null) {
-      dto.setDepartmentCode(city.getDepartment().getCode());
-      dto.setDepartmentName(city.getDepartment().getName());
-    }
-    return dto;
   }
 
   List<QuoteResponseDTO> toResponseDTOList(List<Quotes> quotesList);
