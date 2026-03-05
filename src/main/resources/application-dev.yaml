@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: ${DB_PROTOCOL:jdbc:postgresql}://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:dispofast}
+    url: ${DB_PROTOCOL:jdbc:postgresql}://${DB_HOST:localhost}:${DB_PORT:5433}/${DB_NAME:dispofast}
     username: ${DB_USERNAME:dispofast}
     password: ${DB_PASSWORD:dispofast}
     driver-class-name: org.postgresql.Driver

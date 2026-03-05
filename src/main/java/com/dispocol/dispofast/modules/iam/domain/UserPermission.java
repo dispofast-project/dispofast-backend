@@ -12,8 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class UserPermission {
 
-  @EmbeddedId
-  private UserPermissionId id = new UserPermissionId();
+  @EmbeddedId private UserPermissionId id = new UserPermissionId();
 
   @ManyToOne(fetch = FetchType.LAZY)
   @MapsId("userId")
@@ -27,6 +26,4 @@ public class UserPermission {
 
   @Column(nullable = false)
   private boolean granted = true;
-
-
 }

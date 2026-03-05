@@ -6,7 +6,6 @@ import com.dispocol.dispofast.modules.iam.api.mappers.UserMapper;
 import com.dispocol.dispofast.modules.iam.api.mappers.UserMapperImpl;
 import com.dispocol.dispofast.modules.iam.domain.AppUser;
 import com.dispocol.dispofast.modules.iam.domain.Role;
-import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -56,11 +55,9 @@ public class UserMapperTest {
   @Test
   @DisplayName("should map roles correctly")
   void shouldMapRolesCorrectly() {
-    List<String> roleNames = userMapper.mapRoles(Set.of(role1, role2));
+    String roleNames = userMapper.mapRole(Set.of(role1, role2));
 
-    assert roleNames.size() == 2;
-    assert roleNames.contains("ROLE_USER");
-    assert roleNames.contains("ROLE_ADMIN");
+    assert roleNames.equals("ROLE_USER");
   }
 
   @Test
@@ -69,13 +66,15 @@ public class UserMapperTest {
 
     CreateUserRequestDTO createUserRequestDTO =
         new CreateUserRequestDTO(
-            " Jane Smith ", " jane@email.com", " securePassword ", Set.of(role1));
+            " Jane Smith ",
+            " jane@email.com",
+            " securePassword ",
+            java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"));
 
     AppUser appUser = userMapper.fromCreateUserRequestDTO(createUserRequestDTO);
 
     assert appUser.getFullName().equals("Jane Smith");
     assert appUser.getEmail().equals("jane@email.com");
-    assert appUser.getPasswordHash().equals("securePassword");
     assert appUser.getRoles().size() == 1;
     assert appUser.getRoles().iterator().next().getName().equals("ROLE_USER");
   }

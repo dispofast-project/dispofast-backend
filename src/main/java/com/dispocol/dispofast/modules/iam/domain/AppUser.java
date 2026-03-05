@@ -47,7 +47,11 @@ public class AppUser {
       inverseJoinColumns = @JoinColumn(name = "role_id"))
   private Set<Role> roles = new HashSet<>();
 
- @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+  @OneToMany(
+      mappedBy = "user",
+      cascade = CascadeType.ALL,
+      orphanRemoval = true,
+      fetch = FetchType.EAGER)
   private Set<UserPermission> permissions = new HashSet<>();
 
   public void addCustomer(Customer customer) {
@@ -70,5 +74,28 @@ public class AppUser {
   @PreUpdate
   void preUpdate() {
     updatedAt = OffsetDateTime.now();
+  }
+
+  public Set<String> resolveEffectivePermissionNames() {
+    Set<String> effectivePermissions = new HashSet<>();
+
+    for (Role role : roles) {
+      for (Permission permission : role.getPermissions()) {
+        effectivePermissions.add(permission.getName());
+      }
+    }
+
+    for (UserPermission override : permissions) {
+
+      String name = override.getPermission().getName();
+
+      if (override.isGranted()) {
+        effectivePermissions.add(name);
+      } else {
+        effectivePermissions.remove(name);
+      }
+    }
+
+    return effectivePermissions;
   }
 }
