@@ -13,5 +13,7 @@ public interface SalesOrderRepository
 
   boolean existsByOrderNumber(String orderNumber);
 
+  boolean existsByQuoteId(UUID quoteId);
+
   boolean existsByState(OrderState state);
 }

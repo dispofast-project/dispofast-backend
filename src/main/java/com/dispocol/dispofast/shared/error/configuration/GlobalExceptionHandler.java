@@ -1,6 +1,9 @@
 package com.dispocol.dispofast.shared.error.configuration;
 
 import com.dispocol.dispofast.modules.iam.infra.exceptions.UserNotFoundException;
+import com.dispocol.dispofast.modules.orders.infra.exceptions.InvalidOrderStateException;
+import com.dispocol.dispofast.modules.orders.infra.exceptions.SalesOrderAlreadyExistsException;
+import com.dispocol.dispofast.modules.orders.infra.exceptions.SalesOrderNotFoundException;
 import com.dispocol.dispofast.shared.error.ResourceNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.Instant;
@@ -40,6 +43,27 @@ public class GlobalExceptionHandler {
       ResourceNotFoundException ex, HttpServletRequest request) {
     log.warn("Resource not found: {}", ex.getMessage());
     return buildErrorResponseEntity(ex, request, HttpStatus.NOT_FOUND);
+  }
+
+  @ExceptionHandler(SalesOrderNotFoundException.class)
+  public ResponseEntity<GlobalErrorResponse> handleSalesOrderNotFound(
+      SalesOrderNotFoundException ex, HttpServletRequest request) {
+    log.warn("Sales order not found: {}", ex.getMessage());
+    return buildErrorResponseEntity(ex, request, HttpStatus.NOT_FOUND);
+  }
+
+  @ExceptionHandler(SalesOrderAlreadyExistsException.class)
+  public ResponseEntity<GlobalErrorResponse> handleSalesOrderAlreadyExists(
+      SalesOrderAlreadyExistsException ex, HttpServletRequest request) {
+    log.warn("Sales order already exists: {}", ex.getMessage());
+    return buildErrorResponseEntity(ex, request, HttpStatus.CONFLICT);
+  }
+
+  @ExceptionHandler(InvalidOrderStateException.class)
+  public ResponseEntity<GlobalErrorResponse> handleInvalidOrderState(
+      InvalidOrderStateException ex, HttpServletRequest request) {
+    log.warn("Invalid order state transition: {}", ex.getMessage());
+    return buildErrorResponseEntity(ex, request, HttpStatus.UNPROCESSABLE_ENTITY);
   }
 
   public ResponseEntity<GlobalErrorResponse> handleGenericException(
