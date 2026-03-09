@@ -1,6 +1,7 @@
 package com.dispocol.dispofast.modules.customers.application.impl;
 
 import com.dispocol.dispofast.modules.customers.api.dtos.ClientPreviewDTO;
+import com.dispocol.dispofast.modules.customers.api.dtos.ClientResponseDTO;
 import com.dispocol.dispofast.modules.customers.api.mappers.ClientMapper;
 import com.dispocol.dispofast.modules.customers.application.interfaces.ClientService;
 import com.dispocol.dispofast.modules.customers.domain.Client;
@@ -12,12 +13,14 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.dispocol.dispofast.shared.error.ResourceNotFoundException;
 
 @Service
 @RequiredArgsConstructor
@@ -46,6 +49,16 @@ public class ClientServiceImpl implements ClientService {
 
     Page<Client> clientPage = clientRepository.findAll(spec, pageable);
     return clientPage.map(clientMapper::toPreviewDTO);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public ClientResponseDTO getClientById(UUID id) {
+    Client client =
+        clientRepository
+            .findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Client not found with id: " + id));
+    return clientMapper.toResponseDTO(client);
   }
 
   private Specification<Client> buildSearchSpec(String text, String key) {

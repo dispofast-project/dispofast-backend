@@ -1,6 +1,9 @@
 package com.dispocol.dispofast.modules.customers.api.mappers;
 
 import com.dispocol.dispofast.modules.customers.api.dtos.ClientPreviewDTO;
+import com.dispocol.dispofast.modules.customers.api.dtos.ClientResponseDTO;
+import com.dispocol.dispofast.modules.customers.api.dtos.IndividualResponseDTO;
+import com.dispocol.dispofast.modules.customers.api.dtos.OrganizationResponseDTO;
 import com.dispocol.dispofast.modules.customers.domain.Client;
 import com.dispocol.dispofast.modules.customers.domain.Individual;
 import com.dispocol.dispofast.modules.customers.domain.Organization;
@@ -19,8 +22,23 @@ public interface ClientMapper {
   @Mapping(target = "name", ignore = true)
   ClientPreviewDTO toPreviewDTO(Client client);
 
+  default ClientResponseDTO toResponseDTO(Client client) {
+    if (client instanceof Individual individual) {
+        return toIndividualResponseDTO(individual);
+    } else if (client instanceof Organization organization) {
+        return toOrganizationResponseDTO(organization);
+    }
+    return null;
+  }
+
+  @Mapping(target = "name", ignore = true)
+  IndividualResponseDTO toIndividualResponseDTO(Individual individual);
+
+  @Mapping(target = "name", ignore = true)
+  OrganizationResponseDTO toOrganizationResponseDTO(Organization organization);
+
   @AfterMapping
-  default void mapName(Client client, @MappingTarget ClientPreviewDTO dto) {
+  default void mapNamePreview(Client client, @MappingTarget ClientPreviewDTO dto) {
     if (client instanceof Individual individual) {
       String firstName = individual.getFirstName() != null ? individual.getFirstName() : "";
       String lastName = individual.getLastName() != null ? " " + individual.getLastName() : "";
@@ -28,5 +46,17 @@ public interface ClientMapper {
     } else if (client instanceof Organization organization) {
       dto.setName(organization.getLegalName());
     }
+  }
+
+  @AfterMapping
+  default void mapNameIndividualResponse(Individual individual, @MappingTarget IndividualResponseDTO dto) {
+    String firstName = individual.getFirstName() != null ? individual.getFirstName() : "";
+    String lastName = individual.getLastName() != null ? " " + individual.getLastName() : "";
+    dto.setName((firstName + lastName).trim());
+  }
+
+  @AfterMapping
+  default void mapNameOrganizationResponse(Organization organization, @MappingTarget OrganizationResponseDTO dto) {
+    dto.setName(organization.getLegalName());
   }
 }

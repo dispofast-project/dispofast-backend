@@ -13,7 +13,7 @@ CREATE TABLE clients (
     default_discount_rate INTEGER,
     price_list_id UUID NOT NULL,
     client_type_id BIGINT NOT NULL,
-    
+
     CONSTRAINT fk_client_advisor FOREIGN KEY (default_advisor_id) REFERENCES users(id),
     CONSTRAINT fk_client_location FOREIGN KEY (city_id) REFERENCES cities(code),
     CONSTRAINT fk_client_price_list FOREIGN KEY (price_list_id) REFERENCES price_lists(id),
@@ -24,6 +24,12 @@ CREATE TABLE organizations (
     id UUID PRIMARY KEY,
     legal_name VARCHAR(255),
     billing_email VARCHAR(255),
+    rep_first_name VARCHAR(255),
+    rep_last_name VARCHAR(255),
+    rep_identification VARCHAR(255),
+    rep_email VARCHAR(255),
+    rep_phone VARCHAR(255),
+    
     CONSTRAINT fk_org_client FOREIGN KEY (id) REFERENCES clients(id) ON DELETE CASCADE
 );
 
@@ -46,11 +52,16 @@ VALUES (
     1
 );
 
-INSERT INTO organizations (id, legal_name, billing_email)
+INSERT INTO organizations (id, legal_name, billing_email, rep_first_name, rep_last_name, rep_identification, rep_email, rep_phone)
 VALUES (
     '3fa85f64-5717-4562-b3fc-2c963f66afa6',
     'Distribuciones ABC S.A.S',
-    'facturacion@abc.com'
+    'facturacion@abc.com',
+    'Carlos',
+    'Gutiérrez',
+    '1020304050',
+    'cgutierrez@abc.com',
+    '3001239988'
 );
 
 -- Seed: Organization 2 (Constructor en Medellín)
@@ -72,9 +83,14 @@ VALUES (
     2
 );
 
-INSERT INTO organizations (id, legal_name, billing_email)
+INSERT INTO organizations (id, legal_name, billing_email, rep_first_name, rep_last_name, rep_identification, rep_email, rep_phone)
 VALUES (
     '11111111-1111-1111-1111-111111111111',
     'Constructora XYZ Ltda',
-    'facturacion@xyz.com'
+    'facturacion@xyz.com',
+    'María',
+    'López',
+    '5060708090',
+    'mlopez@xyz.com',
+    '3109871122'
 );
