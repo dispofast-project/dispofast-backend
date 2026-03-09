@@ -35,7 +35,8 @@ public class SalesOrderController {
   @PostMapping
   public ResponseEntity<SalesOrderResponseDTO> createSalesOrder(
       @Valid @RequestBody CreateSalesOrderRequestDTO request) {
-    return ResponseEntity.status(HttpStatus.CREATED).body(salesOrderService.createSalesOrder(request));
+    return ResponseEntity.status(HttpStatus.CREATED)
+        .body(salesOrderService.createSalesOrder(request));
   }
 
   @PostMapping("/from-quote/{quoteId}")

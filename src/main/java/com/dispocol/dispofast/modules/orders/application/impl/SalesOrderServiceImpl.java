@@ -1,8 +1,6 @@
 package com.dispocol.dispofast.modules.orders.application.impl;
 
-import com.dispocol.dispofast.modules.iam.domain.AppUser;
 import com.dispocol.dispofast.modules.iam.infra.persistence.UserRepository;
-import com.dispocol.dispofast.modules.inventory.domain.Product;
 import com.dispocol.dispofast.modules.inventory.infra.persistence.ProductRepository;
 import com.dispocol.dispofast.modules.orders.api.dtos.AttachInvoiceRequestDTO;
 import com.dispocol.dispofast.modules.orders.api.dtos.CreateSalesOrderItemDTO;
@@ -25,8 +23,6 @@ import com.dispocol.dispofast.modules.orders.infra.persistence.SalesOrderReposit
 import com.dispocol.dispofast.modules.quotes.domain.QuoteStatus;
 import com.dispocol.dispofast.modules.quotes.domain.Quotes;
 import com.dispocol.dispofast.modules.quotes.infra.persistence.QuotesRepository;
-import com.dispocol.dispofast.modules.temp.Account;
-import com.dispocol.dispofast.modules.temp.PriceList;
 import com.dispocol.dispofast.modules.temp.persistence.AccountRepository;
 import com.dispocol.dispofast.modules.temp.persistence.PriceListRepository;
 import com.dispocol.dispofast.shared.location.application.interfaces.LocationService;
@@ -78,8 +74,13 @@ public class SalesOrderServiceImpl implements SalesOrderService {
       order.setOrderDate(OffsetDateTime.now());
     }
 
-    resolveOrderReferences(order, request.getAccountId(), request.getAsesorUserId(),
-        request.getAccountPriceListId(), request.getShipmentCityId(), request.getQuoteId());
+    resolveOrderReferences(
+        order,
+        request.getAccountId(),
+        request.getAsesorUserId(),
+        request.getAccountPriceListId(),
+        request.getShipmentCityId(),
+        request.getQuoteId());
 
     SalesOrder savedOrder = salesOrderRepository.save(order);
     return buildResponse(savedOrder, saveItems(request.getItems(), savedOrder));
@@ -92,7 +93,8 @@ public class SalesOrderServiceImpl implements SalesOrderService {
         quotesRepository
             .findById(quoteId)
             .orElseThrow(
-                () -> new SalesOrderNotFoundException("Cotizacion no encontrada con id: " + quoteId));
+                () ->
+                    new SalesOrderNotFoundException("Cotizacion no encontrada con id: " + quoteId));
 
     if (quote.getStatus() != QuoteStatus.ACCEPTED) {
       throw new InvalidOrderStateException(
@@ -132,10 +134,11 @@ public class SalesOrderServiceImpl implements SalesOrderService {
       Pageable pageable, SalesOrderFilterDTO filter) {
     return salesOrderRepository
         .findAll(buildSpecification(filter), pageable)
-        .map(order -> {
-          List<SalesOrderItem> items = salesOrderItemRepository.findByOrderId(order.getId());
-          return buildResponse(order, salesOrderItemMapper.toResponseDTOList(items));
-        });
+        .map(
+            order -> {
+              List<SalesOrderItem> items = salesOrderItemRepository.findByOrderId(order.getId());
+              return buildResponse(order, salesOrderItemMapper.toResponseDTOList(items));
+            });
   }
 
   @Override
@@ -209,8 +212,12 @@ public class SalesOrderServiceImpl implements SalesOrderService {
   }
 
   private void resolveOrderReferences(
-      SalesOrder order, UUID accountId, UUID asesorUserId,
-      UUID priceListId, String shipmentCityId, UUID quoteId) {
+      SalesOrder order,
+      UUID accountId,
+      UUID asesorUserId,
+      UUID priceListId,
+      String shipmentCityId,
+      UUID quoteId) {
 
     order.setAccount(accountRepository.getReferenceById(accountId));
     order.setAsesor(userRepository.getReferenceById(asesorUserId));
@@ -240,12 +247,13 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     }
     List<SalesOrderItem> items =
         itemDTOs.stream()
-            .map(dto -> {
-              SalesOrderItem item = salesOrderItemMapper.toEntity(dto);
-              item.setOrder(order);
-              item.setProduct(productRepository.getReferenceById(dto.getProductId()));
-              return item;
-            })
+            .map(
+                dto -> {
+                  SalesOrderItem item = salesOrderItemMapper.toEntity(dto);
+                  item.setOrder(order);
+                  item.setProduct(productRepository.getReferenceById(dto.getProductId()));
+                  return item;
+                })
             .toList();
     return salesOrderItemMapper.toResponseDTOList(salesOrderItemRepository.saveAll(items));
   }

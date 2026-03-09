@@ -27,6 +27,5 @@ public class UpdateSalesOrderRequestDTO {
 
   private UUID accountPriceListId;
 
-  @Valid
-  private List<CreateSalesOrderItemDTO> items;
+  @Valid private List<CreateSalesOrderItemDTO> items;
 }

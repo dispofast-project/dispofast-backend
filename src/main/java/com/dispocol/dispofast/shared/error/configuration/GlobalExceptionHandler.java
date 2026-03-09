@@ -6,12 +6,12 @@ import com.dispocol.dispofast.modules.iam.infra.exceptions.PermissionNotFoundExc
 import com.dispocol.dispofast.modules.iam.infra.exceptions.RoleNotFoundException;
 import com.dispocol.dispofast.modules.iam.infra.exceptions.UserAlreadyExistsException;
 import com.dispocol.dispofast.modules.iam.infra.exceptions.UserNotFoundException;
-import com.dispocol.dispofast.modules.orders.infra.exceptions.InvalidOrderStateException;
-import com.dispocol.dispofast.modules.orders.infra.exceptions.SalesOrderAlreadyExistsException;
-import com.dispocol.dispofast.modules.orders.infra.exceptions.SalesOrderNotFoundException;
 import com.dispocol.dispofast.modules.inventory.infra.exceptions.ProductAlreadyExistsException;
 import com.dispocol.dispofast.modules.inventory.infra.exceptions.ProductNotAvailableException;
 import com.dispocol.dispofast.modules.inventory.infra.exceptions.ProductNotFoundException;
+import com.dispocol.dispofast.modules.orders.infra.exceptions.InvalidOrderStateException;
+import com.dispocol.dispofast.modules.orders.infra.exceptions.SalesOrderAlreadyExistsException;
+import com.dispocol.dispofast.modules.orders.infra.exceptions.SalesOrderNotFoundException;
 import com.dispocol.dispofast.shared.error.ForbiddenException;
 import com.dispocol.dispofast.shared.error.ResourceNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;

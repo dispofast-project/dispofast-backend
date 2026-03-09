@@ -15,8 +15,6 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 @Mapper(componentModel = "spring")
 public interface SalesOrderMapper {
 
-  // All entity references are ignored here — resolved in the service via getReferenceById()
-  // to avoid Hibernate 6 TransientObjectException with unsaved proxy instances.
   @Mapping(target = "id", ignore = true)
   @Mapping(target = "account", ignore = true)
   @Mapping(target = "asesor", ignore = true)
