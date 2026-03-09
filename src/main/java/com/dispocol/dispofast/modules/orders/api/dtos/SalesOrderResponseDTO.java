@@ -24,7 +24,6 @@ public class SalesOrderResponseDTO {
   private String zone;
   private BigDecimal totalValue;
   private UUID priceListId;
-  private UUID userId;
   private UUID quoteId;
   private String invoiceNumber;
   private String invoiceUrl;

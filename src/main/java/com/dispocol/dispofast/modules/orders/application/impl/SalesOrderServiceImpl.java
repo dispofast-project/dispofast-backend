@@ -1,5 +1,9 @@
 package com.dispocol.dispofast.modules.orders.application.impl;
 
+import com.dispocol.dispofast.modules.iam.domain.AppUser;
+import com.dispocol.dispofast.modules.iam.infra.persistence.UserRepository;
+import com.dispocol.dispofast.modules.inventory.domain.Product;
+import com.dispocol.dispofast.modules.inventory.infra.persistence.ProductRepository;
 import com.dispocol.dispofast.modules.orders.api.dtos.AttachInvoiceRequestDTO;
 import com.dispocol.dispofast.modules.orders.api.dtos.CreateSalesOrderItemDTO;
 import com.dispocol.dispofast.modules.orders.api.dtos.CreateSalesOrderRequestDTO;
@@ -21,6 +25,10 @@ import com.dispocol.dispofast.modules.orders.infra.persistence.SalesOrderReposit
 import com.dispocol.dispofast.modules.quotes.domain.QuoteStatus;
 import com.dispocol.dispofast.modules.quotes.domain.Quotes;
 import com.dispocol.dispofast.modules.quotes.infra.persistence.QuotesRepository;
+import com.dispocol.dispofast.modules.temp.Account;
+import com.dispocol.dispofast.modules.temp.PriceList;
+import com.dispocol.dispofast.modules.temp.persistence.AccountRepository;
+import com.dispocol.dispofast.modules.temp.persistence.PriceListRepository;
 import com.dispocol.dispofast.shared.location.application.interfaces.LocationService;
 import com.dispocol.dispofast.shared.location.domain.Location;
 import jakarta.persistence.criteria.Predicate;
@@ -50,13 +58,17 @@ public class SalesOrderServiceImpl implements SalesOrderService {
   private final SalesOrderItemMapper salesOrderItemMapper;
   private final LocationService locationService;
   private final QuotesRepository quotesRepository;
+  private final AccountRepository accountRepository;
+  private final PriceListRepository priceListRepository;
+  private final UserRepository userRepository;
+  private final ProductRepository productRepository;
 
   @Override
   @Transactional
   public SalesOrderResponseDTO createSalesOrder(CreateSalesOrderRequestDTO request) {
     if (salesOrderRepository.existsByOrderNumber(request.getOrderNumber())) {
       throw new SalesOrderAlreadyExistsException(
-          "Ya existe una orden con el número: " + request.getOrderNumber());
+          "Ya existe una orden con el numero: " + request.getOrderNumber());
     }
 
     SalesOrder order = salesOrderMapper.toEntity(request);
@@ -66,10 +78,8 @@ public class SalesOrderServiceImpl implements SalesOrderService {
       order.setOrderDate(OffsetDateTime.now());
     }
 
-    if (request.getShipmentCityId() != null) {
-      Location city = locationService.findEntityById(request.getShipmentCityId());
-      order.setShipmentCity(city);
-    }
+    resolveOrderReferences(order, request.getAccountId(), request.getAsesorUserId(),
+        request.getAccountPriceListId(), request.getShipmentCityId(), request.getQuoteId());
 
     SalesOrder savedOrder = salesOrderRepository.save(order);
     return buildResponse(savedOrder, saveItems(request.getItems(), savedOrder));
@@ -82,19 +92,17 @@ public class SalesOrderServiceImpl implements SalesOrderService {
         quotesRepository
             .findById(quoteId)
             .orElseThrow(
-                () ->
-                    new SalesOrderNotFoundException(
-                        "Cotización no encontrada con id: " + quoteId));
+                () -> new SalesOrderNotFoundException("Cotizacion no encontrada con id: " + quoteId));
 
     if (quote.getStatus() != QuoteStatus.ACCEPTED) {
       throw new InvalidOrderStateException(
-          "Solo se puede crear una orden a partir de una cotización aceptada. Estado actual: "
+          "Solo se puede crear una orden a partir de una cotizacion aceptada. Estado actual: "
               + quote.getStatus().getValue());
     }
 
     if (salesOrderRepository.existsByQuoteId(quoteId)) {
       throw new SalesOrderAlreadyExistsException(
-          "Ya existe una orden generada para la cotización: " + quoteId);
+          "Ya existe una orden generada para la cotizacion: " + quoteId);
     }
 
     SalesOrder order = new SalesOrder();
@@ -122,14 +130,12 @@ public class SalesOrderServiceImpl implements SalesOrderService {
   @Transactional(readOnly = true)
   public Page<SalesOrderResponseDTO> getAllSalesOrders(
       Pageable pageable, SalesOrderFilterDTO filter) {
-    Specification<SalesOrder> spec = buildSpecification(filter);
     return salesOrderRepository
-        .findAll(spec, pageable)
-        .map(
-            order -> {
-              List<SalesOrderItem> items = salesOrderItemRepository.findByOrderId(order.getId());
-              return buildResponse(order, salesOrderItemMapper.toResponseDTOList(items));
-            });
+        .findAll(buildSpecification(filter), pageable)
+        .map(order -> {
+          List<SalesOrderItem> items = salesOrderItemRepository.findByOrderId(order.getId());
+          return buildResponse(order, salesOrderItemMapper.toResponseDTOList(items));
+        });
   }
 
   @Override
@@ -144,6 +150,12 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 
     salesOrderMapper.updateEntityFromDTO(request, order);
 
+    if (request.getAsesorUserId() != null) {
+      order.setAsesor(userRepository.getReferenceById(request.getAsesorUserId()));
+    }
+    if (request.getAccountPriceListId() != null) {
+      order.setPriceList(priceListRepository.getReferenceById(request.getAccountPriceListId()));
+    }
     if (request.getShipmentCityId() != null) {
       Location city = locationService.findEntityById(request.getShipmentCityId());
       order.setShipmentCity(city);
@@ -154,7 +166,8 @@ public class SalesOrderServiceImpl implements SalesOrderService {
       salesOrderItemRepository.deleteByOrderId(id);
       itemResponses = saveItems(request.getItems(), order);
     } else {
-      itemResponses = salesOrderItemMapper.toResponseDTOList(salesOrderItemRepository.findByOrderId(id));
+      itemResponses =
+          salesOrderItemMapper.toResponseDTOList(salesOrderItemRepository.findByOrderId(id));
     }
 
     SalesOrder updatedOrder = salesOrderRepository.save(order);
@@ -187,12 +200,30 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 
     if (order.getState() != OrderState.PENDING) {
       throw new InvalidOrderStateException(
-          "Solo se pueden eliminar órdenes en estado pendiente. Estado actual: "
+          "Solo se pueden eliminar ordenes en estado pendiente. Estado actual: "
               + order.getState().getValue());
     }
 
     salesOrderItemRepository.deleteByOrderId(id);
     salesOrderRepository.delete(order);
+  }
+
+  private void resolveOrderReferences(
+      SalesOrder order, UUID accountId, UUID asesorUserId,
+      UUID priceListId, String shipmentCityId, UUID quoteId) {
+
+    order.setAccount(accountRepository.getReferenceById(accountId));
+    order.setAsesor(userRepository.getReferenceById(asesorUserId));
+
+    if (priceListId != null) {
+      order.setPriceList(priceListRepository.getReferenceById(priceListId));
+    }
+    if (shipmentCityId != null) {
+      order.setShipmentCity(locationService.findEntityById(shipmentCityId));
+    }
+    if (quoteId != null) {
+      order.setQuote(quotesRepository.getReferenceById(quoteId));
+    }
   }
 
   private SalesOrder findOrderOrThrow(UUID id) {
@@ -209,8 +240,12 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     }
     List<SalesOrderItem> items =
         itemDTOs.stream()
-            .map(salesOrderItemMapper::toEntity)
-            .peek(item -> item.setOrder(order))
+            .map(dto -> {
+              SalesOrderItem item = salesOrderItemMapper.toEntity(dto);
+              item.setOrder(order);
+              item.setProduct(productRepository.getReferenceById(dto.getProductId()));
+              return item;
+            })
             .toList();
     return salesOrderItemMapper.toResponseDTOList(salesOrderItemRepository.saveAll(items));
   }

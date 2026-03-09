@@ -12,7 +12,7 @@ public interface SalesOrderItemMapper {
 
   @Mapping(target = "id", ignore = true)
   @Mapping(target = "order", ignore = true)
-  @Mapping(target = "product.id", source = "productId")
+  @Mapping(target = "product", ignore = true)
   SalesOrderItem toEntity(CreateSalesOrderItemDTO dto);
 
   @Mapping(target = "productId", source = "product.id")

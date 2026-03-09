@@ -38,9 +38,6 @@ public class CreateSalesOrderRequestDTO {
   @NotNull(message = "La lista de precios es obligatoria")
   private UUID accountPriceListId;
 
-  @NotNull(message = "El usuario creador es obligatorio")
-  private UUID userId;
-
   private UUID quoteId;
 
   @NotEmpty(message = "La orden debe contener al menos un ítem")

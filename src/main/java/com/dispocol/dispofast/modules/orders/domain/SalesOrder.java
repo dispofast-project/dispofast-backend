@@ -66,10 +66,6 @@ public class SalesOrder {
   private PriceList priceList;
 
   @ManyToOne
-  @JoinColumn(name = "user_id")
-  private AppUser user;
-
-  @ManyToOne
   @JoinColumn(name = "quote_id")
   private Quotes quote;
 
