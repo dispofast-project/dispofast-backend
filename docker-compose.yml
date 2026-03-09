@@ -9,7 +9,7 @@ services:
       POSTGRES_USER: dispofast
       POSTGRES_PASSWORD: dispofast
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - dispofast_data:/var/lib/postgresql/data
     networks:

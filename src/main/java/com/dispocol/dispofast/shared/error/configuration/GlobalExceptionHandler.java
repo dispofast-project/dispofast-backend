@@ -1,9 +1,18 @@
 package com.dispocol.dispofast.shared.error.configuration;
 
+import com.dispocol.dispofast.modules.customers.infra.exceptions.CustomerAlreadyExistsException;
+import com.dispocol.dispofast.modules.customers.infra.exceptions.CustomerNotFoundException;
+import com.dispocol.dispofast.modules.iam.infra.exceptions.PermissionNotFoundException;
+import com.dispocol.dispofast.modules.iam.infra.exceptions.RoleNotFoundException;
+import com.dispocol.dispofast.modules.iam.infra.exceptions.UserAlreadyExistsException;
 import com.dispocol.dispofast.modules.iam.infra.exceptions.UserNotFoundException;
 import com.dispocol.dispofast.modules.orders.infra.exceptions.InvalidOrderStateException;
 import com.dispocol.dispofast.modules.orders.infra.exceptions.SalesOrderAlreadyExistsException;
 import com.dispocol.dispofast.modules.orders.infra.exceptions.SalesOrderNotFoundException;
+import com.dispocol.dispofast.modules.inventory.infra.exceptions.ProductAlreadyExistsException;
+import com.dispocol.dispofast.modules.inventory.infra.exceptions.ProductNotAvailableException;
+import com.dispocol.dispofast.modules.inventory.infra.exceptions.ProductNotFoundException;
+import com.dispocol.dispofast.shared.error.ForbiddenException;
 import com.dispocol.dispofast.shared.error.ResourceNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.Instant;
@@ -44,6 +53,13 @@ public class GlobalExceptionHandler {
     return buildErrorResponseEntity(ex, request, HttpStatus.BAD_REQUEST);
   }
 
+  @ExceptionHandler(IllegalStateException.class)
+  public ResponseEntity<GlobalErrorResponse> handleIllegalState(
+      IllegalStateException ex, HttpServletRequest request) {
+    log.warn("Illegal state: {}", ex.getMessage());
+    return buildErrorResponseEntity(ex, request, HttpStatus.CONFLICT);
+  }
+
   @ExceptionHandler(UnsupportedOperationException.class)
   public ResponseEntity<GlobalErrorResponse> handleUnsuportedOperation(
       UnsupportedOperationException ex, HttpServletRequest request) {
@@ -51,11 +67,74 @@ public class GlobalExceptionHandler {
     return buildErrorResponseEntity(ex, request, HttpStatus.NOT_IMPLEMENTED);
   }
 
+  @ExceptionHandler(ForbiddenException.class)
+  public ResponseEntity<GlobalErrorResponse> handleForbidden(
+      ForbiddenException ex, HttpServletRequest request) {
+    log.warn("Forbidden: {}", ex.getMessage());
+    return buildErrorResponseEntity(ex, request, HttpStatus.FORBIDDEN);
+  }
+
   @ExceptionHandler(UserNotFoundException.class)
   public ResponseEntity<GlobalErrorResponse> handleUserNotFound(
-      RuntimeException ex, HttpServletRequest request) {
+      UserNotFoundException ex, HttpServletRequest request) {
     log.warn("El usuario no fue encontrado: {}", ex.getMessage());
     return buildErrorResponseEntity(ex, request, HttpStatus.NOT_FOUND);
+  }
+
+  @ExceptionHandler(UserAlreadyExistsException.class)
+  public ResponseEntity<GlobalErrorResponse> handleUserAlreadyExists(
+      UserAlreadyExistsException ex, HttpServletRequest request) {
+    log.warn("El usuario ya existe: {}", ex.getMessage());
+    return buildErrorResponseEntity(ex, request, HttpStatus.CONFLICT);
+  }
+
+  @ExceptionHandler(RoleNotFoundException.class)
+  public ResponseEntity<GlobalErrorResponse> handleRoleNotFound(
+      RoleNotFoundException ex, HttpServletRequest request) {
+    log.warn("Rol no encontrado: {}", ex.getMessage());
+    return buildErrorResponseEntity(ex, request, HttpStatus.NOT_FOUND);
+  }
+
+  @ExceptionHandler(PermissionNotFoundException.class)
+  public ResponseEntity<GlobalErrorResponse> handlePermissionNotFound(
+      PermissionNotFoundException ex, HttpServletRequest request) {
+    log.warn("Permiso no encontrado: {}", ex.getMessage());
+    return buildErrorResponseEntity(ex, request, HttpStatus.NOT_FOUND);
+  }
+
+  @ExceptionHandler(CustomerNotFoundException.class)
+  public ResponseEntity<GlobalErrorResponse> handleCustomerNotFound(
+      CustomerNotFoundException ex, HttpServletRequest request) {
+    log.warn("Cliente no encontrado: {}", ex.getMessage());
+    return buildErrorResponseEntity(ex, request, HttpStatus.NOT_FOUND);
+  }
+
+  @ExceptionHandler(CustomerAlreadyExistsException.class)
+  public ResponseEntity<GlobalErrorResponse> handleCustomerAlreadyExists(
+      CustomerAlreadyExistsException ex, HttpServletRequest request) {
+    log.warn("El cliente ya existe: {}", ex.getMessage());
+    return buildErrorResponseEntity(ex, request, HttpStatus.CONFLICT);
+  }
+
+  @ExceptionHandler(ProductNotFoundException.class)
+  public ResponseEntity<GlobalErrorResponse> handleProductNotFound(
+      ProductNotFoundException ex, HttpServletRequest request) {
+    log.warn("Producto no encontrado: {}", ex.getMessage());
+    return buildErrorResponseEntity(ex, request, HttpStatus.NOT_FOUND);
+  }
+
+  @ExceptionHandler(ProductAlreadyExistsException.class)
+  public ResponseEntity<GlobalErrorResponse> handleProductAlreadyExists(
+      ProductAlreadyExistsException ex, HttpServletRequest request) {
+    log.warn("El producto ya existe: {}", ex.getMessage());
+    return buildErrorResponseEntity(ex, request, HttpStatus.CONFLICT);
+  }
+
+  @ExceptionHandler(ProductNotAvailableException.class)
+  public ResponseEntity<GlobalErrorResponse> handleProductNotAvailable(
+      ProductNotAvailableException ex, HttpServletRequest request) {
+    log.warn("Producto no disponible: {}", ex.getMessage());
+    return buildErrorResponseEntity(ex, request, HttpStatus.UNPROCESSABLE_ENTITY);
   }
 
   @ExceptionHandler(ResourceNotFoundException.class)
@@ -86,6 +165,7 @@ public class GlobalExceptionHandler {
     return buildErrorResponseEntity(ex, request, HttpStatus.UNPROCESSABLE_ENTITY);
   }
 
+  @ExceptionHandler(Exception.class)
   public ResponseEntity<GlobalErrorResponse> handleGenericException(
       Exception ex, HttpServletRequest request) {
     log.error("Internal server error", ex);
@@ -94,14 +174,15 @@ public class GlobalExceptionHandler {
 
   private ResponseEntity<GlobalErrorResponse> buildErrorResponseEntity(
       Exception ex, HttpServletRequest request, HttpStatus status) {
-    GlobalErrorResponse errorResponse =
-        new GlobalErrorResponse(
-            Instant.now(),
-            status.value(),
-            ex.getClass().getSimpleName(),
-            ex.getMessage(),
-            request.getRequestURI());
+    return buildErrorResponseEntity(
+        ex.getMessage(), ex.getClass().getSimpleName(), request, status);
+  }
 
-    return ResponseEntity.status(status).body(errorResponse);
+  private ResponseEntity<GlobalErrorResponse> buildErrorResponseEntity(
+      String message, String error, HttpServletRequest request, HttpStatus status) {
+    GlobalErrorResponse response =
+        new GlobalErrorResponse(
+            Instant.now(), status.value(), error, message, request.getRequestURI());
+    return ResponseEntity.status(status).body(response);
   }
 }
