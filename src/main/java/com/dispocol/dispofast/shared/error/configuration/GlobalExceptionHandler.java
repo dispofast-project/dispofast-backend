@@ -7,15 +7,35 @@ import com.dispocol.dispofast.modules.orders.infra.exceptions.SalesOrderNotFound
 import com.dispocol.dispofast.shared.error.ResourceNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.Instant;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 @Slf4j
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
+  @ExceptionHandler(MethodArgumentNotValidException.class)
+  public ResponseEntity<GlobalErrorResponse> handleValidationErrors(
+      MethodArgumentNotValidException ex, HttpServletRequest request) {
+    String errors =
+        ex.getBindingResult().getFieldErrors().stream()
+            .map(fe -> fe.getField() + ": " + fe.getDefaultMessage())
+            .collect(Collectors.joining("; "));
+    log.warn("Validation failed: {}", errors);
+    GlobalErrorResponse errorResponse =
+        new GlobalErrorResponse(
+            Instant.now(),
+            HttpStatus.BAD_REQUEST.value(),
+            "ValidationException",
+            errors,
+            request.getRequestURI());
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+  }
 
   @ExceptionHandler(IllegalArgumentException.class)
   public ResponseEntity<GlobalErrorResponse> handleBadRequest(
@@ -72,14 +92,6 @@ public class GlobalExceptionHandler {
     return buildErrorResponseEntity(ex, request, HttpStatus.INTERNAL_SERVER_ERROR);
   }
 
-  /**
-   * Builds a GlobalErrorResponse and wraps it in a ResponseEntity with the given status.
-   *
-   * @param ex the exception that was thrown
-   * @param request the HTTP request that caused the exception
-   * @param status the HTTP status to return
-   * @return a ResponseEntity containing the GlobalErrorResponse
-   */
   private ResponseEntity<GlobalErrorResponse> buildErrorResponseEntity(
       Exception ex, HttpServletRequest request, HttpStatus status) {
     GlobalErrorResponse errorResponse =
