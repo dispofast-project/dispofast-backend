@@ -2,6 +2,8 @@ package com.dispocol.dispofast.modules.customers.api.mappers;
 
 import com.dispocol.dispofast.modules.customers.api.dtos.ClientPreviewDTO;
 import com.dispocol.dispofast.modules.customers.api.dtos.ClientResponseDTO;
+import com.dispocol.dispofast.modules.customers.api.dtos.CreateIndividualRequestDTO;
+import com.dispocol.dispofast.modules.customers.api.dtos.CreateOrganizationRequestDTO;
 import com.dispocol.dispofast.modules.customers.api.dtos.IndividualResponseDTO;
 import com.dispocol.dispofast.modules.customers.api.dtos.OrganizationResponseDTO;
 import com.dispocol.dispofast.modules.customers.domain.Client;
@@ -30,6 +32,22 @@ public interface ClientMapper {
     }
     return null;
   }
+
+  @Mapping(target = "id", ignore = true)
+  @Mapping(target = "defaultAdvisor", ignore = true)
+  @Mapping(target = "city", ignore = true)
+  @Mapping(target = "priceList", ignore = true)
+  @Mapping(target = "clientType", ignore = true)
+  @Mapping(target = "legalDocuments", ignore = true)
+  Individual toIndividual(CreateIndividualRequestDTO dto);
+
+  @Mapping(target = "id", ignore = true)
+  @Mapping(target = "defaultAdvisor", ignore = true)
+  @Mapping(target = "city", ignore = true)
+  @Mapping(target = "priceList", ignore = true)
+  @Mapping(target = "clientType", ignore = true)
+  @Mapping(target = "legalDocuments", ignore = true)
+  Organization toOrganization(CreateOrganizationRequestDTO dto);
 
   @Mapping(target = "name", ignore = true)
   IndividualResponseDTO toIndividualResponseDTO(Individual individual);

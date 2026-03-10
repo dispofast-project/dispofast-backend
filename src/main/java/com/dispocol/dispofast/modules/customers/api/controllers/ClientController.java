@@ -2,6 +2,7 @@ package com.dispocol.dispofast.modules.customers.api.controllers;
 
 import com.dispocol.dispofast.modules.customers.api.dtos.ClientPreviewDTO;
 import com.dispocol.dispofast.modules.customers.api.dtos.ClientResponseDTO;
+import com.dispocol.dispofast.modules.customers.api.dtos.CreateClientRequestDTO;
 import com.dispocol.dispofast.modules.customers.application.interfaces.ClientService;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -10,9 +11,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 
 @RestController
 @RequestMapping("/clients")
@@ -34,5 +39,10 @@ public class ClientController {
   @GetMapping("/{id}")
   public ResponseEntity<ClientResponseDTO> getClientById(@PathVariable UUID id) {
     return ResponseEntity.ok(clientService.getClientById(id));
+  }
+
+  @PostMapping
+  public ResponseEntity<ClientResponseDTO> createClient(@Valid @RequestBody CreateClientRequestDTO request) {
+    return ResponseEntity.status(HttpStatus.CREATED).body(clientService.createClient(request));
   }
 }
