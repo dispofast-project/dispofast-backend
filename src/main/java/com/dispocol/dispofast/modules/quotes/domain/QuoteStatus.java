@@ -1,16 +1,27 @@
 package com.dispocol.dispofast.modules.quotes.domain;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @AllArgsConstructor
 @Getter
 public enum QuoteStatus {
-  DRAFT("borrador"),
-  SENT("enviada"),
-  ACCEPTED("aceptada"),
+  PENDING("pendiente"),
+  ACCEPTED("aprobada"),
   REJECTED("rechazada"),
   EXPIRED("caducada");
 
-  private final String value;
+  @JsonValue private final String value;
+
+  @JsonCreator
+  public static QuoteStatus fromValue(String value) {
+    for (QuoteStatus status : values()) {
+      if (status.value.equalsIgnoreCase(value) || status.name().equalsIgnoreCase(value)) {
+        return status;
+      }
+    }
+    throw new IllegalArgumentException("Estado desconocido: " + value);
+  }
 }

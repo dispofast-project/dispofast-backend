@@ -1,4 +1,4 @@
-package com.dispocol.dispofast.modules.quotes.api.dtos;
+package com.dispocol.dispofast.modules.pricelist.api.dtos;
 
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class CreateQuoteRequestDTO {
-
-  private UUID accountId;
+public class PriceListResponseDTO {
+  private UUID id;
+  private String name;
 }
