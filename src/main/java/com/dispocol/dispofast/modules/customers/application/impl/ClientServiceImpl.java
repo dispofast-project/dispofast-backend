@@ -17,6 +17,7 @@ import com.dispocol.dispofast.modules.iam.domain.AppUser;
 import com.dispocol.dispofast.modules.iam.infra.persistence.UserRepository;
 import com.dispocol.dispofast.modules.pricelist.domain.PriceList;
 import com.dispocol.dispofast.modules.pricelist.infra.persistence.PriceListRepository;
+import com.dispocol.dispofast.shared.error.ResourceNotFoundException;
 import com.dispocol.dispofast.shared.location.domain.City;
 import com.dispocol.dispofast.shared.location.infra.persistence.CityRepository;
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -31,7 +32,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.dispocol.dispofast.shared.error.ResourceNotFoundException;
 
 @Service
 @RequiredArgsConstructor
@@ -86,17 +86,37 @@ public class ClientServiceImpl implements ClientService {
       throw new IllegalArgumentException("Ya existe un cliente con este correo electrónico.");
     }
 
-    City city = cityRepository.findById(request.getCityCode())
-        .orElseThrow(() -> new ResourceNotFoundException("City not found with code: " + request.getCityCode()));
+    City city =
+        cityRepository
+            .findById(request.getCityCode())
+            .orElseThrow(
+                () ->
+                    new ResourceNotFoundException(
+                        "City not found with code: " + request.getCityCode()));
 
-    AppUser advisor = userRepository.findById(request.getDefaultAdvisorId())
-        .orElseThrow(() -> new ResourceNotFoundException("Advisor user not found with ID: " + request.getDefaultAdvisorId()));
+    AppUser advisor =
+        userRepository
+            .findById(request.getDefaultAdvisorId())
+            .orElseThrow(
+                () ->
+                    new ResourceNotFoundException(
+                        "Advisor user not found with ID: " + request.getDefaultAdvisorId()));
 
-    ClientType clientType = clientTypeRepository.findById(request.getClientTypeId())
-        .orElseThrow(() -> new ResourceNotFoundException("Client type not found with ID: " + request.getClientTypeId()));
+    ClientType clientType =
+        clientTypeRepository
+            .findById(request.getClientTypeId())
+            .orElseThrow(
+                () ->
+                    new ResourceNotFoundException(
+                        "Client type not found with ID: " + request.getClientTypeId()));
 
-    PriceList priceList = priceListRepository.findById(request.getPriceListId())
-        .orElseThrow(() -> new ResourceNotFoundException("Price list not found with ID: " + request.getPriceListId()));
+    PriceList priceList =
+        priceListRepository
+            .findById(request.getPriceListId())
+            .orElseThrow(
+                () ->
+                    new ResourceNotFoundException(
+                        "Price list not found with ID: " + request.getPriceListId()));
 
     Client client;
     if (request instanceof CreateIndividualRequestDTO individualRequest) {

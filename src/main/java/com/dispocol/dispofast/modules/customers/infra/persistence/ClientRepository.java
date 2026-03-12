@@ -7,7 +7,9 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface ClientRepository extends JpaRepository<Client, UUID>, JpaSpecificationExecutor<Client> {
+public interface ClientRepository
+    extends JpaRepository<Client, UUID>, JpaSpecificationExecutor<Client> {
   boolean existsByIdentificationNumber(String identificationNumber);
+
   boolean existsByEmailIgnoreCase(String email);
 }

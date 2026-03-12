@@ -9,7 +9,9 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Entity
-@Table(name = "organizations", indexes = { @Index(name = "idx_organization_legal_name", columnList = "legal_name") })
+@Table(
+    name = "organizations",
+    indexes = {@Index(name = "idx_organization_legal_name", columnList = "legal_name")})
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class Organization extends Client {

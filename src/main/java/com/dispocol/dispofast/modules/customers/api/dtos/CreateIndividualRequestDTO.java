@@ -23,8 +23,9 @@ public class CreateIndividualRequestDTO extends CreateClientRequestDTO {
   private String representativeLastName;
   private String representativeIdentification;
   private String representativeJobTitle;
-  
+
   @Email(message = "El correo del representante no es válido")
   private String representativeEmail;
+
   private String representativePhone;
 }

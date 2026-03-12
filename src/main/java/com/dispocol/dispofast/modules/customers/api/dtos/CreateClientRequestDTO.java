@@ -18,10 +18,14 @@ import lombok.experimental.SuperBuilder;
 @Data
 @SuperBuilder
 @NoArgsConstructor
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "legalEntityType", visible = true)
+@JsonTypeInfo(
+    use = JsonTypeInfo.Id.NAME,
+    include = JsonTypeInfo.As.EXISTING_PROPERTY,
+    property = "legalEntityType",
+    visible = true)
 @JsonSubTypes({
-    @JsonSubTypes.Type(value = CreateIndividualRequestDTO.class, name = "NATURAL"),
-    @JsonSubTypes.Type(value = CreateOrganizationRequestDTO.class, name = "LEGAL")
+  @JsonSubTypes.Type(value = CreateIndividualRequestDTO.class, name = "NATURAL"),
+  @JsonSubTypes.Type(value = CreateOrganizationRequestDTO.class, name = "LEGAL")
 })
 public abstract class CreateClientRequestDTO {
 
@@ -38,11 +42,9 @@ public abstract class CreateClientRequestDTO {
   @NotBlank(message = "El teléfono es requerido")
   private String phone;
 
-  @Builder.Default
-  private Boolean isActive = true;
+  @Builder.Default private Boolean isActive = true;
 
-  @Builder.Default
-  private Boolean retefuenteApplies = false;
+  @Builder.Default private Boolean retefuenteApplies = false;
 
   @NotBlank(message = "La dirección es requerida")
   private String address;

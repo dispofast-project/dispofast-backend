@@ -26,9 +26,9 @@ public interface ClientMapper {
 
   default ClientResponseDTO toResponseDTO(Client client) {
     if (client instanceof Individual individual) {
-        return toIndividualResponseDTO(individual);
+      return toIndividualResponseDTO(individual);
     } else if (client instanceof Organization organization) {
-        return toOrganizationResponseDTO(organization);
+      return toOrganizationResponseDTO(organization);
     }
     return null;
   }
@@ -67,14 +67,16 @@ public interface ClientMapper {
   }
 
   @AfterMapping
-  default void mapNameIndividualResponse(Individual individual, @MappingTarget IndividualResponseDTO dto) {
+  default void mapNameIndividualResponse(
+      Individual individual, @MappingTarget IndividualResponseDTO dto) {
     String firstName = individual.getFirstName() != null ? individual.getFirstName() : "";
     String lastName = individual.getLastName() != null ? " " + individual.getLastName() : "";
     dto.setName((firstName + lastName).trim());
   }
 
   @AfterMapping
-  default void mapNameOrganizationResponse(Organization organization, @MappingTarget OrganizationResponseDTO dto) {
+  default void mapNameOrganizationResponse(
+      Organization organization, @MappingTarget OrganizationResponseDTO dto) {
     dto.setName(organization.getLegalName());
   }
 }
