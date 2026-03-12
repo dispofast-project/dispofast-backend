@@ -1,6 +1,6 @@
 package com.dispocol.dispofast.modules.quotes.api.dtos;
 
-import com.dispocol.dispofast.modules.customers.api.dtos.ClientPreviewDTO;
+import com.dispocol.dispofast.modules.customers.api.dtos.ClientResponseDTO;
 import com.dispocol.dispofast.modules.pricelist.api.dtos.PriceListResponseDTO;
 import com.dispocol.dispofast.modules.quotes.domain.QuoteStatus;
 import com.dispocol.dispofast.shared.location.api.dto.CityDTO;
@@ -25,9 +25,9 @@ public class QuoteResponseDTO {
   private double taxTotal;
   private double totalAmount;
   private OffsetDateTime expirationDate;
-  private ClientPreviewDTO account;
+  private ClientResponseDTO account;
   private String sellerName;
-  private CityDTO city;
+  private CityDTO location;
   private PriceListResponseDTO priceList;
   private OffsetDateTime createdAt;
   private OffsetDateTime updatedAt;

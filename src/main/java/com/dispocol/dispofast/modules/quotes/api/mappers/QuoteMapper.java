@@ -51,6 +51,7 @@ public interface QuoteMapper {
 
   @Mapping(target = "status", source = "status")
   @Mapping(target = "account", source = "account")
+  @Mapping(target = "location", source = "city")
   @Mapping(target = "priceList", source = "priceList")
   @Mapping(
       target = "sellerName",
