@@ -5,6 +5,8 @@ import com.dispocol.dispofast.shared.location.domain.LocationZone;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.util.UUID;
@@ -16,14 +18,10 @@ import lombok.experimental.SuperBuilder;
 @Data
 @SuperBuilder
 @NoArgsConstructor
-@JsonTypeInfo(
-    use = JsonTypeInfo.Id.NAME,
-    include = JsonTypeInfo.As.EXISTING_PROPERTY,
-    property = "legalEntityType",
-    visible = true)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "legalEntityType", visible = true)
 @JsonSubTypes({
-  @JsonSubTypes.Type(value = CreateIndividualRequestDTO.class, name = "NATURAL"),
-  @JsonSubTypes.Type(value = CreateOrganizationRequestDTO.class, name = "LEGAL")
+    @JsonSubTypes.Type(value = CreateIndividualRequestDTO.class, name = "NATURAL"),
+    @JsonSubTypes.Type(value = CreateOrganizationRequestDTO.class, name = "LEGAL")
 })
 public abstract class CreateClientRequestDTO {
 
@@ -58,6 +56,9 @@ public abstract class CreateClientRequestDTO {
   @NotNull(message = "La zona es requerida")
   private LocationZone zone;
 
+  @NotNull(message = "El descuento por defecto es requerido")
+  @Min(value = 0, message = "El descuento no puede ser menor a 0")
+  @Max(value = 100, message = "El descuento no puede ser mayor a 100")
   private Integer defaultDiscountRate;
 
   @NotNull(message = "La lista de precios es requerida")
