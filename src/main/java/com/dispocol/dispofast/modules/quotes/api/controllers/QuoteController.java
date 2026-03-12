@@ -1,6 +1,7 @@
 package com.dispocol.dispofast.modules.quotes.api.controllers;
 
 import com.dispocol.dispofast.modules.quotes.api.dtos.CreateQuoteRequestDTO;
+import com.dispocol.dispofast.modules.quotes.api.dtos.QuotePreviewResponseDTO;
 import com.dispocol.dispofast.modules.quotes.api.dtos.QuoteResponseDTO;
 import com.dispocol.dispofast.modules.quotes.api.dtos.UpdateQuoteRequestDTO;
 import com.dispocol.dispofast.modules.quotes.application.interfaces.QuoteService;
@@ -38,7 +39,10 @@ public class QuoteController {
   }
 
   @GetMapping
-  public ResponseEntity<Page<QuoteResponseDTO>> getAllQuotes(Pageable pageable) {
-    return ResponseEntity.ok(quoteService.getAllQuotes(pageable));
+  public ResponseEntity<Page<QuotePreviewResponseDTO>> getAllQuotes(
+      @RequestParam(required = false) String text,
+      @RequestParam(required = false) String key,
+      Pageable pageable) {
+    return ResponseEntity.ok(quoteService.getAllQuotes(text, key, pageable));
   }
 }
