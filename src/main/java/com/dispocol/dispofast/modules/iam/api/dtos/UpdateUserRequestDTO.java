@@ -12,19 +12,16 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CreateUserRequestDTO {
+public class UpdateUserRequestDTO {
 
   @NotBlank(message = "El nombre no puede estar vacío")
-  @Size(min = 2, max = 100, message = "El nombre debe tener entre 2 y 100 caracteres")
+  @Size(min = 2, max = 50, message = "El nombre debe tener entre 2 y 50 caracteres")
   private String name;
 
   @NotBlank(message = "El email no puede estar vacío")
+  @Size(max = 70, message = "El email no puede tener más de 70 caracteres")
   @Email(message = "El email debe ser válido")
   private String email;
-
-  @NotBlank(message = "La contraseña no puede estar vacía")
-  @Size(min = 8, message = "La contraseña debe tener al menos 8 caracteres")
-  private String password;
 
   @NotNull(message = "El rol es obligatorio")
   private UUID roleId;
