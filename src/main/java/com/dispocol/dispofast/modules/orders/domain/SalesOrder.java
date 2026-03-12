@@ -1,10 +1,11 @@
 package com.dispocol.dispofast.modules.orders.domain;
 
+import com.dispocol.dispofast.modules.customers.domain.Client;
 import com.dispocol.dispofast.modules.iam.domain.AppUser;
+import com.dispocol.dispofast.modules.pricelist.domain.PriceList;
 import com.dispocol.dispofast.modules.quotes.domain.Quotes;
-import com.dispocol.dispofast.modules.temp.Account;
-import com.dispocol.dispofast.modules.temp.PriceList;
-import com.dispocol.dispofast.shared.location.domain.Location;
+import com.dispocol.dispofast.shared.location.domain.City;
+import com.dispocol.dispofast.shared.location.domain.LocationZone;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -34,8 +35,8 @@ public class SalesOrder {
   private String orderNumber;
 
   @ManyToOne
-  @JoinColumn(name = "account_id")
-  private Account account;
+  @JoinColumn(name = "client_id")
+  private Client client;
 
   @ManyToOne
   @JoinColumn(name = "asesor_user_id")
@@ -50,19 +51,20 @@ public class SalesOrder {
 
   @ManyToOne
   @JoinColumn(name = "shipment_city_id")
-  private Location shipmentCity;
+  private City shipmentCity;
 
   @Column(name = "shipment_address", columnDefinition = "text")
   private String shipmentAddress;
 
+  @Enumerated(EnumType.STRING)
   @Column(name = "zone", length = 50)
-  private String zone;
+  private LocationZone zone;
 
   @Column(name = "total_value", precision = 18, scale = 2)
   private BigDecimal totalValue;
 
   @ManyToOne
-  @JoinColumn(name = "account_price_list_id")
+  @JoinColumn(name = "price_list_id")
   private PriceList priceList;
 
   @ManyToOne

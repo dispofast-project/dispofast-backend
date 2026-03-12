@@ -40,4 +40,9 @@ public class Individual extends Client {
 
   @Column(name = "rep_phone")
   private String representativePhone;
+
+  @Override
+  public String getDisplayName() {
+    return firstName + " " + lastName;
+  }
 }

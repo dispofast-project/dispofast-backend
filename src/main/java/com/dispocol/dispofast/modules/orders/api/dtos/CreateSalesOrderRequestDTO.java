@@ -1,5 +1,6 @@
 package com.dispocol.dispofast.modules.orders.api.dtos;
 
+import com.dispocol.dispofast.shared.location.domain.LocationZone;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
@@ -17,8 +18,8 @@ public class CreateSalesOrderRequestDTO {
   @Size(max = 20, message = "El número de orden no puede superar los 20 caracteres")
   private String orderNumber;
 
-  @NotNull(message = "La cuenta es obligatoria")
-  private UUID accountId;
+  @NotNull(message = "El cliente es obligatorio")
+  private UUID clientId;
 
   @NotNull(message = "El asesor es obligatorio")
   private UUID asesorUserId;
@@ -32,11 +33,10 @@ public class CreateSalesOrderRequestDTO {
   @NotBlank(message = "La dirección de despacho es obligatoria")
   private String shipmentAddress;
 
-  @Size(max = 50, message = "La zona no puede superar los 50 caracteres")
-  private String zone;
+  private LocationZone zone;
 
   @NotNull(message = "La lista de precios es obligatoria")
-  private UUID accountPriceListId;
+  private UUID priceListId;
 
   private UUID quoteId;
 

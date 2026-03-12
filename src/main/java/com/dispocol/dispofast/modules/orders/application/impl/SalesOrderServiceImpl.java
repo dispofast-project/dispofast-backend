@@ -1,5 +1,6 @@
 package com.dispocol.dispofast.modules.orders.application.impl;
 
+import com.dispocol.dispofast.modules.customers.infra.persistence.ClientRepository;
 import com.dispocol.dispofast.modules.iam.infra.persistence.UserRepository;
 import com.dispocol.dispofast.modules.inventory.infra.persistence.ProductRepository;
 import com.dispocol.dispofast.modules.orders.api.dtos.AttachInvoiceRequestDTO;
@@ -20,13 +21,12 @@ import com.dispocol.dispofast.modules.orders.infra.exceptions.SalesOrderAlreadyE
 import com.dispocol.dispofast.modules.orders.infra.exceptions.SalesOrderNotFoundException;
 import com.dispocol.dispofast.modules.orders.infra.persistence.SalesOrderItemRepository;
 import com.dispocol.dispofast.modules.orders.infra.persistence.SalesOrderRepository;
+import com.dispocol.dispofast.modules.pricelist.infra.persistence.PriceListRepository;
 import com.dispocol.dispofast.modules.quotes.domain.QuoteStatus;
 import com.dispocol.dispofast.modules.quotes.domain.Quotes;
 import com.dispocol.dispofast.modules.quotes.infra.persistence.QuotesRepository;
-import com.dispocol.dispofast.modules.temp.persistence.AccountRepository;
-import com.dispocol.dispofast.modules.temp.persistence.PriceListRepository;
 import com.dispocol.dispofast.shared.location.application.interfaces.LocationService;
-import com.dispocol.dispofast.shared.location.domain.Location;
+import com.dispocol.dispofast.shared.location.domain.City;
 import jakarta.persistence.criteria.Predicate;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -54,7 +54,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
   private final SalesOrderItemMapper salesOrderItemMapper;
   private final LocationService locationService;
   private final QuotesRepository quotesRepository;
-  private final AccountRepository accountRepository;
+  private final ClientRepository clientRepository;
   private final PriceListRepository priceListRepository;
   private final UserRepository userRepository;
   private final ProductRepository productRepository;
@@ -76,9 +76,9 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 
     resolveOrderReferences(
         order,
-        request.getAccountId(),
+        request.getClientId(),
         request.getAsesorUserId(),
-        request.getAccountPriceListId(),
+        request.getPriceListId(),
         request.getShipmentCityId(),
         request.getQuoteId());
 
@@ -108,10 +108,10 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     }
 
     SalesOrder order = new SalesOrder();
-    order.setAccount(quote.getAccount());
+    order.setClient(quote.getAccount());
     order.setAsesor(quote.getSeller());
     order.setPriceList(quote.getPriceList());
-    order.setShipmentCity(quote.getLocation());
+    order.setShipmentCity(quote.getCity());
     order.setQuote(quote);
     order.setState(OrderState.PENDING);
     order.setOrderDate(OffsetDateTime.now());
@@ -156,11 +156,11 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     if (request.getAsesorUserId() != null) {
       order.setAsesor(userRepository.getReferenceById(request.getAsesorUserId()));
     }
-    if (request.getAccountPriceListId() != null) {
-      order.setPriceList(priceListRepository.getReferenceById(request.getAccountPriceListId()));
+    if (request.getPriceListId() != null) {
+      order.setPriceList(priceListRepository.getReferenceById(request.getPriceListId()));
     }
     if (request.getShipmentCityId() != null) {
-      Location city = locationService.findEntityById(request.getShipmentCityId());
+      City city = locationService.findEntityById(request.getShipmentCityId());
       order.setShipmentCity(city);
     }
 
@@ -213,13 +213,13 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 
   private void resolveOrderReferences(
       SalesOrder order,
-      UUID accountId,
+      UUID clientId,
       UUID asesorUserId,
       UUID priceListId,
       String shipmentCityId,
       UUID quoteId) {
 
-    order.setAccount(accountRepository.getReferenceById(accountId));
+    order.setClient(clientRepository.getReferenceById(clientId));
     order.setAsesor(userRepository.getReferenceById(asesorUserId));
 
     if (priceListId != null) {
@@ -272,8 +272,8 @@ public class SalesOrderServiceImpl implements SalesOrderService {
       if (filter.getState() != null) {
         predicates.add(cb.equal(root.get("state"), filter.getState()));
       }
-      if (filter.getAccountId() != null) {
-        predicates.add(cb.equal(root.get("account").get("id"), filter.getAccountId()));
+      if (filter.getClientId() != null) {
+        predicates.add(cb.equal(root.get("client").get("id"), filter.getClientId()));
       }
       if (filter.getAsesorUserId() != null) {
         predicates.add(cb.equal(root.get("asesor").get("id"), filter.getAsesorUserId()));

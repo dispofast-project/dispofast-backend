@@ -1,6 +1,7 @@
 package com.dispocol.dispofast.modules.orders.api.dtos;
 
 import com.dispocol.dispofast.modules.orders.domain.OrderState;
+import com.dispocol.dispofast.shared.location.domain.LocationZone;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -12,8 +13,8 @@ public class SalesOrderResponseDTO {
 
   private UUID id;
   private String orderNumber;
-  private UUID accountId;
-  private String accountName;
+  private UUID clientId;
+  private String clientName;
   private UUID asesorUserId;
   private String asesorName;
   private OrderState state;
@@ -21,7 +22,7 @@ public class SalesOrderResponseDTO {
   private String shipmentCityId;
   private String shipmentCityName;
   private String shipmentAddress;
-  private String zone;
+  private LocationZone zone;
   private BigDecimal totalValue;
   private UUID priceListId;
   private UUID quoteId;

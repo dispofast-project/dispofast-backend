@@ -90,4 +90,6 @@ public abstract class Client {
     legalDocuments.add(document);
     document.setClient(this);
   }
+
+  public abstract String getDisplayName();
 }

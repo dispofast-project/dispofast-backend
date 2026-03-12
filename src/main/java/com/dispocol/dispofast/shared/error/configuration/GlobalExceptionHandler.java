@@ -1,7 +1,5 @@
 package com.dispocol.dispofast.shared.error.configuration;
 
-import com.dispocol.dispofast.modules.customers.infra.exceptions.CustomerAlreadyExistsException;
-import com.dispocol.dispofast.modules.customers.infra.exceptions.CustomerNotFoundException;
 import com.dispocol.dispofast.modules.iam.infra.exceptions.PermissionNotFoundException;
 import com.dispocol.dispofast.modules.iam.infra.exceptions.RoleNotFoundException;
 import com.dispocol.dispofast.modules.iam.infra.exceptions.UserAlreadyExistsException;
@@ -101,20 +99,7 @@ public class GlobalExceptionHandler {
     log.warn("Permiso no encontrado: {}", ex.getMessage());
     return buildErrorResponseEntity(ex, request, HttpStatus.NOT_FOUND);
   }
-
-  @ExceptionHandler(CustomerNotFoundException.class)
-  public ResponseEntity<GlobalErrorResponse> handleCustomerNotFound(
-      CustomerNotFoundException ex, HttpServletRequest request) {
-    log.warn("Cliente no encontrado: {}", ex.getMessage());
-    return buildErrorResponseEntity(ex, request, HttpStatus.NOT_FOUND);
-  }
-
-  @ExceptionHandler(CustomerAlreadyExistsException.class)
-  public ResponseEntity<GlobalErrorResponse> handleCustomerAlreadyExists(
-      CustomerAlreadyExistsException ex, HttpServletRequest request) {
-    log.warn("El cliente ya existe: {}", ex.getMessage());
-    return buildErrorResponseEntity(ex, request, HttpStatus.CONFLICT);
-  }
+  
 
   @ExceptionHandler(ProductNotFoundException.class)
   public ResponseEntity<GlobalErrorResponse> handleProductNotFound(

@@ -38,4 +38,9 @@ public class Organization extends Client {
 
   @Column(name = "rep_phone")
   private String representativePhone;
+
+  @Override
+  public String getDisplayName() {
+    return legalName;
+  }
 }

@@ -16,7 +16,7 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 public interface SalesOrderMapper {
 
   @Mapping(target = "id", ignore = true)
-  @Mapping(target = "account", ignore = true)
+  @Mapping(target = "client", ignore = true)
   @Mapping(target = "asesor", ignore = true)
   @Mapping(target = "state", ignore = true)
   @Mapping(target = "shipmentCity", ignore = true)
@@ -29,7 +29,7 @@ public interface SalesOrderMapper {
   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
   @Mapping(target = "id", ignore = true)
   @Mapping(target = "orderNumber", ignore = true)
-  @Mapping(target = "account", ignore = true)
+  @Mapping(target = "client", ignore = true)
   @Mapping(target = "asesor", ignore = true)
   @Mapping(target = "shipmentCity", ignore = true)
   @Mapping(target = "priceList", ignore = true)
@@ -41,7 +41,7 @@ public interface SalesOrderMapper {
   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
   @Mapping(target = "id", ignore = true)
   @Mapping(target = "orderNumber", ignore = true)
-  @Mapping(target = "account", ignore = true)
+  @Mapping(target = "client", ignore = true)
   @Mapping(target = "asesor", ignore = true)
   @Mapping(target = "state", ignore = true)
   @Mapping(target = "orderDate", ignore = true)
@@ -53,16 +53,16 @@ public interface SalesOrderMapper {
   @Mapping(target = "quote", ignore = true)
   void applyInvoice(AttachInvoiceRequestDTO request, @MappingTarget SalesOrder order);
 
-  @Mapping(target = "accountId", source = "account.id")
+  @Mapping(target = "clientId", source = "client.id")
   @Mapping(
-      target = "accountName",
-      expression = "java(order.getAccount() != null ? order.getAccount().getName() : null)")
+      target = "clientName",
+      expression = "java(order.getClient() != null ? order.getClient().getDisplayName() : null)")
   @Mapping(target = "asesorUserId", source = "asesor.id")
   @Mapping(
       target = "asesorName",
       expression = "java(order.getAsesor() != null ? order.getAsesor().getFullName() : null)")
-  @Mapping(target = "shipmentCityId", source = "shipmentCity.cityCode")
-  @Mapping(target = "shipmentCityName", source = "shipmentCity.cityName")
+  @Mapping(target = "shipmentCityId", source = "shipmentCity.code")
+  @Mapping(target = "shipmentCityName", source = "shipmentCity.name")
   @Mapping(target = "priceListId", source = "priceList.id")
   @Mapping(target = "quoteId", source = "quote.id")
   @Mapping(target = "items", ignore = true)

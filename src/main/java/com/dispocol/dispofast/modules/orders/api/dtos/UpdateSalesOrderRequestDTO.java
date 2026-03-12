@@ -1,6 +1,7 @@
 package com.dispocol.dispofast.modules.orders.api.dtos;
 
 import com.dispocol.dispofast.modules.orders.domain.OrderState;
+import com.dispocol.dispofast.shared.location.domain.LocationZone;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
 import java.time.OffsetDateTime;
@@ -22,10 +23,9 @@ public class UpdateSalesOrderRequestDTO {
 
   private String shipmentAddress;
 
-  @Size(max = 50, message = "La zona no puede superar los 50 caracteres")
-  private String zone;
+  private LocationZone zone;
 
-  private UUID accountPriceListId;
+  private UUID priceListId;
 
   @Valid private List<CreateSalesOrderItemDTO> items;
 }

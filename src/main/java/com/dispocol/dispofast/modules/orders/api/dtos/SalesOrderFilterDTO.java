@@ -8,7 +8,7 @@ import lombok.Data;
 public class SalesOrderFilterDTO {
 
   private OrderState state;
-  private UUID accountId;
+  private UUID clientId;
   private UUID asesorUserId;
   private String orderNumber;
 }
