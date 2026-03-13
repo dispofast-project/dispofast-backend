@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -22,8 +21,8 @@ public class InventoryController {
   private final InventoryService inventoryService;
 
   @GetMapping("/all-products")
-  public ResponseEntity<Page<InventoryResponseDTO>> getAllProducts(@RequestParam Pageable param) {
-    Page<InventoryResponseDTO> response = inventoryService.getInventoryStockForAllProducts(param);
+  public ResponseEntity<Page<InventoryResponseDTO>> getAllProducts(Pageable pageable) {
+    Page<InventoryResponseDTO> response = inventoryService.getInventoryStockForAllProducts(pageable);
     return ResponseEntity.ok(response);
   }
 

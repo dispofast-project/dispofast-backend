@@ -20,8 +20,8 @@ import org.springframework.stereotype.Service;
 public class InventoryServiceImpl implements InventoryService {
 
   private final InventoryStockRepository inventoryStockRepository;
-  private InventoryMapper inventoryMapper;
-  private ProductMapper productMapper;
+  private final InventoryMapper inventoryMapper;
+  private final ProductMapper productMapper;
 
   @Override
   public void addProductToInventory(Product product, int quantity) {
