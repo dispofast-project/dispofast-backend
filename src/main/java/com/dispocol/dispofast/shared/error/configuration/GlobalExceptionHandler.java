@@ -99,7 +99,6 @@ public class GlobalExceptionHandler {
     log.warn("Permiso no encontrado: {}", ex.getMessage());
     return buildErrorResponseEntity(ex, request, HttpStatus.NOT_FOUND);
   }
-  
 
   @ExceptionHandler(ProductNotFoundException.class)
   public ResponseEntity<GlobalErrorResponse> handleProductNotFound(
