@@ -39,7 +39,7 @@ public class AppUser {
   @Column(nullable = false, name = "updated_at")
   private OffsetDateTime updatedAt;
 
-  @OneToMany(mappedBy = "defaultAdvisor", cascade = CascadeType.ALL, orphanRemoval = true)
+  @OneToMany(mappedBy = "defaultAdvisor")
   private Set<Client> customers = new HashSet<>();
 
   @ManyToMany(fetch = FetchType.EAGER)
@@ -56,7 +56,7 @@ public class AppUser {
       fetch = FetchType.EAGER)
   private Set<UserPermission> permissions = new HashSet<>();
 
-  public void addCustomer(Customer customer) {
+  public void addCustomer(Client customer) {
     customers.add(customer);
     customer.setDefaultAdvisor(this);
   }

@@ -1,7 +1,5 @@
 package com.dispocol.dispofast.shared.error.configuration;
 
-import com.dispocol.dispofast.modules.customers.infra.exceptions.CustomerAlreadyExistsException;
-import com.dispocol.dispofast.modules.customers.infra.exceptions.CustomerNotFoundException;
 import com.dispocol.dispofast.modules.iam.infra.exceptions.PermissionNotFoundException;
 import com.dispocol.dispofast.modules.iam.infra.exceptions.RoleNotFoundException;
 import com.dispocol.dispofast.modules.iam.infra.exceptions.UserAlreadyExistsException;
@@ -9,6 +7,9 @@ import com.dispocol.dispofast.modules.iam.infra.exceptions.UserNotFoundException
 import com.dispocol.dispofast.modules.inventory.infra.exceptions.ProductAlreadyExistsException;
 import com.dispocol.dispofast.modules.inventory.infra.exceptions.ProductNotAvailableException;
 import com.dispocol.dispofast.modules.inventory.infra.exceptions.ProductNotFoundException;
+import com.dispocol.dispofast.modules.orders.infra.exceptions.InvalidOrderStateException;
+import com.dispocol.dispofast.modules.orders.infra.exceptions.SalesOrderAlreadyExistsException;
+import com.dispocol.dispofast.modules.orders.infra.exceptions.SalesOrderNotFoundException;
 import com.dispocol.dispofast.shared.error.ForbiddenException;
 import com.dispocol.dispofast.shared.error.ResourceNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,6 +25,24 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 @Slf4j
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
+  @ExceptionHandler(MethodArgumentNotValidException.class)
+  public ResponseEntity<GlobalErrorResponse> handleValidationErrors(
+      MethodArgumentNotValidException ex, HttpServletRequest request) {
+    String errors =
+        ex.getBindingResult().getFieldErrors().stream()
+            .map(fe -> fe.getField() + ": " + fe.getDefaultMessage())
+            .collect(Collectors.joining("; "));
+    log.warn("Validation failed: {}", errors);
+    GlobalErrorResponse errorResponse =
+        new GlobalErrorResponse(
+            Instant.now(),
+            HttpStatus.BAD_REQUEST.value(),
+            "ValidationException",
+            errors,
+            request.getRequestURI());
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+  }
 
   @ExceptionHandler(IllegalArgumentException.class)
   public ResponseEntity<GlobalErrorResponse> handleBadRequest(
@@ -60,20 +79,6 @@ public class GlobalExceptionHandler {
     return buildErrorResponseEntity(ex, request, HttpStatus.NOT_FOUND);
   }
 
-  @ExceptionHandler(MethodArgumentNotValidException.class)
-  public ResponseEntity<GlobalErrorResponse> handleValidationErrors(
-      MethodArgumentNotValidException ex, HttpServletRequest request) {
-
-    String message =
-        ex.getBindingResult().getFieldErrors().stream()
-            .map(error -> error.getField() + ": " + error.getDefaultMessage())
-            .collect(Collectors.joining(", "));
-
-    log.warn("Validation failed: {}", message);
-    return buildErrorResponseEntity(
-        message, ex.getClass().getSimpleName(), request, HttpStatus.BAD_REQUEST);
-  }
-
   @ExceptionHandler(UserAlreadyExistsException.class)
   public ResponseEntity<GlobalErrorResponse> handleUserAlreadyExists(
       UserAlreadyExistsException ex, HttpServletRequest request) {
@@ -93,20 +98,6 @@ public class GlobalExceptionHandler {
       PermissionNotFoundException ex, HttpServletRequest request) {
     log.warn("Permiso no encontrado: {}", ex.getMessage());
     return buildErrorResponseEntity(ex, request, HttpStatus.NOT_FOUND);
-  }
-
-  @ExceptionHandler(CustomerNotFoundException.class)
-  public ResponseEntity<GlobalErrorResponse> handleCustomerNotFound(
-      CustomerNotFoundException ex, HttpServletRequest request) {
-    log.warn("Cliente no encontrado: {}", ex.getMessage());
-    return buildErrorResponseEntity(ex, request, HttpStatus.NOT_FOUND);
-  }
-
-  @ExceptionHandler(CustomerAlreadyExistsException.class)
-  public ResponseEntity<GlobalErrorResponse> handleCustomerAlreadyExists(
-      CustomerAlreadyExistsException ex, HttpServletRequest request) {
-    log.warn("El cliente ya existe: {}", ex.getMessage());
-    return buildErrorResponseEntity(ex, request, HttpStatus.CONFLICT);
   }
 
   @ExceptionHandler(ProductNotFoundException.class)
@@ -137,6 +128,27 @@ public class GlobalExceptionHandler {
     return buildErrorResponseEntity(ex, request, HttpStatus.NOT_FOUND);
   }
 
+  @ExceptionHandler(SalesOrderNotFoundException.class)
+  public ResponseEntity<GlobalErrorResponse> handleSalesOrderNotFound(
+      SalesOrderNotFoundException ex, HttpServletRequest request) {
+    log.warn("Sales order not found: {}", ex.getMessage());
+    return buildErrorResponseEntity(ex, request, HttpStatus.NOT_FOUND);
+  }
+
+  @ExceptionHandler(SalesOrderAlreadyExistsException.class)
+  public ResponseEntity<GlobalErrorResponse> handleSalesOrderAlreadyExists(
+      SalesOrderAlreadyExistsException ex, HttpServletRequest request) {
+    log.warn("Sales order already exists: {}", ex.getMessage());
+    return buildErrorResponseEntity(ex, request, HttpStatus.CONFLICT);
+  }
+
+  @ExceptionHandler(InvalidOrderStateException.class)
+  public ResponseEntity<GlobalErrorResponse> handleInvalidOrderState(
+      InvalidOrderStateException ex, HttpServletRequest request) {
+    log.warn("Invalid order state transition: {}", ex.getMessage());
+    return buildErrorResponseEntity(ex, request, HttpStatus.UNPROCESSABLE_ENTITY);
+  }
+
   @ExceptionHandler(Exception.class)
   public ResponseEntity<GlobalErrorResponse> handleGenericException(
       Exception ex, HttpServletRequest request) {
@@ -144,14 +156,6 @@ public class GlobalExceptionHandler {
     return buildErrorResponseEntity(ex, request, HttpStatus.INTERNAL_SERVER_ERROR);
   }
 
-  /**
-   * Builds a GlobalErrorResponse and wraps it in a ResponseEntity with the given status.
-   *
-   * @param ex the exception that was thrown
-   * @param request the HTTP request that caused the exception
-   * @param status the HTTP status to return
-   * @return a ResponseEntity containing the GlobalErrorResponse
-   */
   private ResponseEntity<GlobalErrorResponse> buildErrorResponseEntity(
       Exception ex, HttpServletRequest request, HttpStatus status) {
     return buildErrorResponseEntity(
