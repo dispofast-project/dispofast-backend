@@ -22,6 +22,7 @@ import com.dispocol.dispofast.modules.orders.infra.exceptions.SalesOrderAlreadyE
 import com.dispocol.dispofast.modules.orders.infra.exceptions.SalesOrderNotFoundException;
 import com.dispocol.dispofast.modules.orders.infra.persistence.SalesOrderItemRepository;
 import com.dispocol.dispofast.modules.orders.infra.persistence.SalesOrderRepository;
+import com.dispocol.dispofast.modules.pricelist.application.interfaces.PriceListService;
 import com.dispocol.dispofast.modules.pricelist.infra.persistence.PriceListRepository;
 import com.dispocol.dispofast.modules.quotes.domain.QuoteStatus;
 import com.dispocol.dispofast.modules.quotes.domain.Quotes;
@@ -60,6 +61,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
   private final UserRepository userRepository;
   private final ProductRepository productRepository;
   private final InventoryService inventoryService;
+  private final PriceListService priceListService;
 
   @Override
   @Transactional
@@ -91,6 +93,9 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     for (CreateSalesOrderItemDTO item : request.getItems()) {
       inventoryService.reserveStock(item.getProductId(), item.getQuantity());
     }
+
+    // Persist totalValue calculated in saveItems
+    salesOrderRepository.save(savedOrder);
 
     return buildResponse(savedOrder, itemResponses);
   }
@@ -285,18 +290,44 @@ public class SalesOrderServiceImpl implements SalesOrderService {
   private List<SalesOrderItemResponseDTO> saveItems(
       List<CreateSalesOrderItemDTO> itemDTOs, SalesOrder order) {
     if (itemDTOs == null || itemDTOs.isEmpty()) {
+      order.setTotalValue(java.math.BigDecimal.ZERO);
       return List.of();
     }
-    List<SalesOrderItem> items =
-        itemDTOs.stream()
-            .map(
-                dto -> {
-                  SalesOrderItem item = salesOrderItemMapper.toEntity(dto);
-                  item.setOrder(order);
-                  item.setProduct(productRepository.getReferenceById(dto.getProductId()));
-                  return item;
-                })
-            .toList();
+
+    UUID priceListId = order.getPriceList() != null ? order.getPriceList().getId() : null;
+    if (priceListId == null) {
+      throw new IllegalArgumentException(
+          "La orden debe tener una lista de precios asignada para calcular los precios");
+    }
+
+    java.math.BigDecimal totalValue = java.math.BigDecimal.ZERO;
+    List<SalesOrderItem> items = new ArrayList<>();
+
+    for (CreateSalesOrderItemDTO dto : itemDTOs) {
+      SalesOrderItem item = salesOrderItemMapper.toEntity(dto);
+      item.setOrder(order);
+      item.setProduct(productRepository.getReferenceById(dto.getProductId()));
+
+      java.math.BigDecimal unitPrice =
+          priceListService
+              .resolveUnitPrice(priceListId, dto.getProductId())
+              .orElseThrow(
+                  () ->
+                      new IllegalArgumentException(
+                          "El producto no tiene precio en la lista de precios seleccionada: "
+                              + dto.getProductId()));
+
+      java.math.BigDecimal discount =
+          dto.getDiscount() != null ? dto.getDiscount() : java.math.BigDecimal.ZERO;
+      java.math.BigDecimal lineTotal = dto.getQuantity().multiply(unitPrice).subtract(discount);
+
+      item.setUnitPrice(unitPrice);
+      item.setLineTotal(lineTotal);
+      totalValue = totalValue.add(lineTotal);
+      items.add(item);
+    }
+
+    order.setTotalValue(totalValue);
     return salesOrderItemMapper.toResponseDTOList(salesOrderItemRepository.saveAll(items));
   }
 
