@@ -42,6 +42,33 @@ services:
     volumes:
       - minio_data:/data
     command: server /data --console-address ":9001"
+    networks:
+      - dispofast-network
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  minio-init:
+    image: quay.io/minio/mc
+    container_name: minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    networks:
+      - dispofast-network
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 admin password123;
+      mc mb --ignore-existing local/dispofast-price-lists;
+      mc mb --ignore-existing local/dispofast-legal-docs;
+      mc mb --ignore-existing local/dispofast-product-images;
+      mc mb --ignore-existing local/dispofast-invoices;
+      mc anonymous set download local/dispofast-product-images;
+      echo 'Buckets initialized successfully';
+      "
+    restart: "no"
 
 volumes:
   dispofast_data:
