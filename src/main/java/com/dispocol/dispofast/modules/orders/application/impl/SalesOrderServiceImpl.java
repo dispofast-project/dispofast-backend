@@ -304,18 +304,27 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     List<SalesOrderItem> items = new ArrayList<>();
 
     for (CreateSalesOrderItemDTO dto : itemDTOs) {
-      SalesOrderItem item = salesOrderItemMapper.toEntity(dto);
-      item.setOrder(order);
-      item.setProduct(productRepository.getReferenceById(dto.getProductId()));
-
-      java.math.BigDecimal unitPrice =
-          priceListService
-              .resolveUnitPrice(priceListId, dto.getProductId())
+      com.dispocol.dispofast.modules.inventory.domain.Product product =
+          productRepository
+              .findById(dto.getProductId())
               .orElseThrow(
                   () ->
                       new IllegalArgumentException(
-                          "El producto no tiene precio en la lista de precios seleccionada: "
-                              + dto.getProductId()));
+                          "Producto no encontrado: " + dto.getProductId()));
+
+      SalesOrderItem item = salesOrderItemMapper.toEntity(dto);
+      item.setOrder(order);
+      item.setProduct(product);
+
+      java.math.BigDecimal unitPrice =
+          priceListService
+              .resolveUnitPrice(priceListId, product.getReference())
+              .orElseThrow(
+                  () ->
+                      new IllegalArgumentException(
+                          "El producto '"
+                              + product.getReference()
+                              + "' no tiene precio en la lista de precios seleccionada"));
 
       java.math.BigDecimal discount =
           dto.getDiscount() != null ? dto.getDiscount() : java.math.BigDecimal.ZERO;

@@ -77,7 +77,7 @@ public class PriceListServiceImpl implements PriceListService {
                 product -> {
                   PriceListItem item =
                       priceListItemRepository
-                          .findByPriceList_IdAndProduct_Id(priceListId, product.getId())
+                          .findByPriceList_IdAndProduct_Reference(priceListId, reference)
                           .orElse(new PriceListItem());
                   item.setPriceList(priceList);
                   item.setProduct(product);
@@ -96,9 +96,9 @@ public class PriceListServiceImpl implements PriceListService {
   }
 
   @Override
-  public Optional<BigDecimal> resolveUnitPrice(UUID priceListId, UUID productId) {
+  public Optional<BigDecimal> resolveUnitPrice(UUID priceListId, String reference) {
     return priceListItemRepository
-        .findByPriceList_IdAndProduct_Id(priceListId, productId)
+        .findByPriceList_IdAndProduct_Reference(priceListId, reference)
         .map(PriceListItem::getUnitPrice);
   }
 

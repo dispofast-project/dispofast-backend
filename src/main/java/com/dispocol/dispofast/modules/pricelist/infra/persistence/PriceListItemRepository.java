@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface PriceListItemRepository extends JpaRepository<PriceListItem, UUID> {
 
-  Optional<PriceListItem> findByPriceList_IdAndProduct_Id(UUID priceListId, UUID productId);
+  Optional<PriceListItem> findByPriceList_IdAndProduct_Reference(UUID priceListId, String reference);
 
   List<PriceListItem> findByPriceList_Id(UUID priceListId);
 
