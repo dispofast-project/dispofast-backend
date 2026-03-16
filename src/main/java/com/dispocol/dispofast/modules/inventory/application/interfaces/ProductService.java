@@ -2,39 +2,20 @@ package com.dispocol.dispofast.modules.inventory.application.interfaces;
 
 import com.dispocol.dispofast.modules.inventory.api.dtos.CreateProductRequestDTO;
 import com.dispocol.dispofast.modules.inventory.api.dtos.ProductResponseDTO;
-import com.dispocol.dispofast.modules.inventory.domain.Product;
+import com.dispocol.dispofast.modules.inventory.api.dtos.UpdateProductRequestDTO;
+import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface ProductService {
 
-  /**
-   * Creates a new product in the inventory.
-   *
-   * @param request The details of the product to be created.
-   * @return The created product's details.
-   */
   ProductResponseDTO createProduct(CreateProductRequestDTO request);
 
-  /**
-   * Retrieves a product by its unique identifier.
-   *
-   * @param productId The unique identifier of the product.
-   * @return The details of the requested product.
-   */
-  Product getProductById(String productId);
+  ProductResponseDTO getProductById(UUID productId);
 
-  /**
-   * Deletes a product by its unique identifier.
-   *
-   * @param productId The unique identifier of the product to be deleted.
-   */
-  void deleteProduct(String productId);
+  Page<ProductResponseDTO> getAllProducts(Pageable pageable);
 
-  /**
-   * Updates an existing product in the inventory.
-   *
-   * @param productId The unique identifier of the product to be updated.
-   * @param request The new details of the product.
-   * @return The updated product's details.
-   */
-  ProductResponseDTO updateProduct(String productId, CreateProductRequestDTO request);
+  ProductResponseDTO updateProduct(UUID productId, UpdateProductRequestDTO request);
+
+  void deleteProduct(UUID productId);
 }

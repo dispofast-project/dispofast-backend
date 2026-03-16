@@ -4,6 +4,7 @@ import com.dispocol.dispofast.modules.iam.infra.exceptions.PermissionNotFoundExc
 import com.dispocol.dispofast.modules.iam.infra.exceptions.RoleNotFoundException;
 import com.dispocol.dispofast.modules.iam.infra.exceptions.UserAlreadyExistsException;
 import com.dispocol.dispofast.modules.iam.infra.exceptions.UserNotFoundException;
+import com.dispocol.dispofast.modules.inventory.infra.exceptions.InsufficientStockException;
 import com.dispocol.dispofast.modules.inventory.infra.exceptions.ProductAlreadyExistsException;
 import com.dispocol.dispofast.modules.inventory.infra.exceptions.ProductNotAvailableException;
 import com.dispocol.dispofast.modules.inventory.infra.exceptions.ProductNotFoundException;
@@ -118,6 +119,13 @@ public class GlobalExceptionHandler {
   public ResponseEntity<GlobalErrorResponse> handleProductNotAvailable(
       ProductNotAvailableException ex, HttpServletRequest request) {
     log.warn("Producto no disponible: {}", ex.getMessage());
+    return buildErrorResponseEntity(ex, request, HttpStatus.UNPROCESSABLE_ENTITY);
+  }
+
+  @ExceptionHandler(InsufficientStockException.class)
+  public ResponseEntity<GlobalErrorResponse> handleInsufficientStock(
+      InsufficientStockException ex, HttpServletRequest request) {
+    log.warn("Stock insuficiente: {}", ex.getMessage());
     return buildErrorResponseEntity(ex, request, HttpStatus.UNPROCESSABLE_ENTITY);
   }
 

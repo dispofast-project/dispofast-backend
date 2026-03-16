@@ -2,6 +2,8 @@ package com.dispocol.dispofast.modules.inventory.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -50,8 +52,9 @@ public class Product {
   @Column(nullable = false)
   private String seoKeywords;
 
-  @Column(nullable = false)
-  private String state;
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false, length = 20)
+  private ProductState state;
 
   @ManyToOne
   @JoinColumn(name = "category_id", nullable = false)

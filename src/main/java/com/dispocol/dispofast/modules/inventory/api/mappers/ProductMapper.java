@@ -11,29 +11,17 @@ public interface ProductMapper {
 
   @Mapping(target = "id", ignore = true)
   @Mapping(target = "category", ignore = true)
-  @Mapping(target = "name", expression = "java(dto != null ? dto.getName().trim() : null)")
-  @Mapping(
-      target = "shortDescription",
-      expression = "java(dto != null ? dto.getShortDescription().trim() : null)")
-  @Mapping(
-      target = "longDescription",
-      expression = "java(dto != null ? dto.getLongDescription().trim() : null)")
-  @Mapping(target = "imageUrl", expression = "java(dto != null ? dto.getImageUrl().trim() : null)")
-  @Mapping(
-      target = "sku",
-      expression = "java(dto != null ? dto.getSku().trim().toUpperCase() : null)")
-  @Mapping(
-      target = "reference",
-      expression = "java(dto != null ? dto.getReference().trim().toUpperCase() : null)")
-  @Mapping(target = "size", expression = "java(dto != null ? dto.getSize().trim() : null)")
-  @Mapping(target = "seoTitle", expression = "java(dto != null ? dto.getSeoTitle().trim() : null)")
-  @Mapping(
-      target = "seoDescription",
-      expression = "java(dto != null ? dto.getSeoDescription().trim() : null)")
-  @Mapping(
-      target = "seoKeywords",
-      expression = "java(dto != null ? dto.getSeoKeywords().trim() : null)")
-  @Mapping(target = "state", expression = "java(dto != null ? dto.getState().trim() : null)")
+  @Mapping(target = "name", expression = "java(dto.getName().trim())")
+  @Mapping(target = "shortDescription", expression = "java(dto.getShortDescription().trim())")
+  @Mapping(target = "longDescription", expression = "java(dto.getLongDescription().trim())")
+  @Mapping(target = "imageUrl", expression = "java(dto.getImageUrl().trim())")
+  @Mapping(target = "sku", expression = "java(dto.getSku().trim().toUpperCase())")
+  @Mapping(target = "reference", expression = "java(dto.getReference().trim().toUpperCase())")
+  @Mapping(target = "size", expression = "java(dto.getSize().trim())")
+  @Mapping(target = "seoTitle", expression = "java(dto.getSeoTitle().trim())")
+  @Mapping(target = "seoDescription", expression = "java(dto.getSeoDescription().trim())")
+  @Mapping(target = "seoKeywords", expression = "java(dto.getSeoKeywords().trim())")
+  @Mapping(target = "state", source = "state")
   Product fromCreateProductRequestDTO(CreateProductRequestDTO dto);
 
   @Mapping(
