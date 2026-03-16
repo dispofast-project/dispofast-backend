@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,6 +28,7 @@ public class ClientController {
   private final ClientService clientService;
 
   @GetMapping
+  @PreAuthorize("hasAuthority('CUSTOMER_VIEW')")
   public ResponseEntity<Page<ClientPreviewDTO>> getAllClients(
       Pageable pageable,
       @RequestParam(required = false) String text,
@@ -37,11 +39,13 @@ public class ClientController {
   }
 
   @GetMapping("/{id}")
+  @PreAuthorize("hasAuthority('CUSTOMER_VIEW')")
   public ResponseEntity<ClientResponseDTO> getClientById(@PathVariable UUID id) {
     return ResponseEntity.ok(clientService.getClientById(id));
   }
 
   @PostMapping
+  @PreAuthorize("hasAuthority('CUSTOMER_CREATE')")
   public ResponseEntity<ClientResponseDTO> createClient(
       @Valid @RequestBody CreateClientRequestDTO request) {
     return ResponseEntity.status(HttpStatus.CREATED).body(clientService.createClient(request));
