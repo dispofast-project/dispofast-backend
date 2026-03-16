@@ -13,8 +13,8 @@ public interface InventoryService {
   void addProductToInventory(Product product, int quantity);
 
   /**
-   * Reserves stock when a sales order is created. Moves quantity from available to reserved.
-   * Throws InsufficientStockException if not enough available stock.
+   * Reserves stock when a sales order is created. Moves quantity from available to reserved. Throws
+   * InsufficientStockException if not enough available stock.
    */
   void reserveStock(UUID productId, BigDecimal quantity);
 

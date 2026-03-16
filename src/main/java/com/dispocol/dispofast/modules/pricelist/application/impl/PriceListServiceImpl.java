@@ -50,8 +50,7 @@ public class PriceListServiceImpl implements PriceListService {
             .findById(priceListId)
             .orElseThrow(
                 () ->
-                    new IllegalArgumentException(
-                        "Lista de precios no encontrada: " + priceListId));
+                    new IllegalArgumentException("Lista de precios no encontrada: " + priceListId));
 
     try (Workbook workbook = new XSSFWorkbook(file.getInputStream())) {
       Sheet sheet = workbook.getSheetAt(0);
