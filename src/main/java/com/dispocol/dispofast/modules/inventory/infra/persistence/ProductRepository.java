@@ -11,4 +11,6 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
   Product findBySeoTitle(String seoTitle);
 
   boolean existsBySeoTitle(String seoTitle);
+
+  java.util.Optional<Product> findByReference(String reference);
 }

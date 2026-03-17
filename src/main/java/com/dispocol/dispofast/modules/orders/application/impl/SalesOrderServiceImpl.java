@@ -2,6 +2,7 @@ package com.dispocol.dispofast.modules.orders.application.impl;
 
 import com.dispocol.dispofast.modules.customers.infra.persistence.ClientRepository;
 import com.dispocol.dispofast.modules.iam.infra.persistence.UserRepository;
+import com.dispocol.dispofast.modules.inventory.application.interfaces.InventoryService;
 import com.dispocol.dispofast.modules.inventory.infra.persistence.ProductRepository;
 import com.dispocol.dispofast.modules.orders.api.dtos.AttachInvoiceRequestDTO;
 import com.dispocol.dispofast.modules.orders.api.dtos.CreateSalesOrderItemDTO;
@@ -21,6 +22,7 @@ import com.dispocol.dispofast.modules.orders.infra.exceptions.SalesOrderAlreadyE
 import com.dispocol.dispofast.modules.orders.infra.exceptions.SalesOrderNotFoundException;
 import com.dispocol.dispofast.modules.orders.infra.persistence.SalesOrderItemRepository;
 import com.dispocol.dispofast.modules.orders.infra.persistence.SalesOrderRepository;
+import com.dispocol.dispofast.modules.pricelist.application.interfaces.PriceListService;
 import com.dispocol.dispofast.modules.pricelist.infra.persistence.PriceListRepository;
 import com.dispocol.dispofast.modules.quotes.domain.QuoteStatus;
 import com.dispocol.dispofast.modules.quotes.domain.Quotes;
@@ -58,6 +60,8 @@ public class SalesOrderServiceImpl implements SalesOrderService {
   private final PriceListRepository priceListRepository;
   private final UserRepository userRepository;
   private final ProductRepository productRepository;
+  private final InventoryService inventoryService;
+  private final PriceListService priceListService;
 
   @Override
   @Transactional
@@ -83,7 +87,17 @@ public class SalesOrderServiceImpl implements SalesOrderService {
         request.getQuoteId());
 
     SalesOrder savedOrder = salesOrderRepository.save(order);
-    return buildResponse(savedOrder, saveItems(request.getItems(), savedOrder));
+    List<SalesOrderItemResponseDTO> itemResponses = saveItems(request.getItems(), savedOrder);
+
+    // Reserve stock for each item
+    for (CreateSalesOrderItemDTO item : request.getItems()) {
+      inventoryService.reserveStock(item.getProductId(), item.getQuantity());
+    }
+
+    // Persist totalValue calculated in saveItems
+    salesOrderRepository.save(savedOrder);
+
+    return buildResponse(savedOrder, itemResponses);
   }
 
   @Override
@@ -151,6 +165,9 @@ public class SalesOrderServiceImpl implements SalesOrderService {
           "No se puede modificar una orden en estado: " + order.getState().getValue());
     }
 
+    OrderState previousState = order.getState();
+    OrderState requestedState = request.getState();
+
     salesOrderMapper.updateEntityFromDTO(request, order);
 
     if (request.getAsesorUserId() != null) {
@@ -165,9 +182,34 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     }
 
     List<SalesOrderItemResponseDTO> itemResponses;
-    if (request.getItems() != null && !request.getItems().isEmpty()) {
+
+    // Handle stock transitions when moving to a terminal state
+    if (requestedState != null && requestedState != previousState) {
+      List<SalesOrderItem> currentItems = salesOrderItemRepository.findByOrderId(id);
+
+      if (requestedState == OrderState.DELIVERED) {
+        currentItems.forEach(
+            item -> inventoryService.confirmStock(item.getProduct().getId(), item.getQuantity()));
+      } else if (requestedState == OrderState.CANCELLED) {
+        currentItems.forEach(
+            item -> inventoryService.releaseStock(item.getProduct().getId(), item.getQuantity()));
+      }
+
+      // Do not process item changes when transitioning to terminal state
+      itemResponses = salesOrderItemMapper.toResponseDTOList(currentItems);
+    } else if (request.getItems() != null && !request.getItems().isEmpty()) {
+      // Release reserved stock for the old items before replacing them
+      List<SalesOrderItem> oldItems = salesOrderItemRepository.findByOrderId(id);
+      oldItems.forEach(
+          item -> inventoryService.releaseStock(item.getProduct().getId(), item.getQuantity()));
+
       salesOrderItemRepository.deleteByOrderId(id);
       itemResponses = saveItems(request.getItems(), order);
+
+      // Reserve stock for the new items
+      request
+          .getItems()
+          .forEach(dto -> inventoryService.reserveStock(dto.getProductId(), dto.getQuantity()));
     } else {
       itemResponses =
           salesOrderItemMapper.toResponseDTOList(salesOrderItemRepository.findByOrderId(id));
@@ -207,6 +249,11 @@ public class SalesOrderServiceImpl implements SalesOrderService {
               + order.getState().getValue());
     }
 
+    // Release reserved stock before deleting
+    List<SalesOrderItem> items = salesOrderItemRepository.findByOrderId(id);
+    items.forEach(
+        item -> inventoryService.releaseStock(item.getProduct().getId(), item.getQuantity()));
+
     salesOrderItemRepository.deleteByOrderId(id);
     salesOrderRepository.delete(order);
   }
@@ -243,18 +290,53 @@ public class SalesOrderServiceImpl implements SalesOrderService {
   private List<SalesOrderItemResponseDTO> saveItems(
       List<CreateSalesOrderItemDTO> itemDTOs, SalesOrder order) {
     if (itemDTOs == null || itemDTOs.isEmpty()) {
+      order.setTotalValue(java.math.BigDecimal.ZERO);
       return List.of();
     }
-    List<SalesOrderItem> items =
-        itemDTOs.stream()
-            .map(
-                dto -> {
-                  SalesOrderItem item = salesOrderItemMapper.toEntity(dto);
-                  item.setOrder(order);
-                  item.setProduct(productRepository.getReferenceById(dto.getProductId()));
-                  return item;
-                })
-            .toList();
+
+    UUID priceListId = order.getPriceList() != null ? order.getPriceList().getId() : null;
+    if (priceListId == null) {
+      throw new IllegalArgumentException(
+          "La orden debe tener una lista de precios asignada para calcular los precios");
+    }
+
+    java.math.BigDecimal totalValue = java.math.BigDecimal.ZERO;
+    List<SalesOrderItem> items = new ArrayList<>();
+
+    for (CreateSalesOrderItemDTO dto : itemDTOs) {
+      com.dispocol.dispofast.modules.inventory.domain.Product product =
+          productRepository
+              .findById(dto.getProductId())
+              .orElseThrow(
+                  () ->
+                      new IllegalArgumentException(
+                          "Producto no encontrado: " + dto.getProductId()));
+
+      SalesOrderItem item = salesOrderItemMapper.toEntity(dto);
+      item.setOrder(order);
+      item.setProduct(product);
+
+      java.math.BigDecimal unitPrice =
+          priceListService
+              .resolveUnitPrice(priceListId, product.getReference())
+              .orElseThrow(
+                  () ->
+                      new IllegalArgumentException(
+                          "El producto '"
+                              + product.getReference()
+                              + "' no tiene precio en la lista de precios seleccionada"));
+
+      java.math.BigDecimal discount =
+          dto.getDiscount() != null ? dto.getDiscount() : java.math.BigDecimal.ZERO;
+      java.math.BigDecimal lineTotal = dto.getQuantity().multiply(unitPrice).subtract(discount);
+
+      item.setUnitPrice(unitPrice);
+      item.setLineTotal(lineTotal);
+      totalValue = totalValue.add(lineTotal);
+      items.add(item);
+    }
+
+    order.setTotalValue(totalValue);
     return salesOrderItemMapper.toResponseDTOList(salesOrderItemRepository.saveAll(items));
   }
 

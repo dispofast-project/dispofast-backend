@@ -15,6 +15,10 @@ app:
   jwt:
     secret: ${JWT_SECRET:ihavetochangeThisSecretKeysoon1234567890}
     expirationSeconds: 3600000
+  minio:
+    endpoint: http://localhost:9000
+    access-key: admin
+    secret-key: password123
 
 logging:
   level:

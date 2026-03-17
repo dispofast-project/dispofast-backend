@@ -1,5 +1,7 @@
 package com.dispocol.dispofast.modules.inventory.api.dtos;
 
+import com.dispocol.dispofast.modules.inventory.domain.StockState;
+import java.util.UUID;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -7,8 +9,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class InventoryResponseDTO {
 
+  private UUID productId;
+  private String productName;
   private int quantityAvailable;
   private int quantityReserved;
-  private String state;
-  private String productName;
+  private StockState state;
 }

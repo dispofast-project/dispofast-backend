@@ -4,14 +4,10 @@ import com.dispocol.dispofast.modules.inventory.domain.ProductState;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.util.UUID;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class CreateProductRequestDTO {
+public class UpdateProductRequestDTO {
 
   @NotBlank(message = "Nombre es requerido")
   private String name;
@@ -51,6 +47,4 @@ public class CreateProductRequestDTO {
 
   @NotNull(message = "ID de categoría es requerido")
   private UUID categoryId;
-
-  private int initialStock;
 }
