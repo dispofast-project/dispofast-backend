@@ -14,4 +14,6 @@ public interface ClientService {
   ClientResponseDTO getClientById(UUID id);
 
   ClientResponseDTO createClient(CreateClientRequestDTO request);
+
+  ClientResponseDTO updateClient(UUID id, CreateClientRequestDTO request);
 }
