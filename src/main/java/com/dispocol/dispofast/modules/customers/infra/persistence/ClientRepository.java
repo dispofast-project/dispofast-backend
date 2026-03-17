@@ -12,4 +12,8 @@ public interface ClientRepository
   boolean existsByIdentificationNumber(String identificationNumber);
 
   boolean existsByEmailIgnoreCase(String email);
+
+  boolean existsByIdentificationNumberAndIdNot(String identificationNumber, UUID id);
+
+  boolean existsByEmailIgnoreCaseAndIdNot(String email, UUID id);
 }

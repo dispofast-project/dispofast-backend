@@ -24,8 +24,8 @@ import lombok.experimental.SuperBuilder;
     property = "legalEntityType",
     visible = true)
 @JsonSubTypes({
-  @JsonSubTypes.Type(value = CreateIndividualRequestDTO.class, name = "NATURAL"),
-  @JsonSubTypes.Type(value = CreateOrganizationRequestDTO.class, name = "LEGAL")
+  @JsonSubTypes.Type(value = CreateIndividualRequestDTO.class, name = "natural"),
+  @JsonSubTypes.Type(value = CreateOrganizationRequestDTO.class, name = "empresa")
 })
 public abstract class CreateClientRequestDTO {
 

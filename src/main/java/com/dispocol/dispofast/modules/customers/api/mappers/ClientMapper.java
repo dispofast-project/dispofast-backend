@@ -49,6 +49,24 @@ public interface ClientMapper {
   @Mapping(target = "legalDocuments", ignore = true)
   Organization toOrganization(CreateOrganizationRequestDTO dto);
 
+  @Mapping(target = "id", ignore = true)
+  @Mapping(target = "legalEntityType", ignore = true)
+  @Mapping(target = "defaultAdvisor", ignore = true)
+  @Mapping(target = "city", ignore = true)
+  @Mapping(target = "priceList", ignore = true)
+  @Mapping(target = "clientType", ignore = true)
+  @Mapping(target = "legalDocuments", ignore = true)
+  void updateIndividual(CreateIndividualRequestDTO dto, @MappingTarget Individual entity);
+
+  @Mapping(target = "id", ignore = true)
+  @Mapping(target = "legalEntityType", ignore = true)
+  @Mapping(target = "defaultAdvisor", ignore = true)
+  @Mapping(target = "city", ignore = true)
+  @Mapping(target = "priceList", ignore = true)
+  @Mapping(target = "clientType", ignore = true)
+  @Mapping(target = "legalDocuments", ignore = true)
+  void updateOrganization(CreateOrganizationRequestDTO dto, @MappingTarget Organization entity);
+
   @Mapping(target = "name", ignore = true)
   IndividualResponseDTO toIndividualResponseDTO(Individual individual);
 

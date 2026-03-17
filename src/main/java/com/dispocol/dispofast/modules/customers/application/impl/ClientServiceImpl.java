@@ -136,6 +136,75 @@ public class ClientServiceImpl implements ClientService {
     return clientMapper.toResponseDTO(savedClient);
   }
 
+  @Override
+  @Transactional
+  public ClientResponseDTO updateClient(UUID id, CreateClientRequestDTO request) {
+    Client client =
+        clientRepository
+            .findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Client not found with id: " + id));
+
+    if (!client.getIdentificationNumber().equals(request.getIdentificationNumber())
+        && clientRepository.existsByIdentificationNumberAndIdNot(
+            request.getIdentificationNumber(), id)) {
+      throw new IllegalArgumentException("Ya existe un cliente con este número de identificación.");
+    }
+    if (!client.getEmail().equalsIgnoreCase(request.getEmail())
+        && clientRepository.existsByEmailIgnoreCaseAndIdNot(request.getEmail(), id)) {
+      throw new IllegalArgumentException("Ya existe un cliente con este correo electrónico.");
+    }
+
+    City city =
+        cityRepository
+            .findById(request.getCityCode())
+            .orElseThrow(
+                () ->
+                    new ResourceNotFoundException(
+                        "City not found with code: " + request.getCityCode()));
+
+    AppUser advisor =
+        userRepository
+            .findById(request.getDefaultAdvisorId())
+            .orElseThrow(
+                () ->
+                    new ResourceNotFoundException(
+                        "Advisor user not found with ID: " + request.getDefaultAdvisorId()));
+
+    ClientType clientType =
+        clientTypeRepository
+            .findById(request.getClientTypeId())
+            .orElseThrow(
+                () ->
+                    new ResourceNotFoundException(
+                        "Client type not found with ID: " + request.getClientTypeId()));
+
+    PriceList priceList =
+        priceListRepository
+            .findById(request.getPriceListId())
+            .orElseThrow(
+                () ->
+                    new ResourceNotFoundException(
+                        "Price list not found with ID: " + request.getPriceListId()));
+
+    if (client instanceof Individual individual
+        && request instanceof CreateIndividualRequestDTO individualRequest) {
+      clientMapper.updateIndividual(individualRequest, individual);
+    } else if (client instanceof Organization organization
+        && request instanceof CreateOrganizationRequestDTO organizationRequest) {
+      clientMapper.updateOrganization(organizationRequest, organization);
+    } else {
+      throw new IllegalArgumentException("Mismatched client and request types.");
+    }
+
+    client.setCity(city);
+    client.setDefaultAdvisor(advisor);
+    client.setClientType(clientType);
+    client.setPriceList(priceList);
+
+    Client savedClient = clientRepository.save(client);
+    return clientMapper.toResponseDTO(savedClient);
+  }
+
   private Specification<Client> buildSearchSpec(String text, String key) {
     return (root, query, cb) -> {
       String pattern = "%" + text + "%";
