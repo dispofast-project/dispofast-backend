@@ -124,6 +124,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     }
 
     SalesOrder order = new SalesOrder();
+    order.setOrderNumber("ORD-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
     order.setClient(quote.getAccount());
     order.setAsesor(quote.getSeller());
     order.setPriceList(quote.getPriceList());
@@ -131,6 +132,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     order.setQuote(quote);
     order.setState(OrderState.PENDING);
     order.setOrderDate(OffsetDateTime.now());
+    order.setTotalValue(java.math.BigDecimal.valueOf(quote.getTotalAmount()));
 
     SalesOrder savedOrder = salesOrderRepository.save(order);
     return buildResponse(savedOrder, List.of());
