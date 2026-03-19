@@ -1,5 +1,6 @@
 package com.dispocol.dispofast.modules.orders.application.impl;
 
+import com.dispocol.dispofast.modules.cartera.application.interfaces.ArEntryService;
 import com.dispocol.dispofast.modules.customers.infra.persistence.ClientRepository;
 import com.dispocol.dispofast.modules.iam.infra.persistence.UserRepository;
 import com.dispocol.dispofast.modules.inventory.application.interfaces.InventoryService;
@@ -62,6 +63,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
   private final ProductRepository productRepository;
   private final InventoryService inventoryService;
   private final PriceListService priceListService;
+  private final ArEntryService arEntryService;
 
   @Override
   @Transactional
@@ -236,6 +238,8 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     order.setState(OrderState.INVOICED);
 
     SalesOrder savedOrder = salesOrderRepository.save(order);
+    arEntryService.createFromOrder(savedOrder);
+
     List<SalesOrderItem> items = salesOrderItemRepository.findByOrderId(id);
     return buildResponse(savedOrder, salesOrderItemMapper.toResponseDTOList(items));
   }
