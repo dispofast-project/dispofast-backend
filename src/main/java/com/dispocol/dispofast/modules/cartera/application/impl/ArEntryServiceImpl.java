@@ -61,8 +61,7 @@ public class ArEntryServiceImpl implements ArEntryService {
     entry.setInvoiceNumber(request.getInvoiceNumber());
     entry.setInvoiceDate(request.getInvoiceDate());
     entry.setPaymentTermDays(request.getPaymentTermDays());
-    entry.setExpirationDate(
-        request.getInvoiceDate().plusDays(request.getPaymentTermDays()));
+    entry.setExpirationDate(request.getInvoiceDate().plusDays(request.getPaymentTermDays()));
     entry.setSource(ArEntrySource.MANUAL);
 
     return arEntryMapper.toResponseDTO(arEntryRepository.save(entry));
@@ -79,7 +78,8 @@ public class ArEntryServiceImpl implements ArEntryService {
     entry.setAsesor(order.getAsesor());
     entry.setOrder(order);
     entry.setCity(order.getShipmentCity());
-    entry.setValue(order.getTotalValue() != null ? order.getTotalValue() : java.math.BigDecimal.ZERO);
+    entry.setValue(
+        order.getTotalValue() != null ? order.getTotalValue() : java.math.BigDecimal.ZERO);
     entry.setInvoiceNumber(order.getInvoiceNumber());
     entry.setInvoiceDate(invoiceDate);
     entry.setPaymentTermDays(termDays);
@@ -102,8 +102,7 @@ public class ArEntryServiceImpl implements ArEntryService {
 
       if (isVendedor && auth != null) {
         predicates.add(
-            cb.equal(
-                root.get("client").get("defaultAdvisor").get("email"), auth.getName()));
+            cb.equal(root.get("client").get("defaultAdvisor").get("email"), auth.getName()));
       }
 
       if (filter != null) {
@@ -111,8 +110,7 @@ public class ArEntryServiceImpl implements ArEntryService {
           predicates.add(cb.equal(root.get("client").get("id"), filter.getClientId()));
         }
         if (filter.getAsesorUserId() != null) {
-          predicates.add(
-              cb.equal(root.get("asesor").get("id"), filter.getAsesorUserId()));
+          predicates.add(cb.equal(root.get("asesor").get("id"), filter.getAsesorUserId()));
         }
         if (filter.getState() != null) {
           predicates.add(cb.equal(root.get("state"), filter.getState()));
@@ -127,7 +125,11 @@ public class ArEntryServiceImpl implements ArEntryService {
           predicates.add(
               cb.lessThanOrEqualTo(
                   root.get("invoiceDate"),
-                  filter.getFechaFin().plusDays(1).atStartOfDay().atOffset(java.time.ZoneOffset.UTC)));
+                  filter
+                      .getFechaFin()
+                      .plusDays(1)
+                      .atStartOfDay()
+                      .atOffset(java.time.ZoneOffset.UTC)));
         }
       }
 

@@ -9,28 +9,19 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface ArEntryMapper {
 
-  @Mapping(
-      target = "clientName",
-      expression = "java(entry.getClient().getDisplayName())")
+  @Mapping(target = "clientName", expression = "java(entry.getClient().getDisplayName())")
   @Mapping(target = "clientIdentification", source = "client.identificationNumber")
   @Mapping(
       target = "asesorName",
-      expression =
-          "java(entry.getAsesor() != null ? entry.getAsesor().getFullName() : null)")
+      expression = "java(entry.getAsesor() != null ? entry.getAsesor().getFullName() : null)")
   @Mapping(
       target = "orderNumber",
-      expression =
-          "java(entry.getOrder() != null ? entry.getOrder().getOrderNumber() : null)")
-  @Mapping(
-      target = "diasCartera",
-      expression = "java(entry.getDiasCartera())")
-  @Mapping(
-      target = "diasVencimiento",
-      expression = "java(entry.getDiasVencimiento())")
+      expression = "java(entry.getOrder() != null ? entry.getOrder().getOrderNumber() : null)")
+  @Mapping(target = "diasCartera", expression = "java(entry.getDiasCartera())")
+  @Mapping(target = "diasVencimiento", expression = "java(entry.getDiasVencimiento())")
   @Mapping(
       target = "cityName",
-      expression =
-          "java(entry.getCity() != null ? entry.getCity().getName() : null)")
+      expression = "java(entry.getCity() != null ? entry.getCity().getName() : null)")
   ArEntryResponseDTO toResponseDTO(ArEntry entry);
 
   List<ArEntryResponseDTO> toResponseDTOList(List<ArEntry> entries);

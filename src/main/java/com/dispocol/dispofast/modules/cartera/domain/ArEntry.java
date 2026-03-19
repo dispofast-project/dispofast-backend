@@ -85,9 +85,7 @@ public class ArEntry {
     return ChronoUnit.DAYS.between(invoiceDate.toLocalDate(), LocalDate.now());
   }
 
-  /**
-   * Días transcurridos desde la fecha de vencimiento hasta hoy. Retorna 0 si aún no ha vencido.
-   */
+  /** Días transcurridos desde la fecha de vencimiento hasta hoy. Retorna 0 si aún no ha vencido. */
   public long getDiasVencimiento() {
     LocalDate today = LocalDate.now();
     LocalDate expiry = expirationDate.toLocalDate();
