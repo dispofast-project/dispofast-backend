@@ -51,6 +51,7 @@ public interface SalesOrderMapper {
   @Mapping(target = "totalValue", ignore = true)
   @Mapping(target = "priceList", ignore = true)
   @Mapping(target = "quote", ignore = true)
+  @Mapping(target = "invoiceUrl", ignore = true)
   void applyInvoice(AttachInvoiceRequestDTO request, @MappingTarget SalesOrder order);
 
   @Mapping(target = "clientId", source = "client.id")

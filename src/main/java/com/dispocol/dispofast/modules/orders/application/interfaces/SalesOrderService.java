@@ -1,6 +1,5 @@
 package com.dispocol.dispofast.modules.orders.application.interfaces;
 
-import com.dispocol.dispofast.modules.orders.api.dtos.AttachInvoiceRequestDTO;
 import com.dispocol.dispofast.modules.orders.api.dtos.CreateSalesOrderRequestDTO;
 import com.dispocol.dispofast.modules.orders.api.dtos.SalesOrderFilterDTO;
 import com.dispocol.dispofast.modules.orders.api.dtos.SalesOrderResponseDTO;
@@ -8,6 +7,7 @@ import com.dispocol.dispofast.modules.orders.api.dtos.UpdateSalesOrderRequestDTO
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface SalesOrderService {
 
@@ -21,7 +21,11 @@ public interface SalesOrderService {
 
   SalesOrderResponseDTO updateSalesOrder(UUID id, UpdateSalesOrderRequestDTO request);
 
-  SalesOrderResponseDTO attachInvoice(UUID id, AttachInvoiceRequestDTO request);
+  SalesOrderResponseDTO attachInvoice(UUID id, String invoiceNumber, MultipartFile file);
+
+  byte[] downloadInvoice(UUID id);
+
+  String getInvoiceFileName(UUID id);
 
   void deleteSalesOrder(UUID id);
 }

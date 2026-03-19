@@ -11,6 +11,7 @@ import com.dispocol.dispofast.modules.orders.api.dtos.SalesOrderFilterDTO;
 import com.dispocol.dispofast.modules.orders.api.dtos.SalesOrderItemResponseDTO;
 import com.dispocol.dispofast.modules.orders.api.dtos.SalesOrderResponseDTO;
 import com.dispocol.dispofast.modules.orders.api.dtos.UpdateSalesOrderRequestDTO;
+import com.dispocol.dispofast.shared.S3.application.interfaces.S3Service;
 import com.dispocol.dispofast.modules.orders.api.mappers.SalesOrderItemMapper;
 import com.dispocol.dispofast.modules.orders.api.mappers.SalesOrderMapper;
 import com.dispocol.dispofast.modules.orders.application.interfaces.SalesOrderService;
@@ -30,6 +31,7 @@ import com.dispocol.dispofast.modules.quotes.infra.persistence.QuotesRepository;
 import com.dispocol.dispofast.shared.location.application.interfaces.LocationService;
 import com.dispocol.dispofast.shared.location.domain.City;
 import jakarta.persistence.criteria.Predicate;
+import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -42,6 +44,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
@@ -62,6 +65,9 @@ public class SalesOrderServiceImpl implements SalesOrderService {
   private final ProductRepository productRepository;
   private final InventoryService inventoryService;
   private final PriceListService priceListService;
+  private final S3Service s3Service;
+
+  private static final String INVOICE_BUCKET = "dispofast-invoices";
 
   @Override
   @Transactional
@@ -223,7 +229,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 
   @Override
   @Transactional
-  public SalesOrderResponseDTO attachInvoice(UUID id, AttachInvoiceRequestDTO request) {
+  public SalesOrderResponseDTO attachInvoice(UUID id, String invoiceNumber, MultipartFile file) {
     SalesOrder order = findOrderOrThrow(id);
 
     if (order.getState() != OrderState.PENDING) {
@@ -232,12 +238,49 @@ public class SalesOrderServiceImpl implements SalesOrderService {
               + order.getState().getValue());
     }
 
+    String fileKey = id + "/" + file.getOriginalFilename();
+    try {
+      s3Service.uploadFile(
+          INVOICE_BUCKET,
+          fileKey,
+          file.getInputStream(),
+          file.getContentType(),
+          file.getSize());
+    } catch (IOException e) {
+      throw new IllegalArgumentException(
+          "Error al guardar la factura en S3: " + e.getMessage(), e);
+    }
+
+    AttachInvoiceRequestDTO request = new AttachInvoiceRequestDTO();
+    request.setInvoiceNumber(invoiceNumber);
     salesOrderMapper.applyInvoice(request, order);
+    order.setInvoiceUrl(fileKey);
     order.setState(OrderState.INVOICED);
 
     SalesOrder savedOrder = salesOrderRepository.save(order);
     List<SalesOrderItem> items = salesOrderItemRepository.findByOrderId(id);
     return buildResponse(savedOrder, salesOrderItemMapper.toResponseDTOList(items));
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public byte[] downloadInvoice(UUID id) {
+    SalesOrder order = findOrderOrThrow(id);
+    if (order.getInvoiceUrl() == null) {
+      throw new IllegalStateException("La orden no tiene una factura adjunta: " + id);
+    }
+    return s3Service.downloadFile(INVOICE_BUCKET, order.getInvoiceUrl());
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public String getInvoiceFileName(UUID id) {
+    SalesOrder order = findOrderOrThrow(id);
+    if (order.getInvoiceUrl() == null) {
+      return "factura.pdf";
+    }
+    String key = order.getInvoiceUrl();
+    return key.contains("/") ? key.substring(key.lastIndexOf('/') + 1) : key;
   }
 
   @Override

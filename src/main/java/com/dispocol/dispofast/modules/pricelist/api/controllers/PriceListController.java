@@ -5,6 +5,9 @@ import com.dispocol.dispofast.modules.pricelist.application.interfaces.PriceList
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,5 +37,17 @@ public class PriceListController {
       @PathVariable UUID id, @RequestParam("file") MultipartFile file) {
     priceListService.uploadPriceListItems(id, file);
     return ResponseEntity.ok().build();
+  }
+
+  @GetMapping("/{id}/download")
+  @PreAuthorize("hasAuthority('PRICE_LISTS_VIEW')")
+  public ResponseEntity<byte[]> downloadPriceListFile(@PathVariable UUID id) {
+    byte[] data = priceListService.downloadPriceListFile(id);
+    String fileName = priceListService.getPriceListOriginalFileName(id);
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentDisposition(
+        ContentDisposition.attachment().filename(fileName).build());
+    headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+    return ResponseEntity.ok().headers(headers).body(data);
   }
 }

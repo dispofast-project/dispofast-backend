@@ -1,6 +1,5 @@
 package com.dispocol.dispofast.modules.orders.api.controllers;
 
-import com.dispocol.dispofast.modules.orders.api.dtos.AttachInvoiceRequestDTO;
 import com.dispocol.dispofast.modules.orders.api.dtos.CreateSalesOrderRequestDTO;
 import com.dispocol.dispofast.modules.orders.api.dtos.SalesOrderFilterDTO;
 import com.dispocol.dispofast.modules.orders.api.dtos.SalesOrderResponseDTO;
@@ -8,11 +7,15 @@ import com.dispocol.dispofast.modules.orders.api.dtos.UpdateSalesOrderRequestDTO
 import com.dispocol.dispofast.modules.orders.application.interfaces.SalesOrderService;
 import com.dispocol.dispofast.modules.orders.domain.OrderState;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -25,6 +28,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/orders")
@@ -77,11 +81,24 @@ public class SalesOrderController {
     return ResponseEntity.ok(salesOrderService.updateSalesOrder(id, request));
   }
 
-  @PatchMapping("/{id}/invoice")
+  @PatchMapping(value = "/{id}/invoice", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   @PreAuthorize("hasAuthority('PURCHASE_ORDERS_EDIT')")
   public ResponseEntity<SalesOrderResponseDTO> attachInvoice(
-      @PathVariable UUID id, @Valid @RequestBody AttachInvoiceRequestDTO request) {
-    return ResponseEntity.ok(salesOrderService.attachInvoice(id, request));
+      @PathVariable UUID id,
+      @RequestParam("invoiceNumber") @NotBlank String invoiceNumber,
+      @RequestParam("file") MultipartFile file) {
+    return ResponseEntity.ok(salesOrderService.attachInvoice(id, invoiceNumber, file));
+  }
+
+  @GetMapping("/{id}/invoice/download")
+  @PreAuthorize("hasAuthority('PURCHASE_ORDERS_VIEW')")
+  public ResponseEntity<byte[]> downloadInvoice(@PathVariable UUID id) {
+    byte[] data = salesOrderService.downloadInvoice(id);
+    String fileName = salesOrderService.getInvoiceFileName(id);
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentDisposition(ContentDisposition.attachment().filename(fileName).build());
+    headers.setContentType(MediaType.APPLICATION_PDF);
+    return ResponseEntity.ok().headers(headers).body(data);
   }
 
   @DeleteMapping("/{id}")

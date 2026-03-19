@@ -11,6 +11,8 @@ public interface S3Service {
       String contentType,
       long contentLength);
 
+  byte[] downloadFile(String bucketName, String fileName);
+
   String getFileUrl(String bucketName, String fileName);
 
   void deleteFile(String bucketName, String fileName);
