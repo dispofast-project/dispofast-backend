@@ -10,6 +10,8 @@ public class SalesOrderItemResponseDTO {
   private UUID id;
   private UUID productId;
   private String productName;
+  private String productReference;
+  private boolean taxFree;
   private BigDecimal quantity;
   private BigDecimal unitPrice;
   private BigDecimal discount;

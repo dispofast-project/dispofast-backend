@@ -76,4 +76,14 @@ public class SalesOrder {
 
   @Column(name = "invoice_url", length = 500)
   private String invoiceUrl;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "payment_condition", length = 30)
+  private PaymentCondition paymentCondition;
+
+  @Column(name = "discount_rate")
+  private Integer discountRate;
+
+  @Column(name = "additional_discount_rate", precision = 5, scale = 2)
+  private BigDecimal additionalDiscountRate;
 }

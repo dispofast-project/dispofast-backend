@@ -98,6 +98,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 
     // Persist totalValue calculated in saveItems
     salesOrderRepository.save(savedOrder);
+    arEntryService.createFromOrder(savedOrder);
 
     return buildResponse(savedOrder, itemResponses);
   }
@@ -135,6 +136,8 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     order.setTotalValue(java.math.BigDecimal.valueOf(quote.getTotalAmount()));
 
     SalesOrder savedOrder = salesOrderRepository.save(order);
+    arEntryService.createFromOrder(savedOrder);
+
     return buildResponse(savedOrder, List.of());
   }
 
@@ -238,7 +241,6 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     order.setState(OrderState.INVOICED);
 
     SalesOrder savedOrder = salesOrderRepository.save(order);
-    arEntryService.createFromOrder(savedOrder);
 
     List<SalesOrderItem> items = salesOrderItemRepository.findByOrderId(id);
     return buildResponse(savedOrder, salesOrderItemMapper.toResponseDTOList(items));
