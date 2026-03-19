@@ -1,6 +1,7 @@
 package com.dispocol.dispofast.modules.pricelist.application.impl;
 
 import com.dispocol.dispofast.modules.inventory.infra.persistence.ProductRepository;
+import com.dispocol.dispofast.modules.pricelist.api.dtos.PriceListItemDTO;
 import com.dispocol.dispofast.modules.pricelist.api.dtos.PriceListResponseDTO;
 import com.dispocol.dispofast.modules.pricelist.application.interfaces.PriceListService;
 import com.dispocol.dispofast.modules.pricelist.domain.PriceList;
@@ -39,6 +40,16 @@ public class PriceListServiceImpl implements PriceListService {
   public List<PriceListResponseDTO> getAllPriceLists() {
     return priceListRepository.findAll().stream()
         .map(pl -> new PriceListResponseDTO(pl.getId(), pl.getName()))
+        .toList();
+  }
+
+  @Override
+  public List<PriceListItemDTO> getItemsByPriceList(UUID priceListId) {
+    return priceListItemRepository.findByPriceList_Id(priceListId).stream()
+        .map(item -> new PriceListItemDTO(
+            item.getProduct().getId(),
+            item.getProduct().getReference(),
+            item.getUnitPrice()))
         .toList();
   }
 

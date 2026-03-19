@@ -1,5 +1,6 @@
 package com.dispocol.dispofast.modules.pricelist.api.controllers;
 
+import com.dispocol.dispofast.modules.pricelist.api.dtos.PriceListItemDTO;
 import com.dispocol.dispofast.modules.pricelist.api.dtos.PriceListResponseDTO;
 import com.dispocol.dispofast.modules.pricelist.application.interfaces.PriceListService;
 import java.util.List;
@@ -26,6 +27,12 @@ public class PriceListController {
   @PreAuthorize("hasAuthority('PRICE_LISTS_VIEW')")
   public ResponseEntity<List<PriceListResponseDTO>> getAllPriceLists() {
     return ResponseEntity.ok(priceListService.getAllPriceLists());
+  }
+
+  @GetMapping("/{id}/items")
+  @PreAuthorize("hasAuthority('PRICE_LISTS_VIEW')")
+  public ResponseEntity<List<PriceListItemDTO>> getItemsByPriceList(@PathVariable UUID id) {
+    return ResponseEntity.ok(priceListService.getItemsByPriceList(id));
   }
 
   @PostMapping("/{id}/upload")
