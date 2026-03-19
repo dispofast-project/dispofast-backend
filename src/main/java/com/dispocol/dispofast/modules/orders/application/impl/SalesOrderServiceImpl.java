@@ -232,12 +232,6 @@ public class SalesOrderServiceImpl implements SalesOrderService {
   public SalesOrderResponseDTO attachInvoice(UUID id, String invoiceNumber, MultipartFile file) {
     SalesOrder order = findOrderOrThrow(id);
 
-    if (order.getState() != OrderState.PENDING) {
-      throw new InvalidOrderStateException(
-          "Solo se puede adjuntar factura a una orden pendiente. Estado actual: "
-              + order.getState().getValue());
-    }
-
     String fileKey = id + "/" + file.getOriginalFilename();
     try {
       s3Service.uploadFile(
@@ -248,7 +242,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
           file.getSize());
     } catch (IOException e) {
       throw new IllegalArgumentException(
-          "Error al guardar la factura en S3: " + e.getMessage(), e);
+          "Error al guardar la factura: " + e.getMessage(), e);
     }
 
     AttachInvoiceRequestDTO request = new AttachInvoiceRequestDTO();
