@@ -46,6 +46,17 @@ public interface QuoteMapper {
   @Mapping(target = "account", ignore = true)
   @Mapping(target = "createdAt", ignore = true)
   @Mapping(target = "updatedAt", ignore = true)
+  // Campos calculados — ignorados en el update, el servicio los recalcula
+  @Mapping(target = "subtotalAmount", ignore = true)
+  @Mapping(target = "commercialDiscountAmount", ignore = true)
+  @Mapping(target = "otherDiscountsAmount", ignore = true)
+  @Mapping(target = "ivaRate", ignore = true)
+  @Mapping(target = "ivaAmount", ignore = true)
+  @Mapping(target = "retefuenteRate", ignore = true)
+  @Mapping(target = "retefuenteAmount", ignore = true)
+  @Mapping(target = "reteicaRate", ignore = true)
+  @Mapping(target = "reteicaAmount", ignore = true)
+  @Mapping(target = "totalAmount", ignore = true)
   void updateEntityFromDTO(
       UpdateQuoteRequestDTO updateQuoteRequestDTO, @MappingTarget Quotes quotes);
 
@@ -54,6 +65,9 @@ public interface QuoteMapper {
   @Mapping(target = "location", source = "city")
   @Mapping(target = "priceList", source = "priceList")
   @Mapping(target = "items", source = "items")
+  @Mapping(
+      target = "sellerId",
+      expression = "java(quotes.getSeller() != null ? quotes.getSeller().getId() : null)")
   @Mapping(
       target = "sellerName",
       expression = "java(quotes.getSeller() != null ? quotes.getSeller().getFullName() : null)")

@@ -18,7 +18,7 @@ public class QuoteItemResponseDTO {
   private ProductResponseDTO product;
   private BigDecimal quantity;
   private BigDecimal unitPrice;
-  private BigDecimal discountAmount;
+  private BigDecimal taxRate;
   private BigDecimal taxAmount;
   private BigDecimal lineTotal;
 }

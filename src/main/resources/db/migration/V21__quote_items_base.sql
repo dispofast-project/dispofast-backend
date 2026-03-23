@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS quote_items (
     product_id       UUID NOT NULL,
     quantity         DECIMAL(12,2) NOT NULL,
     unit_price       DECIMAL(18,2) NOT NULL,
-    discount_amount  DECIMAL(18,2) NOT NULL DEFAULT 0,
+    tax_rate         DECIMAL(7,4)  NOT NULL DEFAULT 0.19,
     tax_amount       DECIMAL(18,2) NOT NULL DEFAULT 0,
     line_total       DECIMAL(18,2) NOT NULL,
 

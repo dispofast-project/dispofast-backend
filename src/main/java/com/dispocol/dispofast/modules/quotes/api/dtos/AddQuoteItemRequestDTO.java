@@ -16,5 +16,4 @@ public class AddQuoteItemRequestDTO {
   private UUID productId;
   private BigDecimal quantity;
   private BigDecimal unitPrice;
-  private BigDecimal discountAmount;
 }

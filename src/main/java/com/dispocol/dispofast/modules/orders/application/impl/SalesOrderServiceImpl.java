@@ -132,7 +132,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     order.setQuote(quote);
     order.setState(OrderState.PENDING);
     order.setOrderDate(OffsetDateTime.now());
-    order.setTotalValue(java.math.BigDecimal.valueOf(quote.getTotalAmount()));
+    order.setTotalValue(quote.getTotalAmount());
 
     SalesOrder savedOrder = salesOrderRepository.save(order);
     return buildResponse(savedOrder, List.of());

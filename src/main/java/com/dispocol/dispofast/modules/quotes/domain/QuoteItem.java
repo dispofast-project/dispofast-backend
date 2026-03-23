@@ -31,12 +31,15 @@ public class QuoteItem {
   @Column(name = "unit_price", nullable = false, precision = 18, scale = 2)
   private BigDecimal unitPrice;
 
-  @Column(name = "discount_amount", nullable = false, precision = 18, scale = 2)
-  private BigDecimal discountAmount;
+  /** Tasa de IVA aplicada al ítem (0 si el producto está exento). */
+  @Column(name = "tax_rate", nullable = false, precision = 7, scale = 4)
+  private BigDecimal taxRate;
 
+  /** Monto de IVA = (quantity × unitPrice) × taxRate. */
   @Column(name = "tax_amount", nullable = false, precision = 18, scale = 2)
   private BigDecimal taxAmount;
 
+  /** Total del ítem = (quantity × unitPrice) + taxAmount. */
   @Column(name = "line_total", nullable = false, precision = 18, scale = 2)
   private BigDecimal lineTotal;
 }

@@ -14,5 +14,4 @@ public class UpdateQuoteItemRequestDTO {
 
   private BigDecimal quantity;
   private BigDecimal unitPrice;
-  private BigDecimal discountAmount;
 }

@@ -24,12 +24,13 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class QuoteItemServiceImpl implements QuoteItemService {
 
-  private static final BigDecimal TAX_RATE = new BigDecimal("0.19");
+  private static final BigDecimal IVA_RATE = new BigDecimal("0.19");
 
   private final QuoteItemRepository quoteItemRepository;
   private final QuotesRepository quotesRepository;
   private final ProductRepository productRepository;
   private final QuoteItemMapper quoteItemMapper;
+  private final QuoteServiceImpl quoteService;
 
   @Override
   @Transactional
@@ -37,26 +38,12 @@ public class QuoteItemServiceImpl implements QuoteItemService {
     Quotes quote = findQuote(quoteId);
     Product product = findProduct(dto.getProductId());
 
-    BigDecimal discount =
-        dto.getDiscountAmount() != null ? dto.getDiscountAmount() : BigDecimal.ZERO;
-    BigDecimal subtotal = dto.getUnitPrice().multiply(dto.getQuantity());
-    BigDecimal taxableBase = subtotal.subtract(discount);
-    BigDecimal tax =
-        product.isTaxFree()
-            ? BigDecimal.ZERO
-            : taxableBase.multiply(TAX_RATE).setScale(2, RoundingMode.HALF_UP);
-
-    QuoteItem item = new QuoteItem();
-    item.setQuote(quote);
-    item.setProduct(product);
-    item.setQuantity(dto.getQuantity());
-    item.setUnitPrice(dto.getUnitPrice());
-    item.setDiscountAmount(discount);
-    item.setTaxAmount(tax);
-    item.setLineTotal(taxableBase.add(tax));
-
+    QuoteItem item = buildItem(quote, product, dto.getQuantity(), dto.getUnitPrice());
     QuoteItem saved = quoteItemRepository.save(item);
-    recalculateQuoteTotals(quote);
+
+    quoteService.recalculateQuoteTotals(quote);
+    quotesRepository.save(quote);
+
     return quoteItemMapper.toResponseDTO(saved);
   }
 
@@ -73,19 +60,13 @@ public class QuoteItemServiceImpl implements QuoteItemService {
 
     if (dto.getQuantity() != null) item.setQuantity(dto.getQuantity());
     if (dto.getUnitPrice() != null) item.setUnitPrice(dto.getUnitPrice());
-    if (dto.getDiscountAmount() != null) item.setDiscountAmount(dto.getDiscountAmount());
 
-    BigDecimal subtotal = item.getUnitPrice().multiply(item.getQuantity());
-    BigDecimal taxableBase = subtotal.subtract(item.getDiscountAmount());
-    BigDecimal tax =
-        item.getProduct().isTaxFree()
-            ? BigDecimal.ZERO
-            : taxableBase.multiply(TAX_RATE).setScale(2, RoundingMode.HALF_UP);
-    item.setTaxAmount(tax);
-    item.setLineTotal(taxableBase.add(tax));
-
+    recalculateItemAmounts(item);
     QuoteItem saved = quoteItemRepository.save(item);
-    recalculateQuoteTotals(quote);
+
+    quoteService.recalculateQuoteTotals(quote);
+    quotesRepository.save(quote);
+
     return quoteItemMapper.toResponseDTO(saved);
   }
 
@@ -99,8 +80,10 @@ public class QuoteItemServiceImpl implements QuoteItemService {
             .filter(i -> i.getQuote().getId().equals(quoteId))
             .orElseThrow(
                 () -> new ResourceNotFoundException("QuoteItem not found with id: " + itemId));
+
     quoteItemRepository.delete(item);
-    recalculateQuoteTotals(quote);
+    quoteService.recalculateQuoteTotals(quote);
+    quotesRepository.save(quote);
   }
 
   @Override
@@ -108,6 +91,30 @@ public class QuoteItemServiceImpl implements QuoteItemService {
   public List<QuoteItemResponseDTO> getItems(UUID quoteId) {
     findQuote(quoteId);
     return quoteItemMapper.toResponseDTOList(quoteItemRepository.findByQuoteId(quoteId));
+  }
+
+  // ── Helpers ──────────────────────────────────────────────────
+
+  private QuoteItem buildItem(
+      Quotes quote, Product product, BigDecimal quantity, BigDecimal unitPrice) {
+    QuoteItem item = new QuoteItem();
+    item.setQuote(quote);
+    item.setProduct(product);
+    item.setQuantity(quantity);
+    item.setUnitPrice(unitPrice);
+    recalculateItemAmounts(item);
+    return item;
+  }
+
+  private void recalculateItemAmounts(QuoteItem item) {
+    BigDecimal taxRate =
+        Boolean.TRUE.equals(item.getProduct().isTaxFree()) ? BigDecimal.ZERO : IVA_RATE;
+    BigDecimal gross = item.getUnitPrice().multiply(item.getQuantity());
+    BigDecimal taxAmount = gross.multiply(taxRate).setScale(2, RoundingMode.HALF_UP);
+
+    item.setTaxRate(taxRate);
+    item.setTaxAmount(taxAmount);
+    item.setLineTotal(gross.add(taxAmount).setScale(2, RoundingMode.HALF_UP));
   }
 
   private Quotes findQuote(UUID quoteId) {
@@ -121,23 +128,5 @@ public class QuoteItemServiceImpl implements QuoteItemService {
         .findById(productId)
         .orElseThrow(
             () -> new ResourceNotFoundException("Product not found with id: " + productId));
-  }
-
-  private void recalculateQuoteTotals(Quotes quote) {
-    List<QuoteItem> items = quoteItemRepository.findByQuoteId(quote.getId());
-
-    double subtotal =
-        items.stream()
-            .mapToDouble(i -> i.getUnitPrice().multiply(i.getQuantity()).doubleValue())
-            .sum();
-    double discountTotal =
-        items.stream().mapToDouble(i -> i.getDiscountAmount().doubleValue()).sum();
-    double taxTotal = items.stream().mapToDouble(i -> i.getTaxAmount().doubleValue()).sum();
-
-    quote.setSubtotalAmount(subtotal);
-    quote.setDiscountTotal(discountTotal);
-    quote.setTaxTotal(taxTotal);
-    quote.setTotalAmount(subtotal - discountTotal + taxTotal);
-    quotesRepository.save(quote);
   }
 }
