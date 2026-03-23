@@ -5,6 +5,7 @@ import com.dispocol.dispofast.modules.pricelist.api.dtos.PriceListResponseDTO;
 import com.dispocol.dispofast.modules.quotes.domain.QuoteStatus;
 import com.dispocol.dispofast.shared.location.api.dto.CityDTO;
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,6 +30,7 @@ public class QuoteResponseDTO {
   private String sellerName;
   private CityDTO location;
   private PriceListResponseDTO priceList;
+  private List<QuoteItemResponseDTO> items;
   private OffsetDateTime createdAt;
   private OffsetDateTime updatedAt;
 }

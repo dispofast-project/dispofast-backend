@@ -7,6 +7,8 @@ import com.dispocol.dispofast.shared.location.domain.City;
 import com.dispocol.dispofast.shared.location.domain.LocationZone;
 import jakarta.persistence.*;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -63,6 +65,13 @@ public class Quotes {
   @ManyToOne
   @JoinColumn(name = "price_list_id", nullable = false)
   private PriceList priceList;
+
+  @OneToMany(
+      mappedBy = "quote",
+      cascade = CascadeType.ALL,
+      orphanRemoval = true,
+      fetch = FetchType.LAZY)
+  private List<QuoteItem> items = new ArrayList<>();
 
   @CreationTimestamp
   @Column(name = "created_at", nullable = false)

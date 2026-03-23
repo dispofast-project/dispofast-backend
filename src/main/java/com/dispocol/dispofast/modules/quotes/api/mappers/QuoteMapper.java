@@ -20,7 +20,7 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 
 @Mapper(
     componentModel = "spring",
-    uses = {ClientMapper.class, CityMapper.class},
+    uses = {ClientMapper.class, CityMapper.class, QuoteItemMapper.class},
     unmappedTargetPolicy = org.mapstruct.ReportingPolicy.IGNORE)
 public interface QuoteMapper {
 
@@ -53,6 +53,7 @@ public interface QuoteMapper {
   @Mapping(target = "account", source = "account")
   @Mapping(target = "location", source = "city")
   @Mapping(target = "priceList", source = "priceList")
+  @Mapping(target = "items", source = "items")
   @Mapping(
       target = "sellerName",
       expression = "java(quotes.getSeller() != null ? quotes.getSeller().getFullName() : null)")
