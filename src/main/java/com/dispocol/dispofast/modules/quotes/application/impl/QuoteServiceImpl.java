@@ -17,7 +17,6 @@ import com.dispocol.dispofast.modules.quotes.infra.persistence.QuotesRepository;
 import com.dispocol.dispofast.shared.error.ResourceNotFoundException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -54,7 +53,6 @@ public class QuoteServiceImpl implements QuoteService {
     quote.setAccount(client);
     quote.setNumber("QT-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
     quote.setStatus(QuoteStatus.PENDING);
-    quote.setExpirationDate(OffsetDateTime.now().plusDays(30));
     quote.setPriceList(client.getPriceList());
     quote.setSeller(client.getDefaultAdvisor());
 

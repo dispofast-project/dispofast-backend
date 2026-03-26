@@ -32,8 +32,13 @@ public class Quotes {
   @Column(name = "status", nullable = false)
   private QuoteStatus status;
 
-  @Column(name = "expiration_date", nullable = false)
-  private OffsetDateTime expirationDate;
+  @Enumerated(EnumType.STRING)
+  @Column(name = "payment_condition")
+  private PaymentCondition paymentCondition;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "offer_validity")
+  private OfferValidity offerValidity;
 
   // ── Relaciones ───────────────────────────────────────────────
 
