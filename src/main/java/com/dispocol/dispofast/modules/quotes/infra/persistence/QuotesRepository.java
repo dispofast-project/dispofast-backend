@@ -39,4 +39,30 @@ public interface QuotesRepository extends JpaRepository<Quotes, UUID> {
       """)
   Page<Quotes> searchByText(
       @Param("text") String text, @Param("key") String key, Pageable pageable);
+
+  Page<Quotes> findBySellerId(UUID sellerId, Pageable pageable);
+
+  @Query(
+      """
+      SELECT q FROM Quotes q
+      WHERE q.seller.id = :sellerId
+        AND (
+          CASE :key
+            WHEN 'seller' THEN LOWER(q.seller.fullName)
+            WHEN 'number' THEN LOWER(q.number)
+            WHEN 'client' THEN LOWER(q.account.identificationNumber)
+            ELSE ''
+          END LIKE LOWER(CONCAT('%', :text, '%'))
+          OR (:key NOT IN ('seller', 'number', 'client') AND (
+                LOWER(q.seller.fullName)               LIKE LOWER(CONCAT('%', :text, '%'))
+             OR LOWER(q.number)                        LIKE LOWER(CONCAT('%', :text, '%'))
+             OR LOWER(q.account.identificationNumber)  LIKE LOWER(CONCAT('%', :text, '%'))
+          ))
+        )
+      """)
+  Page<Quotes> searchByTextAndSeller(
+      @Param("text") String text,
+      @Param("key") String key,
+      @Param("sellerId") UUID sellerId,
+      Pageable pageable);
 }

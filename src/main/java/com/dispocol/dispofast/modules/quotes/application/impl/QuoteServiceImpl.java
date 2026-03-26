@@ -3,6 +3,7 @@ package com.dispocol.dispofast.modules.quotes.application.impl;
 import com.dispocol.dispofast.modules.customers.domain.Client;
 import com.dispocol.dispofast.modules.customers.domain.Individual;
 import com.dispocol.dispofast.modules.customers.infra.persistence.ClientRepository;
+import com.dispocol.dispofast.modules.iam.domain.AppUser;
 import com.dispocol.dispofast.modules.iam.infra.persistence.UserRepository;
 import com.dispocol.dispofast.modules.pricelist.infra.persistence.PriceListRepository;
 import com.dispocol.dispofast.modules.quotes.api.dtos.CreateQuoteRequestDTO;
@@ -24,6 +25,8 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -115,12 +118,32 @@ public class QuoteServiceImpl implements QuoteService {
   @Override
   @Transactional(readOnly = true)
   public Page<QuotePreviewResponseDTO> getAllQuotes(String text, String key, Pageable pageable) {
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    boolean isAdmin =
+        auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
     Page<Quotes> page;
-    if (text != null && !text.isBlank()) {
-      String effectiveKey = (key != null && !key.isBlank()) ? key.trim().toLowerCase() : "";
-      page = quotesRepository.searchByText(text.trim(), effectiveKey, pageable);
+    if (isAdmin) {
+      if (text != null && !text.isBlank()) {
+        String effectiveKey = (key != null && !key.isBlank()) ? key.trim().toLowerCase() : "";
+        page = quotesRepository.searchByText(text.trim(), effectiveKey, pageable);
+      } else {
+        page = quotesRepository.findAll(pageable);
+      }
     } else {
-      page = quotesRepository.findAll(pageable);
+      AppUser currentUser =
+          userRepository
+              .findByEmailIgnoreCase(auth.getName())
+              .orElseThrow(
+                  () -> new ResourceNotFoundException("User not found: " + auth.getName()));
+      UUID sellerId = currentUser.getId();
+      if (text != null && !text.isBlank()) {
+        String effectiveKey = (key != null && !key.isBlank()) ? key.trim().toLowerCase() : "";
+        page =
+            quotesRepository.searchByTextAndSeller(text.trim(), effectiveKey, sellerId, pageable);
+      } else {
+        page = quotesRepository.findBySellerId(sellerId, pageable);
+      }
     }
     return page.map(quoteMapper::toPreviewResponseDTO);
   }
