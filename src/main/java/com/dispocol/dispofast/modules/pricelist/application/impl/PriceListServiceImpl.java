@@ -46,10 +46,12 @@ public class PriceListServiceImpl implements PriceListService {
   @Override
   public List<PriceListItemDTO> getItemsByPriceList(UUID priceListId) {
     return priceListItemRepository.findByPriceList_Id(priceListId).stream()
-        .map(item -> new PriceListItemDTO(
-            item.getProduct().getId(),
-            item.getProduct().getReference(),
-            item.getUnitPrice()))
+        .map(
+            item ->
+                new PriceListItemDTO(
+                    item.getProduct().getId(),
+                    item.getProduct().getReference(),
+                    item.getUnitPrice()))
         .toList();
   }
 

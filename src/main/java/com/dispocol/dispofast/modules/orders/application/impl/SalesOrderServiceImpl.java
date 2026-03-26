@@ -91,7 +91,8 @@ public class SalesOrderServiceImpl implements SalesOrderService {
         request.getQuoteId());
 
     SalesOrder savedOrder = salesOrderRepository.save(order);
-    List<SalesOrderItemResponseDTO> itemResponses = saveItems(request.getItems(), savedOrder, request);
+    List<SalesOrderItemResponseDTO> itemResponses =
+        saveItems(request.getItems(), savedOrder, request);
 
     // Reserve stock for each item
     for (CreateSalesOrderItemDTO item : request.getItems()) {
@@ -323,7 +324,9 @@ public class SalesOrderServiceImpl implements SalesOrderService {
           productRepository
               .findById(dto.getProductId())
               .orElseThrow(
-                  () -> new IllegalArgumentException("Producto no encontrado: " + dto.getProductId()));
+                  () ->
+                      new IllegalArgumentException(
+                          "Producto no encontrado: " + dto.getProductId()));
 
       SalesOrderItem item = salesOrderItemMapper.toEntity(dto);
       item.setOrder(order);
@@ -333,9 +336,11 @@ public class SalesOrderServiceImpl implements SalesOrderService {
           priceListService
               .resolveUnitPrice(priceListId, product.getReference())
               .orElseThrow(
-                  () -> new IllegalArgumentException(
-                      "El producto '" + product.getReference()
-                          + "' no tiene precio en la lista de precios seleccionada"));
+                  () ->
+                      new IllegalArgumentException(
+                          "El producto '"
+                              + product.getReference()
+                              + "' no tiene precio en la lista de precios seleccionada"));
 
       BigDecimal itemDiscount = dto.getDiscount() != null ? dto.getDiscount() : BigDecimal.ZERO;
       BigDecimal lineTotal = dto.getQuantity().multiply(unitPrice).subtract(itemDiscount);
@@ -354,34 +359,40 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     BigDecimal discountAmount = BigDecimal.ZERO;
     BigDecimal additionalDiscountAmount = BigDecimal.ZERO;
     BigDecimal retefuente = BigDecimal.ZERO;
-    BigDecimal reteica    = BigDecimal.ZERO;
-    BigDecimal freight    = BigDecimal.ZERO;
+    BigDecimal reteica = BigDecimal.ZERO;
+    BigDecimal freight = BigDecimal.ZERO;
 
     if (request != null) {
       int discountPct = request.getDiscountRate() != null ? request.getDiscountRate() : 0;
-      discountAmount = subtotal
-          .multiply(BigDecimal.valueOf(discountPct))
-          .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+      discountAmount =
+          subtotal
+              .multiply(BigDecimal.valueOf(discountPct))
+              .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
 
-      BigDecimal addDiscountPct = request.getAdditionalDiscountRate() != null
-          ? request.getAdditionalDiscountRate() : BigDecimal.ZERO;
-      additionalDiscountAmount = subtotal
-          .multiply(addDiscountPct)
-          .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+      BigDecimal addDiscountPct =
+          request.getAdditionalDiscountRate() != null
+              ? request.getAdditionalDiscountRate()
+              : BigDecimal.ZERO;
+      additionalDiscountAmount =
+          subtotal
+              .multiply(addDiscountPct)
+              .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
 
-      retefuente = request.getRetefuenteAmount() != null ? request.getRetefuenteAmount() : BigDecimal.ZERO;
-      reteica    = request.getReteicaAmount()    != null ? request.getReteicaAmount()    : BigDecimal.ZERO;
-      freight    = request.getFreight()          != null ? request.getFreight()           : BigDecimal.ZERO;
+      retefuente =
+          request.getRetefuenteAmount() != null ? request.getRetefuenteAmount() : BigDecimal.ZERO;
+      reteica = request.getReteicaAmount() != null ? request.getReteicaAmount() : BigDecimal.ZERO;
+      freight = request.getFreight() != null ? request.getFreight() : BigDecimal.ZERO;
     }
 
-    BigDecimal totalValue = subtotal
-        .add(taxAmount)
-        .subtract(discountAmount)
-        .subtract(additionalDiscountAmount)
-        .subtract(retefuente)
-        .subtract(reteica)
-        .add(freight)
-        .setScale(2, RoundingMode.HALF_UP);
+    BigDecimal totalValue =
+        subtotal
+            .add(taxAmount)
+            .subtract(discountAmount)
+            .subtract(additionalDiscountAmount)
+            .subtract(retefuente)
+            .subtract(reteica)
+            .add(freight)
+            .setScale(2, RoundingMode.HALF_UP);
 
     order.setTaxAmount(taxAmount.setScale(2, RoundingMode.HALF_UP));
     order.setRetefuenteAmount(retefuente);
