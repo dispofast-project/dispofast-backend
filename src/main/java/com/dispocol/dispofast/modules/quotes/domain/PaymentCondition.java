@@ -1,7 +1,5 @@
 package com.dispocol.dispofast.modules.quotes.domain;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -15,15 +13,5 @@ public enum PaymentCondition {
   CONTADO_90_DIAS("Contado 90 días"),
   CONTRAENTREGA("Contraentrega");
 
-  @JsonValue private final String value;
-
-  @JsonCreator
-  public static PaymentCondition fromValue(String value) {
-    for (PaymentCondition condition : values()) {
-      if (condition.value.equalsIgnoreCase(value) || condition.name().equalsIgnoreCase(value)) {
-        return condition;
-      }
-    }
-    throw new IllegalArgumentException("Condición de pago desconocida: " + value);
-  }
+  private final String value;
 }

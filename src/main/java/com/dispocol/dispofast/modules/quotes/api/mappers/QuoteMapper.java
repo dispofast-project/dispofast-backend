@@ -37,10 +37,10 @@ public interface QuoteMapper {
 
   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
   @Mapping(target = "status", source = "status")
-  @Mapping(target = "seller.id", source = "sellerId")
+  @Mapping(target = "seller", ignore = true)
   @Mapping(target = "city", ignore = true)
   @Mapping(target = "zone", ignore = true)
-  @Mapping(target = "priceList.id", source = "priceListId")
+  @Mapping(target = "priceList", ignore = true)
   @Mapping(target = "id", ignore = true)
   @Mapping(target = "number", ignore = true)
   @Mapping(target = "account", ignore = true)

@@ -3,6 +3,8 @@ package com.dispocol.dispofast.modules.quotes.application.impl;
 import com.dispocol.dispofast.modules.customers.domain.Client;
 import com.dispocol.dispofast.modules.customers.domain.Individual;
 import com.dispocol.dispofast.modules.customers.infra.persistence.ClientRepository;
+import com.dispocol.dispofast.modules.iam.infra.persistence.UserRepository;
+import com.dispocol.dispofast.modules.pricelist.infra.persistence.PriceListRepository;
 import com.dispocol.dispofast.modules.quotes.api.dtos.CreateQuoteRequestDTO;
 import com.dispocol.dispofast.modules.quotes.api.dtos.QuotePreviewResponseDTO;
 import com.dispocol.dispofast.modules.quotes.api.dtos.QuoteResponseDTO;
@@ -37,6 +39,8 @@ public class QuoteServiceImpl implements QuoteService {
   private final QuoteItemRepository quoteItemRepository;
   private final QuoteMapper quoteMapper;
   private final ClientRepository clientRepository;
+  private final PriceListRepository priceListRepository;
+  private final UserRepository userRepository;
 
   @Override
   @Transactional
@@ -98,6 +102,12 @@ public class QuoteServiceImpl implements QuoteService {
   public QuoteResponseDTO updateQuote(UUID id, UpdateQuoteRequestDTO dto) {
     Quotes quote = findQuote(id);
     quoteMapper.updateEntityFromDTO(dto, quote);
+    if (dto.getPriceListId() != null) {
+      quote.setPriceList(priceListRepository.getReferenceById(dto.getPriceListId()));
+    }
+    if (dto.getSellerId() != null) {
+      quote.setSeller(userRepository.getReferenceById(dto.getSellerId()));
+    }
     recalculateQuoteTotals(quote);
     return quoteMapper.toResponseDTO(quotesRepository.save(quote));
   }
