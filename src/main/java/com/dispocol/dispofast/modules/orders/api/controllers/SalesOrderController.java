@@ -8,6 +8,7 @@ import com.dispocol.dispofast.modules.orders.application.interfaces.SalesOrderSe
 import com.dispocol.dispofast.modules.orders.domain.OrderState;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import org.springframework.validation.annotation.Validated;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -30,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+@Validated
 @RestController
 @RequestMapping("/orders")
 @RequiredArgsConstructor
