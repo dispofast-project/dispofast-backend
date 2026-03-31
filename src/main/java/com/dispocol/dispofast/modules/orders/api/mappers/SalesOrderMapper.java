@@ -1,6 +1,5 @@
 package com.dispocol.dispofast.modules.orders.api.mappers;
 
-import com.dispocol.dispofast.modules.orders.api.dtos.AttachInvoiceRequestDTO;
 import com.dispocol.dispofast.modules.orders.api.dtos.CreateSalesOrderRequestDTO;
 import com.dispocol.dispofast.modules.orders.api.dtos.SalesOrderResponseDTO;
 import com.dispocol.dispofast.modules.orders.api.dtos.UpdateSalesOrderRequestDTO;
@@ -22,8 +21,6 @@ public interface SalesOrderMapper {
   @Mapping(target = "shipmentCity", ignore = true)
   @Mapping(target = "priceList", ignore = true)
   @Mapping(target = "quote", ignore = true)
-  @Mapping(target = "invoiceNumber", ignore = true)
-  @Mapping(target = "invoiceUrl", ignore = true)
   SalesOrder toEntity(CreateSalesOrderRequestDTO request);
 
   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
@@ -34,25 +31,7 @@ public interface SalesOrderMapper {
   @Mapping(target = "shipmentCity", ignore = true)
   @Mapping(target = "priceList", ignore = true)
   @Mapping(target = "quote", ignore = true)
-  @Mapping(target = "invoiceNumber", ignore = true)
-  @Mapping(target = "invoiceUrl", ignore = true)
   void updateEntityFromDTO(UpdateSalesOrderRequestDTO request, @MappingTarget SalesOrder order);
-
-  @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-  @Mapping(target = "id", ignore = true)
-  @Mapping(target = "orderNumber", ignore = true)
-  @Mapping(target = "client", ignore = true)
-  @Mapping(target = "asesor", ignore = true)
-  @Mapping(target = "state", ignore = true)
-  @Mapping(target = "orderDate", ignore = true)
-  @Mapping(target = "shipmentCity", ignore = true)
-  @Mapping(target = "shipmentAddress", ignore = true)
-  @Mapping(target = "zone", ignore = true)
-  @Mapping(target = "totalValue", ignore = true)
-  @Mapping(target = "priceList", ignore = true)
-  @Mapping(target = "quote", ignore = true)
-  @Mapping(target = "invoiceUrl", ignore = true)
-  void applyInvoice(AttachInvoiceRequestDTO request, @MappingTarget SalesOrder order);
 
   @Mapping(target = "clientId", source = "client.id")
   @Mapping(

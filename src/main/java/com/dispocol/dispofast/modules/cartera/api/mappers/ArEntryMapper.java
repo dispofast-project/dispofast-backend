@@ -17,6 +17,17 @@ public interface ArEntryMapper {
   @Mapping(
       target = "orderNumber",
       expression = "java(entry.getOrder() != null ? entry.getOrder().getOrderNumber() : null)")
+  @Mapping(
+      target = "invoiceId",
+      expression = "java(entry.getInvoice() != null ? entry.getInvoice().getId() : null)")
+  @Mapping(
+      target = "invoiceNumber",
+      expression =
+          "java(entry.getInvoice() != null ? entry.getInvoice().getInvoiceNumber() : null)")
+  @Mapping(
+      target = "invoiceDate",
+      expression =
+          "java(entry.getInvoice() != null ? entry.getInvoice().getIssueDate() : null)")
   @Mapping(target = "diasCartera", expression = "java(entry.getDiasCartera())")
   @Mapping(target = "diasVencimiento", expression = "java(entry.getDiasVencimiento())")
   @Mapping(

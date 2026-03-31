@@ -17,6 +17,7 @@ import com.dispocol.dispofast.modules.iam.domain.AppUser;
 import com.dispocol.dispofast.modules.iam.infra.persistence.UserRepository;
 import com.dispocol.dispofast.modules.pricelist.domain.PriceList;
 import com.dispocol.dispofast.modules.pricelist.infra.persistence.PriceListRepository;
+import com.dispocol.dispofast.shared.S3.application.interfaces.S3Service;
 import com.dispocol.dispofast.shared.error.ResourceNotFoundException;
 import com.dispocol.dispofast.shared.location.domain.City;
 import com.dispocol.dispofast.shared.location.infra.persistence.CityRepository;
@@ -43,6 +44,9 @@ public class ClientServiceImpl implements ClientService {
   private final UserRepository userRepository;
   private final ClientTypeRepository clientTypeRepository;
   private final PriceListRepository priceListRepository;
+  private final S3Service s3Service;
+
+  private static final String LEGAL_DOCS_BUCKET = "dispofast-legal-documents";
 
   @Override
   @Transactional(readOnly = true)
@@ -132,6 +136,7 @@ public class ClientServiceImpl implements ClientService {
     client.setClientType(clientType);
     client.setPriceList(priceList);
 
+    
     Client savedClient = clientRepository.save(client);
     return clientMapper.toResponseDTO(savedClient);
   }

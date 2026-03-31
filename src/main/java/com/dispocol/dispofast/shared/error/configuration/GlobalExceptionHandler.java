@@ -8,6 +8,7 @@ import com.dispocol.dispofast.modules.inventory.infra.exceptions.InsufficientSto
 import com.dispocol.dispofast.modules.inventory.infra.exceptions.ProductAlreadyExistsException;
 import com.dispocol.dispofast.modules.inventory.infra.exceptions.ProductNotAvailableException;
 import com.dispocol.dispofast.modules.inventory.infra.exceptions.ProductNotFoundException;
+import com.dispocol.dispofast.modules.invoices.infra.exceptions.InvoiceNotFoundException;
 import com.dispocol.dispofast.modules.orders.infra.exceptions.InvalidOrderStateException;
 import com.dispocol.dispofast.modules.orders.infra.exceptions.SalesOrderAlreadyExistsException;
 import com.dispocol.dispofast.modules.orders.infra.exceptions.SalesOrderNotFoundException;
@@ -133,6 +134,13 @@ public class GlobalExceptionHandler {
   public ResponseEntity<GlobalErrorResponse> handleResourceNotFound(
       ResourceNotFoundException ex, HttpServletRequest request) {
     log.warn("Resource not found: {}", ex.getMessage());
+    return buildErrorResponseEntity(ex, request, HttpStatus.NOT_FOUND);
+  }
+
+  @ExceptionHandler(InvoiceNotFoundException.class)
+  public ResponseEntity<GlobalErrorResponse> handleInvoiceNotFound(
+      InvoiceNotFoundException ex, HttpServletRequest request) {
+    log.warn("Factura no encontrada: {}", ex.getMessage());
     return buildErrorResponseEntity(ex, request, HttpStatus.NOT_FOUND);
   }
 
