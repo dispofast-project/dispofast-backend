@@ -37,6 +37,19 @@ public class InvoiceServiceImpl implements InvoiceService {
   }
 
   @Override
+  @Transactional(readOnly = true)
+  public InvoiceResponseDTO getByOrderId(UUID orderId) {
+    Invoice invoice =
+        invoiceRepository
+            .findBySalesOrderId(orderId)
+            .orElseThrow(
+                () ->
+                    new InvoiceNotFoundException(
+                        "No se encontró factura para la orden: " + orderId));
+    return invoiceMapper.toResponseDTO(invoice);
+  }
+
+  @Override
   @Transactional
   public Invoice createFromOrder(SalesOrder order, String invoiceNumber, MultipartFile file) {
     String fileKey = order.getId() + "/" + file.getOriginalFilename();

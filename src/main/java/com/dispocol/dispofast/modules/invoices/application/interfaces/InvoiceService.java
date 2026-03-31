@@ -12,6 +12,8 @@ public interface InvoiceService {
 
   InvoiceResponseDTO getById(UUID id);
 
+  InvoiceResponseDTO getByOrderId(UUID orderId);
+
   /**
    * Crea una factura a partir de una orden de venta. Sube el PDF a S3 y persiste la entidad
    * Invoice. Llamado desde SalesOrderService al adjuntar la factura.

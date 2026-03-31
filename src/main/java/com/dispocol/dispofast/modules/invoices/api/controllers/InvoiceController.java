@@ -27,6 +27,12 @@ public class InvoiceController {
     return ResponseEntity.ok(invoiceService.getById(id));
   }
 
+  @GetMapping("/by-order/{orderId}")
+  @PreAuthorize("hasAuthority('PURCHASE_ORDERS_VIEW')")
+  public ResponseEntity<InvoiceResponseDTO> getByOrderId(@PathVariable UUID orderId) {
+    return ResponseEntity.ok(invoiceService.getByOrderId(orderId));
+  }
+
   @GetMapping("/{id}/download")
   @PreAuthorize("hasAuthority('PURCHASE_ORDERS_VIEW')")
   public ResponseEntity<byte[]> downloadPdf(@PathVariable UUID id) {
