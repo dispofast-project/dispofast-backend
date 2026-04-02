@@ -1,6 +1,7 @@
 package com.dispocol.dispofast.modules.orders.api.dtos;
 
 import com.dispocol.dispofast.modules.orders.domain.OrderState;
+import com.dispocol.dispofast.modules.orders.domain.PaymentCondition;
 import com.dispocol.dispofast.shared.location.domain.LocationZone;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -28,5 +29,12 @@ public class SalesOrderResponseDTO {
   private UUID quoteId;
   private String invoiceNumber;
   private String invoiceUrl;
+  private PaymentCondition paymentCondition;
+  private Integer discountRate;
+  private BigDecimal additionalDiscountRate;
+  private BigDecimal taxAmount;
+  private BigDecimal retefuenteAmount;
+  private BigDecimal reteicaAmount;
+  private BigDecimal freight;
   private List<SalesOrderItemResponseDTO> items;
 }
