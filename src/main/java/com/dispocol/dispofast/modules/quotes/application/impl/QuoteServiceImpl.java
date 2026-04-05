@@ -62,6 +62,8 @@ public class QuoteServiceImpl implements QuoteService {
     quote.setStatus(QuoteStatus.PENDING);
     quote.setPriceList(client.getPriceList());
     quote.setSeller(client.getDefaultAdvisor());
+    quote.setCity(client.getCity());
+    quote.setZone(client.getZone());
 
     // Tasas iniciales tomadas del cliente
     quote.setIvaRate(IVA_RATE);
