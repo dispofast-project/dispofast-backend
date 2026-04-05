@@ -1,7 +1,9 @@
 package com.dispocol.dispofast.modules.quotes.api.dtos;
 
 import com.dispocol.dispofast.modules.iam.api.dtos.UserPreview;
+import com.dispocol.dispofast.modules.quotes.domain.OfferValidity;
 import com.dispocol.dispofast.modules.quotes.domain.QuoteStatus;
+import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -20,6 +22,6 @@ public class QuotePreviewResponseDTO {
   private String accountName;
   private UserPreview seller;
   private OffsetDateTime createdAt;
-  private double total;
-  private OffsetDateTime expirationDate;
+  private BigDecimal total;
+  private OfferValidity offerValidity;
 }

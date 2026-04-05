@@ -6,6 +6,11 @@
 -- y el DataSeedInitializer no volverá a ejecutarse.
 -- ============================================================
 
+-- ── Limpiar datos de API previos (DataSeedInitializer usa IDs numéricos sin ceros, ej. '5' en vez de '05') ──
+-- Se conservan los datos de test de V7 (códigos '99' y '98') referenciados por otras semillas.
+DELETE FROM cities WHERE department_code NOT IN ('99', '98');
+DELETE FROM departments WHERE code NOT IN ('99', '98');
+
 -- ── Departamentos ────────────────────────────────────────────
 INSERT INTO departments (code, name) VALUES
     ('05', 'Antioquia'),
@@ -41,7 +46,7 @@ INSERT INTO departments (code, name) VALUES
     ('95', 'Guaviare'),
     ('97', 'Vaupés'),
     ('99', 'Vichada')
-ON CONFLICT (code) DO NOTHING;
+ON CONFLICT DO NOTHING;
 
 -- ── Ciudades ─────────────────────────────────────────────────
 
