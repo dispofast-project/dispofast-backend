@@ -1,11 +1,13 @@
 package com.dispocol.dispofast.modules.orders.api.dtos;
 
+import com.dispocol.dispofast.modules.orders.domain.PaymentCondition;
 import com.dispocol.dispofast.shared.location.domain.LocationZone;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -39,6 +41,18 @@ public class CreateSalesOrderRequestDTO {
   private UUID priceListId;
 
   private UUID quoteId;
+
+  private PaymentCondition paymentCondition;
+
+  private Integer discountRate;
+
+  private BigDecimal additionalDiscountRate;
+
+  private BigDecimal retefuenteAmount;
+
+  private BigDecimal reteicaAmount;
+
+  private BigDecimal freight;
 
   @NotEmpty(message = "La orden debe contener al menos un ítem")
   @Valid

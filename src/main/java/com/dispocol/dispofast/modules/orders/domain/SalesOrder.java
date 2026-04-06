@@ -70,4 +70,32 @@ public class SalesOrder {
   @ManyToOne
   @JoinColumn(name = "quote_id")
   private Quotes quote;
+
+  @Column(name = "invoice_number", length = 50)
+  private String invoiceNumber;
+
+  @Column(name = "invoice_url", length = 500)
+  private String invoiceUrl;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "payment_condition", length = 30)
+  private PaymentCondition paymentCondition;
+
+  @Column(name = "discount_rate")
+  private Integer discountRate;
+
+  @Column(name = "additional_discount_rate", precision = 5, scale = 2)
+  private BigDecimal additionalDiscountRate;
+
+  @Column(name = "tax_amount", precision = 18, scale = 2)
+  private BigDecimal taxAmount;
+
+  @Column(name = "retefuente_amount", precision = 18, scale = 2)
+  private BigDecimal retefuenteAmount;
+
+  @Column(name = "reteica_amount", precision = 18, scale = 2)
+  private BigDecimal reteicaAmount;
+
+  @Column(name = "freight", precision = 18, scale = 2)
+  private BigDecimal freight;
 }

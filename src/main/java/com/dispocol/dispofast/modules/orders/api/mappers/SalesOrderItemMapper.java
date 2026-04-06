@@ -18,6 +18,8 @@ public interface SalesOrderItemMapper {
   SalesOrderItem toEntity(CreateSalesOrderItemDTO dto);
 
   @Mapping(target = "productId", source = "product.id")
+  @Mapping(target = "productReference", source = "product.reference")
+  @Mapping(target = "taxFree", source = "product.taxFree")
   @Mapping(
       target = "productName",
       expression = "java(item.getProduct() != null ? item.getProduct().getName() : null)")

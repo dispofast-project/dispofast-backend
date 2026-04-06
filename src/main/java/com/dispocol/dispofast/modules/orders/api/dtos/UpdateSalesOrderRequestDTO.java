@@ -1,9 +1,11 @@
 package com.dispocol.dispofast.modules.orders.api.dtos;
 
 import com.dispocol.dispofast.modules.orders.domain.OrderState;
+import com.dispocol.dispofast.modules.orders.domain.PaymentCondition;
 import com.dispocol.dispofast.shared.location.domain.LocationZone;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
+import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -26,6 +28,12 @@ public class UpdateSalesOrderRequestDTO {
   private LocationZone zone;
 
   private UUID priceListId;
+
+  private PaymentCondition paymentCondition;
+
+  private Integer discountRate;
+
+  private BigDecimal additionalDiscountRate;
 
   @Valid private List<CreateSalesOrderItemDTO> items;
 }

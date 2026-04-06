@@ -32,6 +32,8 @@ import com.dispocol.dispofast.modules.quotes.infra.persistence.QuotesRepository;
 import com.dispocol.dispofast.shared.location.application.interfaces.LocationService;
 import com.dispocol.dispofast.shared.location.domain.City;
 import jakarta.persistence.criteria.Predicate;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -93,7 +95,8 @@ public class SalesOrderServiceImpl implements SalesOrderService {
         request.getQuoteId());
 
     SalesOrder savedOrder = salesOrderRepository.save(order);
-    List<SalesOrderItemResponseDTO> itemResponses = saveItems(request.getItems(), savedOrder);
+    List<SalesOrderItemResponseDTO> itemResponses =
+        saveItems(request.getItems(), savedOrder, request);
 
     // Reserve stock for each item
     for (CreateSalesOrderItemDTO item : request.getItems()) {
@@ -136,9 +139,10 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     order.setQuote(quote);
     order.setState(OrderState.PENDING);
     order.setOrderDate(OffsetDateTime.now());
-    order.setTotalValue(java.math.BigDecimal.valueOf(quote.getTotalAmount()));
+    order.setTotalValue(quote.getTotalAmount());
 
     SalesOrder savedOrder = salesOrderRepository.save(order);
+
     return buildResponse(savedOrder, List.of());
   }
 
@@ -212,7 +216,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
           item -> inventoryService.releaseStock(item.getProduct().getId(), item.getQuantity()));
 
       salesOrderItemRepository.deleteByOrderId(id);
-      itemResponses = saveItems(request.getItems(), order);
+      itemResponses = saveItems(request.getItems(), order, null);
 
       // Reserve stock for the new items
       request
@@ -304,10 +308,14 @@ public class SalesOrderServiceImpl implements SalesOrderService {
             () -> new SalesOrderNotFoundException("Orden de venta no encontrada con id: " + id));
   }
 
+  private static final BigDecimal IVA_RATE = BigDecimal.valueOf(0.19);
+
   private List<SalesOrderItemResponseDTO> saveItems(
-      List<CreateSalesOrderItemDTO> itemDTOs, SalesOrder order) {
+      List<CreateSalesOrderItemDTO> itemDTOs,
+      SalesOrder order,
+      CreateSalesOrderRequestDTO request) {
     if (itemDTOs == null || itemDTOs.isEmpty()) {
-      order.setTotalValue(java.math.BigDecimal.ZERO);
+      order.setTotalValue(BigDecimal.ZERO);
       return List.of();
     }
 
@@ -317,7 +325,8 @@ public class SalesOrderServiceImpl implements SalesOrderService {
           "La orden debe tener una lista de precios asignada para calcular los precios");
     }
 
-    java.math.BigDecimal totalValue = java.math.BigDecimal.ZERO;
+    BigDecimal subtotal = BigDecimal.ZERO;
+    BigDecimal taxAmount = BigDecimal.ZERO;
     List<SalesOrderItem> items = new ArrayList<>();
 
     for (CreateSalesOrderItemDTO dto : itemDTOs) {
@@ -333,7 +342,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
       item.setOrder(order);
       item.setProduct(product);
 
-      java.math.BigDecimal unitPrice =
+      BigDecimal unitPrice =
           priceListService
               .resolveUnitPrice(priceListId, product.getReference())
               .orElseThrow(
@@ -343,17 +352,64 @@ public class SalesOrderServiceImpl implements SalesOrderService {
                               + product.getReference()
                               + "' no tiene precio en la lista de precios seleccionada"));
 
-      java.math.BigDecimal discount =
-          dto.getDiscount() != null ? dto.getDiscount() : java.math.BigDecimal.ZERO;
-      java.math.BigDecimal lineTotal = dto.getQuantity().multiply(unitPrice).subtract(discount);
+      BigDecimal itemDiscount = dto.getDiscount() != null ? dto.getDiscount() : BigDecimal.ZERO;
+      BigDecimal lineTotal = dto.getQuantity().multiply(unitPrice).subtract(itemDiscount);
 
       item.setUnitPrice(unitPrice);
       item.setLineTotal(lineTotal);
-      totalValue = totalValue.add(lineTotal);
+      subtotal = subtotal.add(lineTotal);
+
+      if (!product.isTaxFree()) {
+        taxAmount = taxAmount.add(lineTotal.multiply(IVA_RATE));
+      }
       items.add(item);
     }
 
+    // Apply commercial discounts (only when request is available, e.g. on create)
+    BigDecimal discountAmount = BigDecimal.ZERO;
+    BigDecimal additionalDiscountAmount = BigDecimal.ZERO;
+    BigDecimal retefuente = BigDecimal.ZERO;
+    BigDecimal reteica = BigDecimal.ZERO;
+    BigDecimal freight = BigDecimal.ZERO;
+
+    if (request != null) {
+      int discountPct = request.getDiscountRate() != null ? request.getDiscountRate() : 0;
+      discountAmount =
+          subtotal
+              .multiply(BigDecimal.valueOf(discountPct))
+              .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+
+      BigDecimal addDiscountPct =
+          request.getAdditionalDiscountRate() != null
+              ? request.getAdditionalDiscountRate()
+              : BigDecimal.ZERO;
+      additionalDiscountAmount =
+          subtotal
+              .multiply(addDiscountPct)
+              .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+
+      retefuente =
+          request.getRetefuenteAmount() != null ? request.getRetefuenteAmount() : BigDecimal.ZERO;
+      reteica = request.getReteicaAmount() != null ? request.getReteicaAmount() : BigDecimal.ZERO;
+      freight = request.getFreight() != null ? request.getFreight() : BigDecimal.ZERO;
+    }
+
+    BigDecimal totalValue =
+        subtotal
+            .add(taxAmount)
+            .subtract(discountAmount)
+            .subtract(additionalDiscountAmount)
+            .subtract(retefuente)
+            .subtract(reteica)
+            .add(freight)
+            .setScale(2, RoundingMode.HALF_UP);
+
+    order.setTaxAmount(taxAmount.setScale(2, RoundingMode.HALF_UP));
+    order.setRetefuenteAmount(retefuente);
+    order.setReteicaAmount(reteica);
+    order.setFreight(freight);
     order.setTotalValue(totalValue);
+
     return salesOrderItemMapper.toResponseDTOList(salesOrderItemRepository.saveAll(items));
   }
 
