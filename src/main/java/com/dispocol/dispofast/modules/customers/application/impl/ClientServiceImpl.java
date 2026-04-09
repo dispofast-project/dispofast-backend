@@ -136,7 +136,6 @@ public class ClientServiceImpl implements ClientService {
     client.setClientType(clientType);
     client.setPriceList(priceList);
 
-    
     Client savedClient = clientRepository.save(client);
     return clientMapper.toResponseDTO(savedClient);
   }

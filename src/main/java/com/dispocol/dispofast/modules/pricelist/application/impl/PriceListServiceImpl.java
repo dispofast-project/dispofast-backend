@@ -114,14 +114,9 @@ public class PriceListServiceImpl implements PriceListService {
     String fileKey = priceListId + "/" + file.getOriginalFilename();
     try {
       s3Service.uploadFile(
-          BUCKET,
-          fileKey,
-          file.getInputStream(),
-          file.getContentType(),
-          file.getSize());
+          BUCKET, fileKey, file.getInputStream(), file.getContentType(), file.getSize());
     } catch (IOException e) {
-      throw new IllegalArgumentException(
-          "Error al guardar el archivo en S3: " + e.getMessage(), e);
+      throw new IllegalArgumentException("Error al guardar el archivo en S3: " + e.getMessage(), e);
     }
     priceList.setFileKey(fileKey);
     priceListRepository.save(priceList);

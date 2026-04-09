@@ -52,8 +52,7 @@ public class PriceListController {
     byte[] data = priceListService.downloadPriceListFile(id);
     String fileName = priceListService.getPriceListOriginalFileName(id);
     HttpHeaders headers = new HttpHeaders();
-    headers.setContentDisposition(
-        ContentDisposition.attachment().filename(fileName).build());
+    headers.setContentDisposition(ContentDisposition.attachment().filename(fileName).build());
     headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
     return ResponseEntity.ok().headers(headers).body(data);
   }

@@ -26,8 +26,7 @@ public interface ArEntryMapper {
           "java(entry.getInvoice() != null ? entry.getInvoice().getInvoiceNumber() : null)")
   @Mapping(
       target = "invoiceDate",
-      expression =
-          "java(entry.getInvoice() != null ? entry.getInvoice().getIssueDate() : null)")
+      expression = "java(entry.getInvoice() != null ? entry.getInvoice().getIssueDate() : null)")
   @Mapping(target = "diasCartera", expression = "java(entry.getDiasCartera())")
   @Mapping(target = "diasVencimiento", expression = "java(entry.getDiasVencimiento())")
   @Mapping(

@@ -32,5 +32,4 @@ public class S3config {
         .serviceConfiguration(S3Configuration.builder().pathStyleAccessEnabled(true).build())
         .build();
   }
-
 }

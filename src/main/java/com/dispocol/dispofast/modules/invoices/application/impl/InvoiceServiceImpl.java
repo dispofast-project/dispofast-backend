@@ -55,11 +55,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     String fileKey = order.getId() + "/" + file.getOriginalFilename();
     try {
       s3Service.uploadFile(
-          INVOICE_BUCKET,
-          fileKey,
-          file.getInputStream(),
-          file.getContentType(),
-          file.getSize());
+          INVOICE_BUCKET, fileKey, file.getInputStream(), file.getContentType(), file.getSize());
     } catch (IOException e) {
       throw new IllegalArgumentException("Error al guardar la factura: " + e.getMessage(), e);
     }
@@ -69,8 +65,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     invoice.setInvoiceNumber(invoiceNumber);
     invoice.setClient(order.getClient());
     invoice.setIssueDate(OffsetDateTime.now());
-    invoice.setTotalValue(
-        order.getTotalValue() != null ? order.getTotalValue() : BigDecimal.ZERO);
+    invoice.setTotalValue(order.getTotalValue() != null ? order.getTotalValue() : BigDecimal.ZERO);
     invoice.setPdfS3Key(fileKey);
     invoice.setState(InvoiceState.ISSUED);
     return invoiceRepository.save(invoice);
@@ -114,8 +109,7 @@ public class InvoiceServiceImpl implements InvoiceService {
             .findBySalesOrderId(orderId)
             .orElseThrow(
                 () ->
-                    new IllegalStateException(
-                        "La orden no tiene una factura adjunta: " + orderId));
+                    new IllegalStateException("La orden no tiene una factura adjunta: " + orderId));
     if (invoice.getPdfS3Key() == null) {
       throw new IllegalStateException("La factura no tiene un PDF adjunto: " + invoice.getId());
     }
@@ -125,8 +119,7 @@ public class InvoiceServiceImpl implements InvoiceService {
   @Override
   @Transactional(readOnly = true)
   public String getPdfFileNameByOrderId(UUID orderId) {
-    Invoice invoice =
-        invoiceRepository.findBySalesOrderId(orderId).orElse(null);
+    Invoice invoice = invoiceRepository.findBySalesOrderId(orderId).orElse(null);
     if (invoice == null) {
       return "factura.pdf";
     }
@@ -138,8 +131,7 @@ public class InvoiceServiceImpl implements InvoiceService {
   public Invoice findEntityById(UUID id) {
     return invoiceRepository
         .findById(id)
-        .orElseThrow(
-            () -> new InvoiceNotFoundException("Factura no encontrada con id: " + id));
+        .orElseThrow(() -> new InvoiceNotFoundException("Factura no encontrada con id: " + id));
   }
 
   private String extractFileName(String s3Key) {
