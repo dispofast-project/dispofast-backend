@@ -18,6 +18,7 @@ import com.dispocol.dispofast.modules.quotes.domain.Quotes;
 import com.dispocol.dispofast.modules.quotes.infra.persistence.QuoteItemRepository;
 import com.dispocol.dispofast.modules.quotes.infra.persistence.QuotesRepository;
 import com.dispocol.dispofast.shared.error.ResourceNotFoundException;
+import com.dispocol.dispofast.shared.params.infra.persistence.SystemParamRepository;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
@@ -34,7 +35,6 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class QuoteServiceImpl implements QuoteService {
 
-  private static final BigDecimal IVA_RATE = new BigDecimal("0.19");
   private static final BigDecimal RETEFUENTE_RATE = new BigDecimal("0.035");
   private static final BigDecimal RETEICA_RATE = new BigDecimal("0.005");
 
@@ -44,6 +44,7 @@ public class QuoteServiceImpl implements QuoteService {
   private final ClientRepository clientRepository;
   private final PriceListRepository priceListRepository;
   private final UserRepository userRepository;
+  private final SystemParamRepository systemParamRepository;
 
   @Override
   @Transactional
@@ -65,8 +66,13 @@ public class QuoteServiceImpl implements QuoteService {
     quote.setCity(client.getCity());
     quote.setZone(client.getZone());
 
-    // Tasas iniciales tomadas del cliente
-    quote.setIvaRate(IVA_RATE);
+    // Tasas iniciales: IVA leído de system_params
+    BigDecimal ivaRate =
+        systemParamRepository
+            .findByClave("IVA")
+            .map(p -> p.getValor())
+            .orElse(new BigDecimal("0.19"));
+    quote.setIvaRate(ivaRate);
 
     Integer defaultDiscount = client.getDefaultDiscountRate();
     BigDecimal commRate =

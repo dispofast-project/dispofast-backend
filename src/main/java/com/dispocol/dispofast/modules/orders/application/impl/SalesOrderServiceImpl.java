@@ -298,7 +298,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
             () -> new SalesOrderNotFoundException("Orden de venta no encontrada con id: " + id));
   }
 
-  private static final BigDecimal IVA_RATE = BigDecimal.valueOf(0.19);
+  private static final BigDecimal IVA = BigDecimal.valueOf(0.19);
 
   private List<SalesOrderItemResponseDTO> saveItems(
       List<CreateSalesOrderItemDTO> itemDTOs,
@@ -350,7 +350,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
       subtotal = subtotal.add(lineTotal);
 
       if (!product.isTaxFree()) {
-        taxAmount = taxAmount.add(lineTotal.multiply(IVA_RATE));
+        taxAmount = taxAmount.add(lineTotal.multiply(IVA));
       }
       items.add(item);
     }

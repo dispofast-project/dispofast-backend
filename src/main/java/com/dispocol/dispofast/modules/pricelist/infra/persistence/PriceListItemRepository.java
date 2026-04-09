@@ -11,6 +11,8 @@ public interface PriceListItemRepository extends JpaRepository<PriceListItem, UU
   Optional<PriceListItem> findByPriceList_IdAndProduct_Reference(
       UUID priceListId, String reference);
 
+  Optional<PriceListItem> findByPriceList_IdAndProduct_Id(UUID priceListId, UUID productId);
+
   List<PriceListItem> findByPriceList_Id(UUID priceListId);
 
   void deleteByPriceList_Id(UUID priceListId);
