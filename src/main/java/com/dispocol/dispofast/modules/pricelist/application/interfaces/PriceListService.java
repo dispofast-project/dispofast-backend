@@ -16,5 +16,9 @@ public interface PriceListService {
 
   void uploadPriceListItems(UUID priceListId, MultipartFile file);
 
+  byte[] downloadPriceListFile(UUID priceListId);
+
+  String getPriceListOriginalFileName(UUID priceListId);
+
   Optional<BigDecimal> resolveUnitPrice(UUID priceListId, String reference);
 }

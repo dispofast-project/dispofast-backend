@@ -31,10 +31,13 @@ public class ArEntryResponseDTO {
   /** Valor */
   private BigDecimal value;
 
-  /** Factura */
+  /** ID de la factura asociada */
+  private UUID invoiceId;
+
+  /** Número de factura */
   private String invoiceNumber;
 
-  /** Fecha Factura */
+  /** Fecha de emisión de la factura */
   private OffsetDateTime invoiceDate;
 
   /** Plazo (días de crédito) */

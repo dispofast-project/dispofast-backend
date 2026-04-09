@@ -71,12 +71,6 @@ public class SalesOrder {
   @JoinColumn(name = "quote_id")
   private Quotes quote;
 
-  @Column(name = "invoice_number", length = 50)
-  private String invoiceNumber;
-
-  @Column(name = "invoice_url", length = 500)
-  private String invoiceUrl;
-
   @Enumerated(EnumType.STRING)
   @Column(name = "payment_condition", length = 30)
   private PaymentCondition paymentCondition;

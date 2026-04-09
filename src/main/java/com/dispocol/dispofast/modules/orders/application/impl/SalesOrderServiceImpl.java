@@ -5,7 +5,8 @@ import com.dispocol.dispofast.modules.customers.infra.persistence.ClientReposito
 import com.dispocol.dispofast.modules.iam.infra.persistence.UserRepository;
 import com.dispocol.dispofast.modules.inventory.application.interfaces.InventoryService;
 import com.dispocol.dispofast.modules.inventory.infra.persistence.ProductRepository;
-import com.dispocol.dispofast.modules.orders.api.dtos.AttachInvoiceRequestDTO;
+import com.dispocol.dispofast.modules.invoices.application.interfaces.InvoiceService;
+import com.dispocol.dispofast.modules.invoices.domain.Invoice;
 import com.dispocol.dispofast.modules.orders.api.dtos.CreateSalesOrderItemDTO;
 import com.dispocol.dispofast.modules.orders.api.dtos.CreateSalesOrderRequestDTO;
 import com.dispocol.dispofast.modules.orders.api.dtos.SalesOrderFilterDTO;
@@ -45,6 +46,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
@@ -66,6 +68,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
   private final InventoryService inventoryService;
   private final PriceListService priceListService;
   private final ArEntryService arEntryService;
+  private final InvoiceService invoiceService;
 
   @Override
   @Transactional
@@ -101,7 +104,6 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 
     // Persist totalValue calculated in saveItems
     salesOrderRepository.save(savedOrder);
-    arEntryService.createFromOrder(savedOrder);
 
     return buildResponse(savedOrder, itemResponses);
   }
@@ -139,7 +141,6 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     order.setTotalValue(quote.getTotalAmount());
 
     SalesOrder savedOrder = salesOrderRepository.save(order);
-    arEntryService.createFromOrder(savedOrder);
 
     return buildResponse(savedOrder, List.of());
   }
@@ -231,22 +232,30 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 
   @Override
   @Transactional
-  public SalesOrderResponseDTO attachInvoice(UUID id, AttachInvoiceRequestDTO request) {
+  public SalesOrderResponseDTO attachInvoice(UUID id, String invoiceNumber, MultipartFile file) {
     SalesOrder order = findOrderOrThrow(id);
 
-    if (order.getState() != OrderState.PENDING) {
-      throw new InvalidOrderStateException(
-          "Solo se puede adjuntar factura a una orden pendiente. Estado actual: "
-              + order.getState().getValue());
-    }
-
-    salesOrderMapper.applyInvoice(request, order);
+    Invoice invoice = invoiceService.createFromOrder(order, invoiceNumber, file);
     order.setState(OrderState.INVOICED);
-
     SalesOrder savedOrder = salesOrderRepository.save(order);
+    arEntryService.createFromOrder(invoice);
 
     List<SalesOrderItem> items = salesOrderItemRepository.findByOrderId(id);
     return buildResponse(savedOrder, salesOrderItemMapper.toResponseDTOList(items));
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public byte[] downloadInvoice(UUID id) {
+    findOrderOrThrow(id);
+    return invoiceService.downloadPdfByOrderId(id);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public String getInvoiceFileName(UUID id) {
+    findOrderOrThrow(id);
+    return invoiceService.getPdfFileNameByOrderId(id);
   }
 
   @Override
