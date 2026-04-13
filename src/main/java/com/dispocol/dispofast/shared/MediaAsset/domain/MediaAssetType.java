@@ -1,4 +1,4 @@
-package com.dispocol.dispofast.modules.temp;
+package com.dispocol.dispofast.shared.MediaAsset.domain;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;

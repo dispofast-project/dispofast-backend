@@ -10,6 +10,7 @@ import com.dispocol.dispofast.modules.customers.application.interfaces.ClientSer
 import com.dispocol.dispofast.modules.customers.domain.Client;
 import com.dispocol.dispofast.modules.customers.domain.ClientType;
 import com.dispocol.dispofast.modules.customers.domain.Individual;
+import com.dispocol.dispofast.modules.customers.domain.LegalDocument;
 import com.dispocol.dispofast.modules.customers.domain.Organization;
 import com.dispocol.dispofast.modules.customers.infra.persistence.ClientRepository;
 import com.dispocol.dispofast.modules.customers.infra.persistence.ClientTypeRepository;
@@ -17,6 +18,9 @@ import com.dispocol.dispofast.modules.iam.domain.AppUser;
 import com.dispocol.dispofast.modules.iam.infra.persistence.UserRepository;
 import com.dispocol.dispofast.modules.pricelist.domain.PriceList;
 import com.dispocol.dispofast.modules.pricelist.infra.persistence.PriceListRepository;
+import com.dispocol.dispofast.shared.MediaAsset.domain.MediaAsset;
+import com.dispocol.dispofast.shared.MediaAsset.domain.MediaAssetType;
+import com.dispocol.dispofast.shared.MediaAsset.persistence.MediaAssetRepository;
 import com.dispocol.dispofast.shared.S3.application.interfaces.S3Service;
 import com.dispocol.dispofast.shared.S3.infra.UploadFileFailedException;
 import com.dispocol.dispofast.shared.error.ResourceNotFoundException;
@@ -48,6 +52,7 @@ public class ClientServiceImpl implements ClientService {
   private final UserRepository userRepository;
   private final ClientTypeRepository clientTypeRepository;
   private final PriceListRepository priceListRepository;
+  private final MediaAssetRepository mediaAssetRepository;
   private final S3Service s3Service;
 
   private static final String LEGAL_DOCS_BUCKET = "dispofast-legal-documents";
@@ -150,6 +155,18 @@ public class ClientServiceImpl implements ClientService {
         } catch (IOException e) {
           throw new UploadFileFailedException("Subir el documento: " + file.getName() + " ha fallado.");
         }
+
+        MediaAsset asset = new MediaAsset();
+        asset.setFilename(file.getOriginalFilename());
+        asset.setStoragePath(storagePath);
+        asset.setMimeType(file.getContentType());
+        asset.setFileSize(file.getSize());
+        asset.setType(MediaAssetType.LEGAL_DOC);
+        mediaAssetRepository.save(asset);
+
+        LegalDocument legalDocument = new LegalDocument();
+        legalDocument.setFileAttachment(asset);
+        client.addLegalDocument(legalDocument);
       }
     }
 

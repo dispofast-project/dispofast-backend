@@ -1,4 +1,4 @@
-package com.dispocol.dispofast.modules.temp.api.dtos;
+package com.dispocol.dispofast.shared.MediaAsset.dtos;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
