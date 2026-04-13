@@ -6,6 +6,7 @@ import com.dispocol.dispofast.modules.customers.infra.persistence.ClientReposito
 import com.dispocol.dispofast.modules.iam.domain.AppUser;
 import com.dispocol.dispofast.modules.iam.infra.persistence.UserRepository;
 import com.dispocol.dispofast.modules.pricelist.infra.persistence.PriceListRepository;
+import com.dispocol.dispofast.modules.quotes.api.dtos.ChangeQuoteStatusRequestDTO;
 import com.dispocol.dispofast.modules.quotes.api.dtos.CreateQuoteRequestDTO;
 import com.dispocol.dispofast.modules.quotes.api.dtos.QuotePreviewResponseDTO;
 import com.dispocol.dispofast.modules.quotes.api.dtos.QuoteResponseDTO;
@@ -154,6 +155,14 @@ public class QuoteServiceImpl implements QuoteService {
       }
     }
     return page.map(quoteMapper::toPreviewResponseDTO);
+  }
+
+  @Override
+  @Transactional
+  public QuoteResponseDTO changeStatus(UUID id, ChangeQuoteStatusRequestDTO dto) {
+    Quotes quote = findQuote(id);
+    quote.setStatus(dto.getStatus());
+    return quoteMapper.toResponseDTO(quotesRepository.save(quote));
   }
 
   // ── Lógica de recálculo ──────────────────────────────────────
