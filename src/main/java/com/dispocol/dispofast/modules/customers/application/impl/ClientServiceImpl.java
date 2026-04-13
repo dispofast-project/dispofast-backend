@@ -145,13 +145,14 @@ public class ClientServiceImpl implements ClientService {
     client.setClientType(clientType);
     client.setPriceList(priceList);
 
-    if(documents != null && !documents.isEmpty()){
-      for (MultipartFile file: documents) {
+    Client savedClient = clientRepository.save(client);
 
-        String storagePath = "clients/" + client.getId() + "/" + UUID.randomUUID() + "_" + file.getOriginalFilename();
+    if (documents != null && !documents.isEmpty()) {
+      for (MultipartFile file : documents) {
+        String storagePath = "clients/" + savedClient.getId() + "/" + UUID.randomUUID() + "_" + file.getOriginalFilename();
 
         try {
-          s3Service.uploadFile(LEGAL_DOCS_BUCKET, storagePath, file.getInputStream(), storagePath, file.getSize());
+          s3Service.uploadFile(LEGAL_DOCS_BUCKET, storagePath, file.getInputStream(), file.getContentType(), file.getSize());
         } catch (IOException e) {
           throw new UploadFileFailedException("Subir el documento: " + file.getName() + " ha fallado.");
         }
@@ -166,11 +167,11 @@ public class ClientServiceImpl implements ClientService {
 
         LegalDocument legalDocument = new LegalDocument();
         legalDocument.setFileAttachment(asset);
-        client.addLegalDocument(legalDocument);
+        savedClient.addLegalDocument(legalDocument);
       }
+      clientRepository.save(savedClient);
     }
 
-    Client savedClient = clientRepository.save(client);
     return clientMapper.toResponseDTO(savedClient);
   }
 
@@ -239,14 +240,49 @@ public class ClientServiceImpl implements ClientService {
     client.setClientType(clientType);
     client.setPriceList(priceList);
 
+    if (documents != null && !documents.isEmpty()) {
+      for (MultipartFile file : documents) {
+        String storagePath = "clients/" + client.getId() + "/" + UUID.randomUUID() + "_" + file.getOriginalFilename();
+
+        try {
+          s3Service.uploadFile(LEGAL_DOCS_BUCKET, storagePath, file.getInputStream(), file.getContentType(), file.getSize());
+        } catch (IOException e) {
+          throw new UploadFileFailedException("Subir el documento: " + file.getName() + " ha fallado.");
+        }
+
+        MediaAsset asset = new MediaAsset();
+        asset.setFilename(file.getOriginalFilename());
+        asset.setStoragePath(storagePath);
+        asset.setMimeType(file.getContentType());
+        asset.setFileSize(file.getSize());
+        asset.setType(MediaAssetType.LEGAL_DOC);
+        mediaAssetRepository.save(asset);
+
+        LegalDocument legalDocument = new LegalDocument();
+        legalDocument.setFileAttachment(asset);
+        client.addLegalDocument(legalDocument);
+      }
+    }
+
     Client savedClient = clientRepository.save(client);
     return clientMapper.toResponseDTO(savedClient);
   }
 
   @Override
   @Transactional(readOnly = true)
-  public byte[] getLegalDocument(UUID id) {
-    return null;
+  public byte[] getLegalDocument(UUID clientId, UUID documentId) {
+    Client client =
+        clientRepository
+            .findById(clientId)
+            .orElseThrow(() -> new ResourceNotFoundException("Client not found with id: " + clientId));
+
+    LegalDocument doc =
+        client.getLegalDocuments().stream()
+            .filter(d -> d.getId().equals(documentId))
+            .findFirst()
+            .orElseThrow(() -> new ResourceNotFoundException("Document not found with id: " + documentId));
+
+    return s3Service.downloadFile(LEGAL_DOCS_BUCKET, doc.getFileAttachment().getStoragePath());
   }
 
   private Specification<Client> buildSearchSpec(String text, String key) {

@@ -20,5 +20,5 @@ public interface ClientService {
 
   ClientResponseDTO updateClient(UUID id, CreateClientRequestDTO request, List<MultipartFile> documents);
 
-  byte[] getLegalDocument(UUID id);
+  byte[] getLegalDocument(UUID clientId, UUID documentId);
 }

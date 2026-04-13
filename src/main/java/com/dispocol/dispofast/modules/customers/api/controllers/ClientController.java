@@ -58,6 +58,7 @@ public class ClientController {
   }
 
   @PutMapping("/{id}")
+  @PreAuthorize("hasAuthority('CUSTOMERS_UPDATE')")
   public ResponseEntity<ClientResponseDTO> updateClient(
       @PathVariable UUID id, @Valid @RequestPart("clientData") CreateClientRequestDTO request,
       @RequestPart(value = "documents", required = false) List<MultipartFile> documents) {
