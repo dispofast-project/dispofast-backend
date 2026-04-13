@@ -5,6 +5,8 @@ import com.dispocol.dispofast.modules.customers.api.dtos.ClientResponseDTO;
 import com.dispocol.dispofast.modules.customers.api.dtos.CreateClientRequestDTO;
 import com.dispocol.dispofast.modules.customers.application.interfaces.ClientService;
 import jakarta.validation.Valid;
+
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -16,10 +18,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/clients")
@@ -48,13 +51,16 @@ public class ClientController {
   @PostMapping
   @PreAuthorize("hasAuthority('CUSTOMERS_CREATE')")
   public ResponseEntity<ClientResponseDTO> createClient(
-      @Valid @RequestBody CreateClientRequestDTO request) {
-    return ResponseEntity.status(HttpStatus.CREATED).body(clientService.createClient(request));
+      @Valid @RequestPart("clientData") CreateClientRequestDTO request,
+      @RequestPart(value = "documents", required = false) List<MultipartFile> documents
+    ) {
+    return ResponseEntity.status(HttpStatus.CREATED).body(clientService.createClient(request, documents));
   }
 
   @PutMapping("/{id}")
   public ResponseEntity<ClientResponseDTO> updateClient(
-      @PathVariable UUID id, @Valid @RequestBody CreateClientRequestDTO request) {
-    return ResponseEntity.ok(clientService.updateClient(id, request));
+      @PathVariable UUID id, @Valid @RequestPart("clientData") CreateClientRequestDTO request,
+      @RequestPart(value = "documents", required = false) List<MultipartFile> documents) {
+    return ResponseEntity.ok(clientService.updateClient(id, request, documents));
   }
 }

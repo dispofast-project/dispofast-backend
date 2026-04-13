@@ -18,12 +18,15 @@ import com.dispocol.dispofast.modules.iam.infra.persistence.UserRepository;
 import com.dispocol.dispofast.modules.pricelist.domain.PriceList;
 import com.dispocol.dispofast.modules.pricelist.infra.persistence.PriceListRepository;
 import com.dispocol.dispofast.shared.S3.application.interfaces.S3Service;
+import com.dispocol.dispofast.shared.S3.infra.UploadFileFailedException;
 import com.dispocol.dispofast.shared.error.ResourceNotFoundException;
 import com.dispocol.dispofast.shared.location.domain.City;
 import com.dispocol.dispofast.shared.location.infra.persistence.CityRepository;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -33,6 +36,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
@@ -82,7 +86,7 @@ public class ClientServiceImpl implements ClientService {
 
   @Override
   @Transactional
-  public ClientResponseDTO createClient(CreateClientRequestDTO request) {
+  public ClientResponseDTO createClient(CreateClientRequestDTO request, List<MultipartFile> documents) {
     if (clientRepository.existsByIdentificationNumber(request.getIdentificationNumber())) {
       throw new IllegalArgumentException("Ya existe un cliente con este número de identificación.");
     }
@@ -136,13 +140,26 @@ public class ClientServiceImpl implements ClientService {
     client.setClientType(clientType);
     client.setPriceList(priceList);
 
+    if(documents != null && !documents.isEmpty()){
+      for (MultipartFile file: documents) {
+
+        String storagePath = "clients/" + client.getId() + "/" + UUID.randomUUID() + "_" + file.getOriginalFilename();
+
+        try {
+          s3Service.uploadFile(LEGAL_DOCS_BUCKET, storagePath, file.getInputStream(), storagePath, file.getSize());
+        } catch (IOException e) {
+          throw new UploadFileFailedException("Subir el documento: " + file.getName() + " ha fallado.");
+        }
+      }
+    }
+
     Client savedClient = clientRepository.save(client);
     return clientMapper.toResponseDTO(savedClient);
   }
 
   @Override
   @Transactional
-  public ClientResponseDTO updateClient(UUID id, CreateClientRequestDTO request) {
+  public ClientResponseDTO updateClient(UUID id, CreateClientRequestDTO request, List<MultipartFile> documents) {
     Client client =
         clientRepository
             .findById(id)
@@ -207,6 +224,12 @@ public class ClientServiceImpl implements ClientService {
 
     Client savedClient = clientRepository.save(client);
     return clientMapper.toResponseDTO(savedClient);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public byte[] getLegalDocument(UUID id) {
+    return null;
   }
 
   private Specification<Client> buildSearchSpec(String text, String key) {
