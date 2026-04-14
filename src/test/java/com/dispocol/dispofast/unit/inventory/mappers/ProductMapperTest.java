@@ -5,6 +5,7 @@ import com.dispocol.dispofast.modules.inventory.api.dtos.ProductResponseDTO;
 import com.dispocol.dispofast.modules.inventory.api.mappers.ProductMapper;
 import com.dispocol.dispofast.modules.inventory.api.mappers.ProductMapperImpl;
 import com.dispocol.dispofast.modules.inventory.domain.Product;
+import com.dispocol.dispofast.modules.inventory.domain.ProductState;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -55,7 +56,7 @@ public class ProductMapperTest {
     createProductRequestDTO.setSku("NP001");
     createProductRequestDTO.setReference("REF001");
     createProductRequestDTO.setSize("M");
-    createProductRequestDTO.setState("ACTIVE");
+    createProductRequestDTO.setState(ProductState.ACTIVE);
     createProductRequestDTO.setSeoDescription("SEO description for test");
     createProductRequestDTO.setSeoKeywords("test, product, seo");
 
