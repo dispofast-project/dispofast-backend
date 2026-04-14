@@ -1,0 +1,24 @@
+package com.dispocol.dispofast.modules.pricelist.application.interfaces;
+
+import com.dispocol.dispofast.modules.pricelist.api.dtos.PriceListItemDTO;
+import com.dispocol.dispofast.modules.pricelist.api.dtos.PriceListResponseDTO;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import org.springframework.web.multipart.MultipartFile;
+
+public interface PriceListService {
+
+  List<PriceListResponseDTO> getAllPriceLists();
+
+  List<PriceListItemDTO> getItemsByPriceList(UUID priceListId);
+
+  void uploadPriceListItems(UUID priceListId, MultipartFile file);
+
+  byte[] downloadPriceListFile(UUID priceListId);
+
+  String getPriceListOriginalFileName(UUID priceListId);
+
+  Optional<BigDecimal> resolveUnitPrice(UUID priceListId, String reference);
+}

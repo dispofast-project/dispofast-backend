@@ -1,6 +1,6 @@
 package com.dispocol.dispofast.modules.iam.domain;
 
-import com.dispocol.dispofast.modules.customers.domain.Customer;
+import com.dispocol.dispofast.modules.customers.domain.Client;
 import jakarta.persistence.*;
 import java.time.OffsetDateTime;
 import java.util.HashSet;
@@ -8,16 +8,18 @@ import java.util.Set;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "users")
 @Data
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @AllArgsConstructor
 @NoArgsConstructor
 public class AppUser {
 
-  @Id @GeneratedValue private UUID id;
+  @Id @GeneratedValue @EqualsAndHashCode.Include private UUID id;
 
   @Column(nullable = false, unique = true, length = 255)
   private String email;
@@ -37,8 +39,8 @@ public class AppUser {
   @Column(nullable = false, name = "updated_at")
   private OffsetDateTime updatedAt;
 
-  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-  private Set<Customer> customers = new HashSet<>();
+  @OneToMany(mappedBy = "defaultAdvisor")
+  private Set<Client> customers = new HashSet<>();
 
   @ManyToMany(fetch = FetchType.EAGER)
   @JoinTable(
@@ -47,14 +49,21 @@ public class AppUser {
       inverseJoinColumns = @JoinColumn(name = "role_id"))
   private Set<Role> roles = new HashSet<>();
 
-  public void addCustomer(Customer customer) {
+  @OneToMany(
+      mappedBy = "user",
+      cascade = CascadeType.ALL,
+      orphanRemoval = true,
+      fetch = FetchType.EAGER)
+  private Set<UserPermission> permissions = new HashSet<>();
+
+  public void addCustomer(Client customer) {
     customers.add(customer);
-    customer.setUser(this);
+    customer.setDefaultAdvisor(this);
   }
 
-  public void removeCustomer(Customer customer) {
+  public void removeCustomer(Client customer) {
     customers.remove(customer);
-    customer.setUser(null);
+    customer.setDefaultAdvisor(null);
   }
 
   @PrePersist
@@ -67,5 +76,28 @@ public class AppUser {
   @PreUpdate
   void preUpdate() {
     updatedAt = OffsetDateTime.now();
+  }
+
+  public Set<String> resolveEffectivePermissionNames() {
+    Set<String> effectivePermissions = new HashSet<>();
+
+    for (Role role : roles) {
+      for (Permission permission : role.getPermissions()) {
+        effectivePermissions.add(permission.getName());
+      }
+    }
+
+    for (UserPermission override : permissions) {
+
+      String name = override.getPermission().getName();
+
+      if (override.isGranted()) {
+        effectivePermissions.add(name);
+      } else {
+        effectivePermissions.remove(name);
+      }
+    }
+
+    return effectivePermissions;
   }
 }

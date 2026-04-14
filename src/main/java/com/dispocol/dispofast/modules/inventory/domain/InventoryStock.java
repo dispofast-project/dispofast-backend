@@ -2,11 +2,14 @@ package com.dispocol.dispofast.modules.inventory.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -28,15 +31,17 @@ public class InventoryStock {
   @Column(nullable = false)
   private LocalDateTime lastUpdated;
 
-  @Column(nullable = false)
-  private String state;
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false, length = 20)
+  private StockState state;
 
   @OneToOne
   @JoinColumn(name = "product_id", nullable = false, unique = true)
   private Product product;
 
   @PrePersist
-  public void prePersist() {
+  @PreUpdate
+  public void refreshLastUpdated() {
     this.lastUpdated = LocalDateTime.now();
   }
 }

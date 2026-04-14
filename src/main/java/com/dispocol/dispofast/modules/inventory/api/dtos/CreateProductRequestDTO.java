@@ -1,5 +1,6 @@
 package com.dispocol.dispofast.modules.inventory.api.dtos;
 
+import com.dispocol.dispofast.modules.inventory.domain.ProductState;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.util.UUID;
@@ -45,8 +46,8 @@ public class CreateProductRequestDTO {
   @NotBlank(message = "Palabras clave SEO son requeridas")
   private String seoKeywords;
 
-  @NotBlank(message = "Estado es requerido")
-  private String state;
+  @NotNull(message = "Estado es requerido")
+  private ProductState state;
 
   @NotNull(message = "ID de categoría es requerido")
   private UUID categoryId;
