@@ -82,7 +82,7 @@ public class ClientServiceImpl implements ClientService {
 
   @Override
   @Transactional
-  public ClientResponseDTO createClient(CreateClientRequestDTO request) {
+  public ClientResponseDTO createClient(CreateClientRequestDTO request, AppUser createdByUser) {
     if (clientRepository.existsByIdentificationNumber(request.getIdentificationNumber())) {
       throw new IllegalArgumentException("Ya existe un cliente con este número de identificación.");
     }
@@ -98,13 +98,24 @@ public class ClientServiceImpl implements ClientService {
                     new ResourceNotFoundException(
                         "City not found with code: " + request.getCityCode()));
 
-    AppUser advisor =
-        userRepository
-            .findById(request.getDefaultAdvisorId())
-            .orElseThrow(
-                () ->
-                    new ResourceNotFoundException(
-                        "Advisor user not found with ID: " + request.getDefaultAdvisorId()));
+    AppUser advisor;
+    if (request.getDefaultAdvisorId() != null) {
+      advisor =
+          userRepository
+              .findById(request.getDefaultAdvisorId())
+              .orElseThrow(
+                  () ->
+                      new ResourceNotFoundException(
+                          "Advisor user not found with ID: " + request.getDefaultAdvisorId()));
+    } else {
+      boolean isAdmin =
+          createdByUser.getRoles().stream().anyMatch(r -> r.getName().equals("ADMIN"));
+      if (isAdmin) {
+        throw new IllegalArgumentException(
+            "Los administradores deben especificar un asesor al crear un cliente.");
+      }
+      advisor = createdByUser;
+    }
 
     ClientType clientType =
         clientTypeRepository
