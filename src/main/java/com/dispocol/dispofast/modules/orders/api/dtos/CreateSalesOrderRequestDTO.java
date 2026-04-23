@@ -50,8 +50,6 @@ public class CreateSalesOrderRequestDTO {
 
   private BigDecimal retefuenteAmount;
 
-  private BigDecimal reteicaAmount;
-
   private BigDecimal freight;
 
   @NotEmpty(message = "La orden debe contener al menos un ítem")

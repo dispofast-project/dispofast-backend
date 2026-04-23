@@ -34,7 +34,6 @@ public class SalesOrderResponseDTO {
   private BigDecimal additionalDiscountRate;
   private BigDecimal taxAmount;
   private BigDecimal retefuenteAmount;
-  private BigDecimal reteicaAmount;
   private BigDecimal freight;
   private List<SalesOrderItemResponseDTO> items;
 }

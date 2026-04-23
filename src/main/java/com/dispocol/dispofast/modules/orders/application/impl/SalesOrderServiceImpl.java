@@ -359,7 +359,6 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     BigDecimal discountAmount = BigDecimal.ZERO;
     BigDecimal additionalDiscountAmount = BigDecimal.ZERO;
     BigDecimal retefuente = BigDecimal.ZERO;
-    BigDecimal reteica = BigDecimal.ZERO;
     BigDecimal freight = BigDecimal.ZERO;
 
     if (request != null) {
@@ -380,7 +379,6 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 
       retefuente =
           request.getRetefuenteAmount() != null ? request.getRetefuenteAmount() : BigDecimal.ZERO;
-      reteica = request.getReteicaAmount() != null ? request.getReteicaAmount() : BigDecimal.ZERO;
       freight = request.getFreight() != null ? request.getFreight() : BigDecimal.ZERO;
     }
 
@@ -390,13 +388,11 @@ public class SalesOrderServiceImpl implements SalesOrderService {
             .subtract(discountAmount)
             .subtract(additionalDiscountAmount)
             .subtract(retefuente)
-            .subtract(reteica)
             .add(freight)
             .setScale(2, RoundingMode.HALF_UP);
 
     order.setTaxAmount(taxAmount.setScale(2, RoundingMode.HALF_UP));
     order.setRetefuenteAmount(retefuente);
-    order.setReteicaAmount(reteica);
     order.setFreight(freight);
     order.setTotalValue(totalValue);
 

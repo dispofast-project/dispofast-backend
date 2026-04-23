@@ -27,7 +27,4 @@ public class UpdateQuoteRequestDTO {
 
   /** Tasa de otros descuentos adicionales (ej. 0.05 = 5%). */
   private BigDecimal otherDiscountsRate;
-
-  /** Tasa de reteica (ej. 0.005 = 0.5%). */
-  private BigDecimal reteicaRate;
 }

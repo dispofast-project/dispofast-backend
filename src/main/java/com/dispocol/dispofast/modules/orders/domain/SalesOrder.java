@@ -93,9 +93,6 @@ public class SalesOrder {
   @Column(name = "retefuente_amount", precision = 18, scale = 2)
   private BigDecimal retefuenteAmount;
 
-  @Column(name = "reteica_amount", precision = 18, scale = 2)
-  private BigDecimal reteicaAmount;
-
   @Column(name = "freight", precision = 18, scale = 2)
   private BigDecimal freight;
 }

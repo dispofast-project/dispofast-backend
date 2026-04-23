@@ -45,7 +45,5 @@ public class QuoteResponseDTO {
   private BigDecimal ivaAmount;
   private BigDecimal retefuenteRate;
   private BigDecimal retefuenteAmount;
-  private BigDecimal reteicaRate;
-  private BigDecimal reteicaAmount;
   private BigDecimal totalAmount;
 }

@@ -37,7 +37,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class QuoteServiceImpl implements QuoteService {
 
   private static final BigDecimal RETEFUENTE_RATE = new BigDecimal("0.035");
-  private static final BigDecimal RETEICA_RATE = new BigDecimal("0.005");
 
   private final QuotesRepository quotesRepository;
   private final QuoteItemRepository quoteItemRepository;
@@ -86,10 +85,6 @@ public class QuoteServiceImpl implements QuoteService {
     if (!(client instanceof Individual) && Boolean.TRUE.equals(client.getRetefuenteApplies())) {
       quote.setRetefuenteRate(RETEFUENTE_RATE);
     }
-    if (!(client instanceof Individual)) {
-      quote.setReteicaRate(RETEICA_RATE);
-    }
-
     // Montos en cero hasta que se agreguen ítems
     quote.setSubtotalAmount(BigDecimal.ZERO);
     quote.setCommercialDiscountAmount(BigDecimal.ZERO);
@@ -97,7 +92,6 @@ public class QuoteServiceImpl implements QuoteService {
     quote.setOtherDiscountsAmount(BigDecimal.ZERO);
     quote.setIvaAmount(BigDecimal.ZERO);
     quote.setRetefuenteAmount(quote.getRetefuenteRate() != null ? BigDecimal.ZERO : null);
-    quote.setReteicaAmount(quote.getReteicaRate() != null ? BigDecimal.ZERO : null);
     quote.setTotalAmount(BigDecimal.ZERO);
 
     return quoteMapper.toResponseDTO(quotesRepository.save(quote));
@@ -203,16 +197,10 @@ public class QuoteServiceImpl implements QuoteService {
           netBase.multiply(quote.getRetefuenteRate()).setScale(2, RoundingMode.HALF_UP);
     }
 
-    BigDecimal reteicaAmount = null;
-    if (quote.getReteicaRate() != null && quote.getReteicaRate().compareTo(BigDecimal.ZERO) > 0) {
-      reteicaAmount = netBase.multiply(quote.getReteicaRate()).setScale(2, RoundingMode.HALF_UP);
-    }
-
     BigDecimal total =
         netBase
             .add(ivaTotal)
             .subtract(retefuenteAmount != null ? retefuenteAmount : BigDecimal.ZERO)
-            .subtract(reteicaAmount != null ? reteicaAmount : BigDecimal.ZERO)
             .setScale(2, RoundingMode.HALF_UP);
 
     quote.setSubtotalAmount(subtotal);
@@ -220,7 +208,6 @@ public class QuoteServiceImpl implements QuoteService {
     quote.setCommercialDiscountAmount(commDiscountAmount);
     quote.setOtherDiscountsAmount(otherDiscAmount);
     quote.setRetefuenteAmount(retefuenteAmount);
-    quote.setReteicaAmount(reteicaAmount);
     quote.setTotalAmount(total);
   }
 
