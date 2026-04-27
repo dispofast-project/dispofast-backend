@@ -87,7 +87,8 @@ JOIN   permissions p ON p.name IN (
     -- Cartera
     'ACCOUNTS_VIEW',         'ACCOUNTS_CREATE',         'ACCOUNTS_EDIT',
     -- Prospectos
-    'PROSPECTS_VIEW',        'PROSPECTS_CREATE',        'PROSPECTS_EDIT'
+    'PROSPECTS_VIEW',        'PROSPECTS_CREATE',        'PROSPECTS_EDIT',
+    'INVENTORY_VIEW'
 )
 WHERE  r.name = 'VENDEDOR'
 ON CONFLICT DO NOTHING;
