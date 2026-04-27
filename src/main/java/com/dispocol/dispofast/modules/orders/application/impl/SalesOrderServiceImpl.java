@@ -30,6 +30,7 @@ import com.dispocol.dispofast.modules.quotes.domain.Quotes;
 import com.dispocol.dispofast.modules.quotes.infra.persistence.QuotesRepository;
 import com.dispocol.dispofast.shared.location.application.interfaces.LocationService;
 import com.dispocol.dispofast.shared.location.domain.City;
+import com.dispocol.dispofast.shared.params.infra.persistence.SystemParamRepository;
 import jakarta.persistence.criteria.Predicate;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -66,6 +67,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
   private final InventoryService inventoryService;
   private final PriceListService priceListService;
   private final ArEntryService arEntryService;
+  private final SystemParamRepository systemParamRepository;
 
   @Override
   @Transactional
@@ -377,9 +379,25 @@ public class SalesOrderServiceImpl implements SalesOrderService {
               .multiply(addDiscountPct)
               .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
 
-      retefuente =
-          request.getRetefuenteAmount() != null ? request.getRetefuenteAmount() : BigDecimal.ZERO;
       freight = request.getFreight() != null ? request.getFreight() : BigDecimal.ZERO;
+    }
+
+    // Retefuente: calculada en el backend según params configurables
+    BigDecimal retefuenteRate =
+        systemParamRepository
+            .findByClave("RETEFUENTE_RATE")
+            .map(p -> p.getValor())
+            .orElse(new BigDecimal("0.0250"));
+    BigDecimal retefuenteThreshold =
+        systemParamRepository
+            .findByClave("RETEFUENTE_THRESHOLD")
+            .map(p -> p.getValor())
+            .orElse(new BigDecimal("540"));
+
+    boolean clientAppliesRetefuente =
+        order.getClient() != null && Boolean.TRUE.equals(order.getClient().getRetefuenteApplies());
+    if (clientAppliesRetefuente && subtotal.compareTo(retefuenteThreshold) > 0) {
+      retefuente = subtotal.multiply(retefuenteRate).setScale(2, RoundingMode.HALF_UP);
     }
 
     BigDecimal totalValue =

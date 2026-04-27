@@ -36,8 +36,6 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class QuoteServiceImpl implements QuoteService {
 
-  private static final BigDecimal RETEFUENTE_RATE = new BigDecimal("0.035");
-
   private final QuotesRepository quotesRepository;
   private final QuoteItemRepository quoteItemRepository;
   private final QuoteMapper quoteMapper;
@@ -81,9 +79,14 @@ public class QuoteServiceImpl implements QuoteService {
             : BigDecimal.ZERO;
     quote.setCommercialDiscountRate(commRate);
 
-    // Retenciones solo para personas jurídicas
+    // Retenciones solo para personas jurídicas que apliquen retefuente
     if (!(client instanceof Individual) && Boolean.TRUE.equals(client.getRetefuenteApplies())) {
-      quote.setRetefuenteRate(RETEFUENTE_RATE);
+      BigDecimal retefuenteRate =
+          systemParamRepository
+              .findByClave("RETEFUENTE_RATE")
+              .map(p -> p.getValor())
+              .orElse(new BigDecimal("0.0250"));
+      quote.setRetefuenteRate(retefuenteRate);
     }
     // Montos en cero hasta que se agreguen ítems
     quote.setSubtotalAmount(BigDecimal.ZERO);
@@ -190,9 +193,16 @@ public class QuoteServiceImpl implements QuoteService {
 
     BigDecimal netBase = subtotal.subtract(commDiscountAmount).subtract(otherDiscAmount);
 
+    BigDecimal retefuenteThreshold =
+        systemParamRepository
+            .findByClave("RETEFUENTE_THRESHOLD")
+            .map(p -> p.getValor())
+            .orElse(new BigDecimal("540"));
+
     BigDecimal retefuenteAmount = null;
     if (quote.getRetefuenteRate() != null
-        && quote.getRetefuenteRate().compareTo(BigDecimal.ZERO) > 0) {
+        && quote.getRetefuenteRate().compareTo(BigDecimal.ZERO) > 0
+        && netBase.compareTo(retefuenteThreshold) > 0) {
       retefuenteAmount =
           netBase.multiply(quote.getRetefuenteRate()).setScale(2, RoundingMode.HALF_UP);
     }
