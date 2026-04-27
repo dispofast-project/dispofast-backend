@@ -31,6 +31,7 @@ import com.dispocol.dispofast.modules.quotes.domain.Quotes;
 import com.dispocol.dispofast.modules.quotes.infra.persistence.QuotesRepository;
 import com.dispocol.dispofast.shared.location.application.interfaces.LocationService;
 import com.dispocol.dispofast.shared.location.domain.City;
+import com.dispocol.dispofast.shared.params.infra.persistence.SystemParamRepository;
 import jakarta.persistence.criteria.Predicate;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -68,6 +69,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
   private final InventoryService inventoryService;
   private final PriceListService priceListService;
   private final ArEntryService arEntryService;
+  private final SystemParamRepository systemParamRepository;
   private final InvoiceService invoiceService;
 
   @Override
@@ -307,7 +309,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
             () -> new SalesOrderNotFoundException("Orden de venta no encontrada con id: " + id));
   }
 
-  private static final BigDecimal IVA_RATE = BigDecimal.valueOf(0.19);
+  private static final BigDecimal IVA = BigDecimal.valueOf(0.19);
 
   private List<SalesOrderItemResponseDTO> saveItems(
       List<CreateSalesOrderItemDTO> itemDTOs,
@@ -359,7 +361,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
       subtotal = subtotal.add(lineTotal);
 
       if (!product.isTaxFree()) {
-        taxAmount = taxAmount.add(lineTotal.multiply(IVA_RATE));
+        taxAmount = taxAmount.add(lineTotal.multiply(IVA));
       }
       items.add(item);
     }
@@ -368,7 +370,6 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     BigDecimal discountAmount = BigDecimal.ZERO;
     BigDecimal additionalDiscountAmount = BigDecimal.ZERO;
     BigDecimal retefuente = BigDecimal.ZERO;
-    BigDecimal reteica = BigDecimal.ZERO;
     BigDecimal freight = BigDecimal.ZERO;
 
     if (request != null) {
@@ -387,10 +388,25 @@ public class SalesOrderServiceImpl implements SalesOrderService {
               .multiply(addDiscountPct)
               .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
 
-      retefuente =
-          request.getRetefuenteAmount() != null ? request.getRetefuenteAmount() : BigDecimal.ZERO;
-      reteica = request.getReteicaAmount() != null ? request.getReteicaAmount() : BigDecimal.ZERO;
       freight = request.getFreight() != null ? request.getFreight() : BigDecimal.ZERO;
+    }
+
+    // Retefuente: calculada en el backend según params configurables
+    BigDecimal retefuenteRate =
+        systemParamRepository
+            .findByClave("RETEFUENTE_RATE")
+            .map(p -> p.getValor())
+            .orElse(new BigDecimal("0.0250"));
+    BigDecimal retefuenteThreshold =
+        systemParamRepository
+            .findByClave("RETEFUENTE_THRESHOLD")
+            .map(p -> p.getValor())
+            .orElse(new BigDecimal("540"));
+
+    boolean clientAppliesRetefuente =
+        order.getClient() != null && Boolean.TRUE.equals(order.getClient().getRetefuenteApplies());
+    if (clientAppliesRetefuente && subtotal.compareTo(retefuenteThreshold) > 0) {
+      retefuente = subtotal.multiply(retefuenteRate).setScale(2, RoundingMode.HALF_UP);
     }
 
     BigDecimal totalValue =
@@ -399,13 +415,11 @@ public class SalesOrderServiceImpl implements SalesOrderService {
             .subtract(discountAmount)
             .subtract(additionalDiscountAmount)
             .subtract(retefuente)
-            .subtract(reteica)
             .add(freight)
             .setScale(2, RoundingMode.HALF_UP);
 
     order.setTaxAmount(taxAmount.setScale(2, RoundingMode.HALF_UP));
     order.setRetefuenteAmount(retefuente);
-    order.setReteicaAmount(reteica);
     order.setFreight(freight);
     order.setTotalValue(totalValue);
 

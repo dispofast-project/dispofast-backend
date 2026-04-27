@@ -20,8 +20,6 @@ CREATE TABLE quotes (
     iva_amount                   DECIMAL(18,2) NOT NULL DEFAULT 0,
     retefuente_rate              DECIMAL(7,4),
     retefuente_amount            DECIMAL(18,2),
-    reteica_rate                 DECIMAL(7,4),
-    reteica_amount               DECIMAL(18,2),
     total_amount                 DECIMAL(18,2) NOT NULL DEFAULT 0,
 
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),

@@ -6,6 +6,7 @@ import com.dispocol.dispofast.modules.customers.infra.persistence.ClientReposito
 import com.dispocol.dispofast.modules.iam.domain.AppUser;
 import com.dispocol.dispofast.modules.iam.infra.persistence.UserRepository;
 import com.dispocol.dispofast.modules.pricelist.infra.persistence.PriceListRepository;
+import com.dispocol.dispofast.modules.quotes.api.dtos.ChangeQuoteStatusRequestDTO;
 import com.dispocol.dispofast.modules.quotes.api.dtos.CreateQuoteRequestDTO;
 import com.dispocol.dispofast.modules.quotes.api.dtos.QuotePreviewResponseDTO;
 import com.dispocol.dispofast.modules.quotes.api.dtos.QuoteResponseDTO;
@@ -18,6 +19,7 @@ import com.dispocol.dispofast.modules.quotes.domain.Quotes;
 import com.dispocol.dispofast.modules.quotes.infra.persistence.QuoteItemRepository;
 import com.dispocol.dispofast.modules.quotes.infra.persistence.QuotesRepository;
 import com.dispocol.dispofast.shared.error.ResourceNotFoundException;
+import com.dispocol.dispofast.shared.params.infra.persistence.SystemParamRepository;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
@@ -34,16 +36,13 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class QuoteServiceImpl implements QuoteService {
 
-  private static final BigDecimal IVA_RATE = new BigDecimal("0.19");
-  private static final BigDecimal RETEFUENTE_RATE = new BigDecimal("0.035");
-  private static final BigDecimal RETEICA_RATE = new BigDecimal("0.005");
-
   private final QuotesRepository quotesRepository;
   private final QuoteItemRepository quoteItemRepository;
   private final QuoteMapper quoteMapper;
   private final ClientRepository clientRepository;
   private final PriceListRepository priceListRepository;
   private final UserRepository userRepository;
+  private final SystemParamRepository systemParamRepository;
 
   @Override
   @Transactional
@@ -65,8 +64,13 @@ public class QuoteServiceImpl implements QuoteService {
     quote.setCity(client.getCity());
     quote.setZone(client.getZone());
 
-    // Tasas iniciales tomadas del cliente
-    quote.setIvaRate(IVA_RATE);
+    // Tasas iniciales: IVA leído de system_params
+    BigDecimal ivaRate =
+        systemParamRepository
+            .findByClave("IVA")
+            .map(p -> p.getValor())
+            .orElse(new BigDecimal("0.19"));
+    quote.setIvaRate(ivaRate);
 
     Integer defaultDiscount = client.getDefaultDiscountRate();
     BigDecimal commRate =
@@ -75,14 +79,15 @@ public class QuoteServiceImpl implements QuoteService {
             : BigDecimal.ZERO;
     quote.setCommercialDiscountRate(commRate);
 
-    // Retenciones solo para personas jurídicas
+    // Retenciones solo para personas jurídicas que apliquen retefuente
     if (!(client instanceof Individual) && Boolean.TRUE.equals(client.getRetefuenteApplies())) {
-      quote.setRetefuenteRate(RETEFUENTE_RATE);
+      BigDecimal retefuenteRate =
+          systemParamRepository
+              .findByClave("RETEFUENTE_RATE")
+              .map(p -> p.getValor())
+              .orElse(new BigDecimal("0.0250"));
+      quote.setRetefuenteRate(retefuenteRate);
     }
-    if (!(client instanceof Individual)) {
-      quote.setReteicaRate(RETEICA_RATE);
-    }
-
     // Montos en cero hasta que se agreguen ítems
     quote.setSubtotalAmount(BigDecimal.ZERO);
     quote.setCommercialDiscountAmount(BigDecimal.ZERO);
@@ -90,7 +95,6 @@ public class QuoteServiceImpl implements QuoteService {
     quote.setOtherDiscountsAmount(BigDecimal.ZERO);
     quote.setIvaAmount(BigDecimal.ZERO);
     quote.setRetefuenteAmount(quote.getRetefuenteRate() != null ? BigDecimal.ZERO : null);
-    quote.setReteicaAmount(quote.getReteicaRate() != null ? BigDecimal.ZERO : null);
     quote.setTotalAmount(BigDecimal.ZERO);
 
     return quoteMapper.toResponseDTO(quotesRepository.save(quote));
@@ -150,6 +154,14 @@ public class QuoteServiceImpl implements QuoteService {
     return page.map(quoteMapper::toPreviewResponseDTO);
   }
 
+  @Override
+  @Transactional
+  public QuoteResponseDTO changeStatus(UUID id, ChangeQuoteStatusRequestDTO dto) {
+    Quotes quote = findQuote(id);
+    quote.setStatus(dto.getStatus());
+    return quoteMapper.toResponseDTO(quotesRepository.save(quote));
+  }
+
   // ── Lógica de recálculo ──────────────────────────────────────
 
   void recalculateQuoteTotals(Quotes quote) {
@@ -181,23 +193,24 @@ public class QuoteServiceImpl implements QuoteService {
 
     BigDecimal netBase = subtotal.subtract(commDiscountAmount).subtract(otherDiscAmount);
 
+    BigDecimal retefuenteThreshold =
+        systemParamRepository
+            .findByClave("RETEFUENTE_THRESHOLD")
+            .map(p -> p.getValor())
+            .orElse(new BigDecimal("540"));
+
     BigDecimal retefuenteAmount = null;
     if (quote.getRetefuenteRate() != null
-        && quote.getRetefuenteRate().compareTo(BigDecimal.ZERO) > 0) {
+        && quote.getRetefuenteRate().compareTo(BigDecimal.ZERO) > 0
+        && netBase.compareTo(retefuenteThreshold) > 0) {
       retefuenteAmount =
           netBase.multiply(quote.getRetefuenteRate()).setScale(2, RoundingMode.HALF_UP);
-    }
-
-    BigDecimal reteicaAmount = null;
-    if (quote.getReteicaRate() != null && quote.getReteicaRate().compareTo(BigDecimal.ZERO) > 0) {
-      reteicaAmount = netBase.multiply(quote.getReteicaRate()).setScale(2, RoundingMode.HALF_UP);
     }
 
     BigDecimal total =
         netBase
             .add(ivaTotal)
             .subtract(retefuenteAmount != null ? retefuenteAmount : BigDecimal.ZERO)
-            .subtract(reteicaAmount != null ? reteicaAmount : BigDecimal.ZERO)
             .setScale(2, RoundingMode.HALF_UP);
 
     quote.setSubtotalAmount(subtotal);
@@ -205,7 +218,6 @@ public class QuoteServiceImpl implements QuoteService {
     quote.setCommercialDiscountAmount(commDiscountAmount);
     quote.setOtherDiscountsAmount(otherDiscAmount);
     quote.setRetefuenteAmount(retefuenteAmount);
-    quote.setReteicaAmount(reteicaAmount);
     quote.setTotalAmount(total);
   }
 

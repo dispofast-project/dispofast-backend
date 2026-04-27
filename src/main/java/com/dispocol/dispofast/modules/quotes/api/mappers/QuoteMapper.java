@@ -54,8 +54,6 @@ public interface QuoteMapper {
   @Mapping(target = "ivaAmount", ignore = true)
   @Mapping(target = "retefuenteRate", ignore = true)
   @Mapping(target = "retefuenteAmount", ignore = true)
-  @Mapping(target = "reteicaRate", ignore = true)
-  @Mapping(target = "reteicaAmount", ignore = true)
   @Mapping(target = "totalAmount", ignore = true)
   @Mapping(target = "items", ignore = true)
   void updateEntityFromDTO(

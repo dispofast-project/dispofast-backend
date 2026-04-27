@@ -107,17 +107,7 @@ public class Quotes {
   @Column(name = "retefuente_amount", precision = 18, scale = 2)
   private BigDecimal retefuenteAmount;
 
-  /** Tasa de reteica (null para personas naturales). */
-  @Column(name = "reteica_rate", precision = 7, scale = 4)
-  private BigDecimal reteicaRate;
-
-  /** Monto de reteica (null para personas naturales). */
-  @Column(name = "reteica_amount", precision = 18, scale = 2)
-  private BigDecimal reteicaAmount;
-
-  /**
-   * Total a pagar = subtotal - descuento comercial - otros descuentos + IVA - retefuente - reteica.
-   */
+  /** Total a pagar = subtotal - descuento comercial - otros descuentos + IVA - retefuente. */
   @Column(name = "total_amount", nullable = false, precision = 18, scale = 2)
   private BigDecimal totalAmount = BigDecimal.ZERO;
 
