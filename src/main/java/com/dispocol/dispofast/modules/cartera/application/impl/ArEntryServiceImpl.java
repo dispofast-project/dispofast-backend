@@ -10,10 +10,11 @@ import com.dispocol.dispofast.modules.cartera.domain.ArEntrySource;
 import com.dispocol.dispofast.modules.cartera.infra.persistence.ArEntryRepository;
 import com.dispocol.dispofast.modules.customers.infra.persistence.ClientRepository;
 import com.dispocol.dispofast.modules.iam.infra.persistence.UserRepository;
+import com.dispocol.dispofast.modules.invoices.application.interfaces.InvoiceService;
+import com.dispocol.dispofast.modules.invoices.domain.Invoice;
 import com.dispocol.dispofast.modules.orders.domain.SalesOrder;
 import com.dispocol.dispofast.shared.location.infra.persistence.CityRepository;
 import jakarta.persistence.criteria.Predicate;
-import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +37,7 @@ public class ArEntryServiceImpl implements ArEntryService {
   private final ClientRepository clientRepository;
   private final UserRepository userRepository;
   private final CityRepository cityRepository;
+  private final InvoiceService invoiceService;
 
   @Override
   @Transactional(readOnly = true)
@@ -47,6 +49,13 @@ public class ArEntryServiceImpl implements ArEntryService {
   @Override
   @Transactional
   public ArEntryResponseDTO createManualEntry(CreateManualArEntryRequestDTO request) {
+    Invoice invoice =
+        invoiceService.createManual(
+            request.getInvoiceNumber(),
+            request.getClientId(),
+            request.getInvoiceDate(),
+            request.getValue());
+
     ArEntry entry = new ArEntry();
     entry.setClient(clientRepository.getReferenceById(request.getClientId()));
 
@@ -58,8 +67,7 @@ public class ArEntryServiceImpl implements ArEntryService {
     }
 
     entry.setValue(request.getValue());
-    entry.setInvoiceNumber(request.getInvoiceNumber());
-    entry.setInvoiceDate(request.getInvoiceDate());
+    entry.setInvoice(invoice);
     entry.setPaymentTermDays(request.getPaymentTermDays());
     entry.setExpirationDate(request.getInvoiceDate().plusDays(request.getPaymentTermDays()));
     entry.setSource(ArEntrySource.MANUAL);
@@ -69,21 +77,18 @@ public class ArEntryServiceImpl implements ArEntryService {
 
   @Override
   @Transactional
-  public ArEntryResponseDTO createFromOrder(SalesOrder order) {
-    OffsetDateTime invoiceDate = OffsetDateTime.now();
-    int termDays = DEFAULT_PAYMENT_TERM_DAYS;
+  public ArEntryResponseDTO createFromOrder(Invoice invoice) {
+    SalesOrder order = invoice.getSalesOrder();
 
     ArEntry entry = new ArEntry();
-    entry.setClient(order.getClient());
-    entry.setAsesor(order.getAsesor());
+    entry.setClient(invoice.getClient());
+    entry.setAsesor(order != null ? order.getAsesor() : null);
     entry.setOrder(order);
-    entry.setCity(order.getShipmentCity());
-    entry.setValue(
-        order.getTotalValue() != null ? order.getTotalValue() : java.math.BigDecimal.ZERO);
-    entry.setInvoiceNumber(order.getInvoiceNumber());
-    entry.setInvoiceDate(invoiceDate);
-    entry.setPaymentTermDays(termDays);
-    entry.setExpirationDate(invoiceDate.plusDays(termDays));
+    entry.setCity(order != null ? order.getShipmentCity() : null);
+    entry.setValue(invoice.getTotalValue());
+    entry.setInvoice(invoice);
+    entry.setPaymentTermDays(DEFAULT_PAYMENT_TERM_DAYS);
+    entry.setExpirationDate(invoice.getIssueDate().plusDays(DEFAULT_PAYMENT_TERM_DAYS));
     entry.setSource(ArEntrySource.ORDER);
 
     return arEntryMapper.toResponseDTO(arEntryRepository.save(entry));

@@ -2,6 +2,7 @@ package com.dispocol.dispofast.modules.cartera.domain;
 
 import com.dispocol.dispofast.modules.customers.domain.Client;
 import com.dispocol.dispofast.modules.iam.domain.AppUser;
+import com.dispocol.dispofast.modules.invoices.domain.Invoice;
 import com.dispocol.dispofast.modules.orders.domain.SalesOrder;
 import com.dispocol.dispofast.shared.location.domain.City;
 import jakarta.persistence.Column;
@@ -52,11 +53,9 @@ public class ArEntry {
   @Column(nullable = false, precision = 18, scale = 2)
   private BigDecimal value;
 
-  @Column(name = "invoice_number", length = 50)
-  private String invoiceNumber;
-
-  @Column(name = "invoice_date", nullable = false)
-  private OffsetDateTime invoiceDate;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "invoice_id")
+  private Invoice invoice;
 
   @Column(name = "payment_term_days", nullable = false)
   private int paymentTermDays = 30;
@@ -82,7 +81,8 @@ public class ArEntry {
 
   /** Días transcurridos desde la fecha de factura hasta hoy. */
   public long getDiasCartera() {
-    return ChronoUnit.DAYS.between(invoiceDate.toLocalDate(), LocalDate.now());
+    if (invoice == null || invoice.getIssueDate() == null) return 0;
+    return ChronoUnit.DAYS.between(invoice.getIssueDate().toLocalDate(), LocalDate.now());
   }
 
   /** Días transcurridos desde la fecha de vencimiento hasta hoy. Retorna 0 si aún no ha vencido. */

@@ -7,7 +7,7 @@ CREATE TABLE clients (
     is_active BOOLEAN NOT NULL DEFAULT true,
     retefuente_applies BOOLEAN NOT NULL DEFAULT false,
     address TEXT NOT NULL,
-    default_advisor_id UUID NOT NULL,
+    default_advisor_id UUID,
     city_id VARCHAR(10) NOT NULL,
     location_zone VARCHAR(50),
     default_discount_rate INTEGER,

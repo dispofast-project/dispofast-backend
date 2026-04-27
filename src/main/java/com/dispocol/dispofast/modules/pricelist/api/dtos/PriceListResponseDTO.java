@@ -13,4 +13,5 @@ import lombok.NoArgsConstructor;
 public class PriceListResponseDTO {
   private UUID id;
   private String name;
+  private boolean hasFile;
 }

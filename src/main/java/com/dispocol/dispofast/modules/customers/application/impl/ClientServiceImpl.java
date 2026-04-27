@@ -17,6 +17,7 @@ import com.dispocol.dispofast.modules.iam.domain.AppUser;
 import com.dispocol.dispofast.modules.iam.infra.persistence.UserRepository;
 import com.dispocol.dispofast.modules.pricelist.domain.PriceList;
 import com.dispocol.dispofast.modules.pricelist.infra.persistence.PriceListRepository;
+import com.dispocol.dispofast.shared.S3.application.interfaces.S3Service;
 import com.dispocol.dispofast.shared.error.ResourceNotFoundException;
 import com.dispocol.dispofast.shared.location.domain.City;
 import com.dispocol.dispofast.shared.location.infra.persistence.CityRepository;
@@ -43,6 +44,9 @@ public class ClientServiceImpl implements ClientService {
   private final UserRepository userRepository;
   private final ClientTypeRepository clientTypeRepository;
   private final PriceListRepository priceListRepository;
+  private final S3Service s3Service;
+
+  private static final String LEGAL_DOCS_BUCKET = "dispofast-legal-documents";
 
   @Override
   @Transactional(readOnly = true)
@@ -78,7 +82,7 @@ public class ClientServiceImpl implements ClientService {
 
   @Override
   @Transactional
-  public ClientResponseDTO createClient(CreateClientRequestDTO request) {
+  public ClientResponseDTO createClient(CreateClientRequestDTO request, AppUser createdByUser) {
     if (clientRepository.existsByIdentificationNumber(request.getIdentificationNumber())) {
       throw new IllegalArgumentException("Ya existe un cliente con este número de identificación.");
     }
@@ -94,13 +98,24 @@ public class ClientServiceImpl implements ClientService {
                     new ResourceNotFoundException(
                         "City not found with code: " + request.getCityCode()));
 
-    AppUser advisor =
-        userRepository
-            .findById(request.getDefaultAdvisorId())
-            .orElseThrow(
-                () ->
-                    new ResourceNotFoundException(
-                        "Advisor user not found with ID: " + request.getDefaultAdvisorId()));
+    AppUser advisor;
+    if (request.getDefaultAdvisorId() != null) {
+      advisor =
+          userRepository
+              .findById(request.getDefaultAdvisorId())
+              .orElseThrow(
+                  () ->
+                      new ResourceNotFoundException(
+                          "Advisor user not found with ID: " + request.getDefaultAdvisorId()));
+    } else {
+      boolean isAdmin =
+          createdByUser.getRoles().stream().anyMatch(r -> r.getName().equals("ADMIN"));
+      if (isAdmin) {
+        throw new IllegalArgumentException(
+            "Los administradores deben especificar un asesor al crear un cliente.");
+      }
+      advisor = createdByUser;
+    }
 
     ClientType clientType =
         clientTypeRepository
