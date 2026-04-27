@@ -193,18 +193,34 @@ public class QuoteServiceImpl implements QuoteService {
 
     BigDecimal netBase = subtotal.subtract(commDiscountAmount).subtract(otherDiscAmount);
 
-    BigDecimal retefuenteThreshold =
-        systemParamRepository
-            .findByClave("RETEFUENTE_THRESHOLD")
-            .map(p -> p.getValor())
-            .orElse(new BigDecimal("540"));
+    // Determinar dinámicamente si aplica retefuente según el cliente actual.
+    // Solo aplica a personas jurídicas con la bandera retefuenteApplies activa.
+    Client client = quote.getAccount();
+    boolean clientAppliesRetefuente =
+        client != null
+            && !(client instanceof Individual)
+            && Boolean.TRUE.equals(client.getRetefuenteApplies());
 
+    BigDecimal retefuenteRate = null;
     BigDecimal retefuenteAmount = null;
-    if (quote.getRetefuenteRate() != null
-        && quote.getRetefuenteRate().compareTo(BigDecimal.ZERO) > 0
-        && netBase.compareTo(retefuenteThreshold) > 0) {
-      retefuenteAmount =
-          netBase.multiply(quote.getRetefuenteRate()).setScale(2, RoundingMode.HALF_UP);
+    if (clientAppliesRetefuente) {
+      retefuenteRate =
+          systemParamRepository
+              .findByClave("RETEFUENTE_RATE")
+              .map(p -> p.getValor())
+              .orElse(new BigDecimal("0.0250"));
+
+      BigDecimal retefuenteThreshold =
+          systemParamRepository
+              .findByClave("RETEFUENTE_THRESHOLD")
+              .map(p -> p.getValor())
+              .orElse(new BigDecimal("540000"));
+
+      if (netBase.compareTo(retefuenteThreshold) > 0) {
+        retefuenteAmount = netBase.multiply(retefuenteRate).setScale(2, RoundingMode.HALF_UP);
+      } else {
+        retefuenteAmount = BigDecimal.ZERO;
+      }
     }
 
     BigDecimal total =
@@ -217,6 +233,7 @@ public class QuoteServiceImpl implements QuoteService {
     quote.setIvaAmount(ivaTotal);
     quote.setCommercialDiscountAmount(commDiscountAmount);
     quote.setOtherDiscountsAmount(otherDiscAmount);
+    quote.setRetefuenteRate(retefuenteRate);
     quote.setRetefuenteAmount(retefuenteAmount);
     quote.setTotalAmount(total);
   }

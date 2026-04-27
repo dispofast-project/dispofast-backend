@@ -1,5 +1,6 @@
 package com.dispocol.dispofast.modules.pricelist.application.impl;
 
+import com.dispocol.dispofast.modules.inventory.infra.persistence.InventoryStockRepository;
 import com.dispocol.dispofast.modules.inventory.infra.persistence.ProductRepository;
 import com.dispocol.dispofast.modules.pricelist.api.dtos.PriceListItemDTO;
 import com.dispocol.dispofast.modules.pricelist.api.dtos.PriceListResponseDTO;
@@ -37,6 +38,7 @@ public class PriceListServiceImpl implements PriceListService {
   private final PriceListRepository priceListRepository;
   private final PriceListItemRepository priceListItemRepository;
   private final ProductRepository productRepository;
+  private final InventoryStockRepository inventoryStockRepository;
   private final S3Service s3Service;
 
   @Override
@@ -50,11 +52,21 @@ public class PriceListServiceImpl implements PriceListService {
   public List<PriceListItemDTO> getItemsByPriceList(UUID priceListId) {
     return priceListItemRepository.findByPriceList_Id(priceListId).stream()
         .map(
-            item ->
-                new PriceListItemDTO(
-                    item.getProduct().getId(),
-                    item.getProduct().getReference(),
-                    item.getUnitPrice()))
+            item -> {
+              UUID productId = item.getProduct().getId();
+              Integer available =
+                  inventoryStockRepository
+                      .findByProduct_Id(productId)
+                      .map(stock -> stock.getQuantityAvailable())
+                      .orElse(null);
+              return new PriceListItemDTO(
+                  productId,
+                  item.getProduct().getReference(),
+                  item.getProduct().getName(),
+                  item.getProduct().isTaxFree(),
+                  item.getUnitPrice(),
+                  available);
+            })
         .toList();
   }
 

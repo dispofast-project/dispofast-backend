@@ -32,7 +32,7 @@ public class SystemParamController {
     // Fallbacks si algún param no existe en BD
     params.putIfAbsent("IVA", new BigDecimal("0.1900"));
     params.putIfAbsent("RETEFUENTE_RATE", new BigDecimal("0.0250"));
-    params.putIfAbsent("RETEFUENTE_THRESHOLD", new BigDecimal("540.0000"));
+    params.putIfAbsent("RETEFUENTE_THRESHOLD", new BigDecimal("540000.0000"));
 
     return ResponseEntity.ok(params);
   }

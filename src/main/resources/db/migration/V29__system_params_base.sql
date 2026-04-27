@@ -7,4 +7,4 @@ CREATE TABLE IF NOT EXISTS system_params (
 
 INSERT INTO system_params (clave, valor) VALUES ('IVA', 0.1900);
 INSERT INTO system_params (clave, valor) VALUES ('RETEFUENTE_RATE', 0.0250);
-INSERT INTO system_params (clave, valor) VALUES ('RETEFUENTE_THRESHOLD', 540.0000);
+INSERT INTO system_params (clave, valor) VALUES ('RETEFUENTE_THRESHOLD', 540000.0000);

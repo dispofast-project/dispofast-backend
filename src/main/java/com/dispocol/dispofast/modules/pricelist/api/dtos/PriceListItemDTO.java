@@ -12,5 +12,8 @@ import lombok.NoArgsConstructor;
 public class PriceListItemDTO {
   private UUID productId;
   private String productReference;
+  private String productName;
+  private boolean taxFree;
   private BigDecimal unitPrice;
+  private Integer quantityAvailable;
 }
