@@ -401,7 +401,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
         systemParamRepository
             .findByClave("RETEFUENTE_THRESHOLD")
             .map(p -> p.getValor())
-            .orElse(new BigDecimal("540"));
+            .orElse(new BigDecimal("540000"));
 
     boolean clientAppliesRetefuente =
         order.getClient() != null && Boolean.TRUE.equals(order.getClient().getRetefuenteApplies());
