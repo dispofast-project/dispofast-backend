@@ -12,6 +12,7 @@ public class InventoryResponseDTO {
   private UUID productId;
   private String productName;
   private String productReference;
+  private String category;
   private boolean taxFree;
   private int quantityAvailable;
   private int quantityReserved;
