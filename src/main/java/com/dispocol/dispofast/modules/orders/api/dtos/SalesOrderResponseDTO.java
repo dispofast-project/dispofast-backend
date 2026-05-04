@@ -33,5 +33,6 @@ public class SalesOrderResponseDTO {
   private BigDecimal taxAmount;
   private BigDecimal retefuenteAmount;
   private BigDecimal freight;
+  private String invoiceNumber;
   private List<SalesOrderItemResponseDTO> items;
 }

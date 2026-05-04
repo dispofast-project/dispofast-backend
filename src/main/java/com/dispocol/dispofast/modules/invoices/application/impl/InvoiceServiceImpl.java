@@ -13,6 +13,7 @@ import com.dispocol.dispofast.shared.S3.application.interfaces.S3Service;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -132,6 +133,12 @@ public class InvoiceServiceImpl implements InvoiceService {
     return invoiceRepository
         .findById(id)
         .orElseThrow(() -> new InvoiceNotFoundException("Factura no encontrada con id: " + id));
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Optional<String> findInvoiceNumberByOrderId(UUID orderId) {
+    return invoiceRepository.findBySalesOrderId(orderId).map(Invoice::getInvoiceNumber);
   }
 
   private String extractFileName(String s3Key) {
