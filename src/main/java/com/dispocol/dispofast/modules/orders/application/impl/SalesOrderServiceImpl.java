@@ -430,9 +430,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
       SalesOrder order, List<SalesOrderItemResponseDTO> items) {
     SalesOrderResponseDTO response = salesOrderMapper.toResponseDTO(order);
     response.setItems(items);
-    invoiceService
-        .findInvoiceNumberByOrderId(order.getId())
-        .ifPresent(response::setInvoiceNumber);
+    invoiceService.findInvoiceNumberByOrderId(order.getId()).ifPresent(response::setInvoiceNumber);
     return response;
   }
 
