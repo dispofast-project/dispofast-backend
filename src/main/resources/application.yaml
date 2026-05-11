@@ -19,6 +19,11 @@ spring:
   flyway:
     enabled: true
 
+app:
+  jwt:
+    secret: ${JWT_SECRET:ihavetochangeThisSecretKeysoon1234567890}
+    expirationSeconds: 3600
+
 server:
   port: 8080
   servlet:
