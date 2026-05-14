@@ -29,7 +29,6 @@ import com.dispocol.dispofast.shared.location.infra.persistence.CityRepository;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -91,7 +90,8 @@ public class ClientServiceImpl implements ClientService {
 
   @Override
   @Transactional
-  public ClientResponseDTO createClient(CreateClientRequestDTO request, List<MultipartFile> documents, AppUser createdByUser) {
+  public ClientResponseDTO createClient(
+      CreateClientRequestDTO request, List<MultipartFile> documents, AppUser createdByUser) {
     if (clientRepository.existsByIdentificationNumber(request.getIdentificationNumber())) {
       throw new IllegalArgumentException("Ya existe un cliente con este número de identificación.");
     }
@@ -160,12 +160,24 @@ public class ClientServiceImpl implements ClientService {
 
     if (documents != null && !documents.isEmpty()) {
       for (MultipartFile file : documents) {
-        String storagePath = "clients/" + savedClient.getId() + "/" + UUID.randomUUID() + "_" + file.getOriginalFilename();
+        String storagePath =
+            "clients/"
+                + savedClient.getId()
+                + "/"
+                + UUID.randomUUID()
+                + "_"
+                + file.getOriginalFilename();
 
         try {
-          s3Service.uploadFile(LEGAL_DOCS_BUCKET, storagePath, file.getInputStream(), file.getContentType(), file.getSize());
+          s3Service.uploadFile(
+              LEGAL_DOCS_BUCKET,
+              storagePath,
+              file.getInputStream(),
+              file.getContentType(),
+              file.getSize());
         } catch (IOException e) {
-          throw new UploadFileFailedException("Subir el documento: " + file.getName() + " ha fallado.");
+          throw new UploadFileFailedException(
+              "Subir el documento: " + file.getName() + " ha fallado.");
         }
 
         MediaAsset asset = new MediaAsset();
@@ -188,7 +200,8 @@ public class ClientServiceImpl implements ClientService {
 
   @Override
   @Transactional
-  public ClientResponseDTO updateClient(UUID id, CreateClientRequestDTO request, List<MultipartFile> documents) {
+  public ClientResponseDTO updateClient(
+      UUID id, CreateClientRequestDTO request, List<MultipartFile> documents) {
     Client client =
         clientRepository
             .findById(id)
@@ -253,12 +266,24 @@ public class ClientServiceImpl implements ClientService {
 
     if (documents != null && !documents.isEmpty()) {
       for (MultipartFile file : documents) {
-        String storagePath = "clients/" + client.getId() + "/" + UUID.randomUUID() + "_" + file.getOriginalFilename();
+        String storagePath =
+            "clients/"
+                + client.getId()
+                + "/"
+                + UUID.randomUUID()
+                + "_"
+                + file.getOriginalFilename();
 
         try {
-          s3Service.uploadFile(LEGAL_DOCS_BUCKET, storagePath, file.getInputStream(), file.getContentType(), file.getSize());
+          s3Service.uploadFile(
+              LEGAL_DOCS_BUCKET,
+              storagePath,
+              file.getInputStream(),
+              file.getContentType(),
+              file.getSize());
         } catch (IOException e) {
-          throw new UploadFileFailedException("Subir el documento: " + file.getName() + " ha fallado.");
+          throw new UploadFileFailedException(
+              "Subir el documento: " + file.getName() + " ha fallado.");
         }
 
         MediaAsset asset = new MediaAsset();
@@ -285,13 +310,15 @@ public class ClientServiceImpl implements ClientService {
     Client client =
         clientRepository
             .findById(clientId)
-            .orElseThrow(() -> new ResourceNotFoundException("Client not found with id: " + clientId));
+            .orElseThrow(
+                () -> new ResourceNotFoundException("Client not found with id: " + clientId));
 
     LegalDocument doc =
         client.getLegalDocuments().stream()
             .filter(d -> d.getId().equals(documentId))
             .findFirst()
-            .orElseThrow(() -> new ResourceNotFoundException("Document not found with id: " + documentId));
+            .orElseThrow(
+                () -> new ResourceNotFoundException("Document not found with id: " + documentId));
 
     return s3Service.downloadFile(LEGAL_DOCS_BUCKET, doc.getFileAttachment().getStoragePath());
   }
