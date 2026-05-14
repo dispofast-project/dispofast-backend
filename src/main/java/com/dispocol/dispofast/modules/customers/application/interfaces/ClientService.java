@@ -3,8 +3,8 @@ package com.dispocol.dispofast.modules.customers.application.interfaces;
 import com.dispocol.dispofast.modules.customers.api.dtos.ClientPreviewDTO;
 import com.dispocol.dispofast.modules.customers.api.dtos.ClientResponseDTO;
 import com.dispocol.dispofast.modules.customers.api.dtos.CreateClientRequestDTO;
-
 import java.util.List;
+import com.dispocol.dispofast.modules.iam.domain.AppUser;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,7 +16,7 @@ public interface ClientService {
 
   ClientResponseDTO getClientById(UUID id);
 
-  ClientResponseDTO createClient(CreateClientRequestDTO request, List<MultipartFile> documents);
+  ClientResponseDTO createClient(CreateClientRequestDTO request, List<MultipartFile> documents, AppUser createdByUser);
 
   ClientResponseDTO updateClient(UUID id, CreateClientRequestDTO request, List<MultipartFile> documents);
 

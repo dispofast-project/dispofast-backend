@@ -5,6 +5,7 @@ import com.dispocol.dispofast.modules.inventory.api.mappers.InventoryMapper;
 import com.dispocol.dispofast.modules.inventory.api.mappers.InventoryMapperImpl;
 import com.dispocol.dispofast.modules.inventory.domain.InventoryStock;
 import com.dispocol.dispofast.modules.inventory.domain.Product;
+import com.dispocol.dispofast.modules.inventory.domain.StockState;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -28,7 +29,7 @@ public class InventoryMapperTest {
     testStock = new InventoryStock();
     testStock.setQuantityAvailable(100);
     testStock.setQuantityReserved(20);
-    testStock.setState("IN_STOCK");
+    testStock.setState(StockState.IN_STOCK);
 
     testProduct.setId(java.util.UUID.randomUUID());
     testProduct.setName(productName);

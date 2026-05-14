@@ -15,5 +15,7 @@ public class AddQuoteItemRequestDTO {
 
   private UUID productId;
   private BigDecimal quantity;
+
+  /** Si se envía, sobreescribe el precio de la lista de precios. */
   private BigDecimal unitPrice;
 }

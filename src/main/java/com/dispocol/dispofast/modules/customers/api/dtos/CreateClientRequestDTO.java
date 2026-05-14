@@ -49,7 +49,6 @@ public abstract class CreateClientRequestDTO {
   @NotBlank(message = "La dirección es requerida")
   private String address;
 
-  @NotNull(message = "El asesor asignado es requerido")
   private UUID defaultAdvisorId;
 
   @NotBlank(message = "La ciudad es requerida")

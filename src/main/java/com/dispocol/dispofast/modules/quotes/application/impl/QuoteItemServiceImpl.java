@@ -2,6 +2,7 @@ package com.dispocol.dispofast.modules.quotes.application.impl;
 
 import com.dispocol.dispofast.modules.inventory.domain.Product;
 import com.dispocol.dispofast.modules.inventory.infra.persistence.ProductRepository;
+import com.dispocol.dispofast.modules.pricelist.infra.persistence.PriceListItemRepository;
 import com.dispocol.dispofast.modules.quotes.api.dtos.AddQuoteItemRequestDTO;
 import com.dispocol.dispofast.modules.quotes.api.dtos.QuoteItemResponseDTO;
 import com.dispocol.dispofast.modules.quotes.api.dtos.UpdateQuoteItemRequestDTO;
@@ -12,6 +13,7 @@ import com.dispocol.dispofast.modules.quotes.domain.Quotes;
 import com.dispocol.dispofast.modules.quotes.infra.persistence.QuoteItemRepository;
 import com.dispocol.dispofast.modules.quotes.infra.persistence.QuotesRepository;
 import com.dispocol.dispofast.shared.error.ResourceNotFoundException;
+import com.dispocol.dispofast.shared.params.infra.persistence.SystemParamRepository;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
@@ -24,13 +26,13 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class QuoteItemServiceImpl implements QuoteItemService {
 
-  private static final BigDecimal IVA_RATE = new BigDecimal("0.19");
-
   private final QuoteItemRepository quoteItemRepository;
   private final QuotesRepository quotesRepository;
   private final ProductRepository productRepository;
+  private final PriceListItemRepository priceListItemRepository;
   private final QuoteItemMapper quoteItemMapper;
   private final QuoteServiceImpl quoteService;
+  private final SystemParamRepository systemParamRepository;
 
   @Override
   @Transactional
@@ -38,7 +40,28 @@ public class QuoteItemServiceImpl implements QuoteItemService {
     Quotes quote = findQuote(quoteId);
     Product product = findProduct(dto.getProductId());
 
-    QuoteItem item = buildItem(quote, product, dto.getQuantity(), dto.getUnitPrice());
+    BigDecimal unitPrice =
+        dto.getUnitPrice() != null
+            ? dto.getUnitPrice()
+            : priceListItemRepository
+                .findByPriceList_IdAndProduct_Id(quote.getPriceList().getId(), product.getId())
+                .map(pi -> pi.getUnitPrice())
+                .orElseThrow(
+                    () ->
+                        new ResourceNotFoundException(
+                            "El producto no tiene precio en la lista de precios asignada a esta cotización."));
+
+    QuoteItem item =
+        quoteItemRepository
+            .findByQuote_IdAndProduct_Id(quoteId, product.getId())
+            .map(
+                existing -> {
+                  existing.setQuantity(existing.getQuantity().add(dto.getQuantity()));
+                  recalculateItemAmounts(existing);
+                  return existing;
+                })
+            .orElseGet(() -> buildItem(quote, product, dto.getQuantity(), unitPrice));
+
     QuoteItem saved = quoteItemRepository.save(item);
 
     quoteService.recalculateQuoteTotals(quote);
@@ -107,8 +130,13 @@ public class QuoteItemServiceImpl implements QuoteItemService {
   }
 
   private void recalculateItemAmounts(QuoteItem item) {
+    BigDecimal ivaRate =
+        systemParamRepository
+            .findByClave("IVA")
+            .map(p -> p.getValor())
+            .orElse(new BigDecimal("0.19"));
     BigDecimal taxRate =
-        Boolean.TRUE.equals(item.getProduct().isTaxFree()) ? BigDecimal.ZERO : IVA_RATE;
+        Boolean.TRUE.equals(item.getProduct().isTaxFree()) ? BigDecimal.ZERO : ivaRate;
     BigDecimal gross = item.getUnitPrice().multiply(item.getQuantity());
     BigDecimal taxAmount = gross.multiply(taxRate).setScale(2, RoundingMode.HALF_UP);
 
