@@ -2,9 +2,9 @@ package com.dispocol.dispofast.modules.customers.api.mappers;
 
 import com.dispocol.dispofast.modules.customers.api.dtos.LegalDocumentDTO;
 import com.dispocol.dispofast.modules.customers.domain.LegalDocument;
-import com.dispocol.dispofast.modules.temp.MediaAsset;
-import com.dispocol.dispofast.modules.temp.MediaAssetType;
-import com.dispocol.dispofast.modules.temp.api.dtos.MediaAssetDTO;
+import com.dispocol.dispofast.shared.MediaAsset.domain.MediaAsset;
+import com.dispocol.dispofast.shared.MediaAsset.domain.MediaAssetType;
+import com.dispocol.dispofast.shared.MediaAsset.dtos.MediaAssetDTO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

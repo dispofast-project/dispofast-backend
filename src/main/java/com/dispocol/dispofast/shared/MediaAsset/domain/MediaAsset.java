@@ -1,4 +1,4 @@
-package com.dispocol.dispofast.modules.temp;
+package com.dispocol.dispofast.shared.MediaAsset.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

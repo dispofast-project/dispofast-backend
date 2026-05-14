@@ -6,9 +6,9 @@ import com.dispocol.dispofast.modules.customers.application.interfaces.LegalDocu
 import com.dispocol.dispofast.modules.customers.domain.LegalDocument;
 import com.dispocol.dispofast.modules.customers.infra.persistence.ClientRepository;
 import com.dispocol.dispofast.modules.customers.infra.persistence.LegalDocumentRepository;
-import com.dispocol.dispofast.modules.temp.MediaAsset;
-import com.dispocol.dispofast.modules.temp.MediaAssetRepository;
-import com.dispocol.dispofast.modules.temp.MediaAssetType;
+import com.dispocol.dispofast.shared.MediaAsset.domain.MediaAsset;
+import com.dispocol.dispofast.shared.MediaAsset.domain.MediaAssetType;
+import com.dispocol.dispofast.shared.MediaAsset.persistence.MediaAssetRepository;
 import com.dispocol.dispofast.shared.S3.application.interfaces.S3Service;
 import com.dispocol.dispofast.shared.error.ResourceNotFoundException;
 import java.io.IOException;
