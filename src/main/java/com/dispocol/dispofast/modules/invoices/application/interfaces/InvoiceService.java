@@ -5,6 +5,7 @@ import com.dispocol.dispofast.modules.invoices.domain.Invoice;
 import com.dispocol.dispofast.modules.orders.domain.SalesOrder;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -37,4 +38,6 @@ public interface InvoiceService {
   String getPdfFileNameByOrderId(UUID orderId);
 
   Invoice findEntityById(UUID id);
+
+  Optional<String> findInvoiceNumberByOrderId(UUID orderId);
 }
