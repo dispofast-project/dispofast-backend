@@ -1,6 +1,6 @@
 package com.dispocol.dispofast.modules.customers.domain;
 
-import com.dispocol.dispofast.modules.temp.MediaAsset;
+import com.dispocol.dispofast.shared.MediaAsset.domain.MediaAsset;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;

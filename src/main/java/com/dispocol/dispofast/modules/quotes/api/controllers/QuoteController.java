@@ -1,10 +1,12 @@
 package com.dispocol.dispofast.modules.quotes.api.controllers;
 
+import com.dispocol.dispofast.modules.quotes.api.dtos.ChangeQuoteStatusRequestDTO;
 import com.dispocol.dispofast.modules.quotes.api.dtos.CreateQuoteRequestDTO;
 import com.dispocol.dispofast.modules.quotes.api.dtos.QuotePreviewResponseDTO;
 import com.dispocol.dispofast.modules.quotes.api.dtos.QuoteResponseDTO;
 import com.dispocol.dispofast.modules.quotes.api.dtos.UpdateQuoteRequestDTO;
 import com.dispocol.dispofast.modules.quotes.application.interfaces.QuoteService;
+import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -34,8 +36,14 @@ public class QuoteController {
 
   @PutMapping("/{id}")
   public ResponseEntity<QuoteResponseDTO> updateQuote(
-      @PathVariable UUID id, @RequestBody UpdateQuoteRequestDTO updateQuoteRequestDTO) {
+      @PathVariable UUID id, @Valid @RequestBody UpdateQuoteRequestDTO updateQuoteRequestDTO) {
     return ResponseEntity.ok(quoteService.updateQuote(id, updateQuoteRequestDTO));
+  }
+
+  @PatchMapping("/{id}/status")
+  public ResponseEntity<QuoteResponseDTO> changeStatus(
+      @PathVariable UUID id, @RequestBody ChangeQuoteStatusRequestDTO dto) {
+    return ResponseEntity.ok(quoteService.changeStatus(id, dto));
   }
 
   @GetMapping

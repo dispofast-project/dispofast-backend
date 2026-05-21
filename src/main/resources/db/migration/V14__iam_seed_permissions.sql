@@ -21,11 +21,17 @@ INSERT INTO permissions (name) VALUES
     ('CUSTOMERS_EDIT'),
     ('CUSTOMERS_DELETE'),
 
-    -- Inventario
+    -- Inventario (stock, ajustes, movimientos)
     ('INVENTORY_VIEW'),
     ('INVENTORY_CREATE'),
     ('INVENTORY_EDIT'),
     ('INVENTORY_DELETE'),
+
+    -- Catálogo de productos
+    ('PRODUCTS_VIEW'),
+    ('PRODUCTS_CREATE'),
+    ('PRODUCTS_EDIT'),
+    ('PRODUCTS_DELETE'),
 
     -- Órdenes de compra
     ('PURCHASE_ORDERS_VIEW'),
@@ -78,6 +84,8 @@ FROM   roles r
 JOIN   permissions p ON p.name IN (
     -- Clientes
     'CUSTOMERS_VIEW',        'CUSTOMERS_CREATE',        'CUSTOMERS_EDIT',
+    -- Catálogo de productos (lectura para armar cotizaciones)
+    'PRODUCTS_VIEW',
     -- Órdenes de compra
     'PURCHASE_ORDERS_VIEW',  'PURCHASE_ORDERS_CREATE',  'PURCHASE_ORDERS_EDIT',
     -- Lista de precios
@@ -87,7 +95,8 @@ JOIN   permissions p ON p.name IN (
     -- Cartera
     'ACCOUNTS_VIEW',         'ACCOUNTS_CREATE',         'ACCOUNTS_EDIT',
     -- Prospectos
-    'PROSPECTS_VIEW',        'PROSPECTS_CREATE',        'PROSPECTS_EDIT'
+    'PROSPECTS_VIEW',        'PROSPECTS_CREATE',        'PROSPECTS_EDIT',
+    'INVENTORY_VIEW'
 )
 WHERE  r.name = 'VENDEDOR'
 ON CONFLICT DO NOTHING;
@@ -99,6 +108,7 @@ SELECT r.id, p.id
 FROM   roles r
 JOIN   permissions p ON p.name IN (
     'INVENTORY_VIEW',       'INVENTORY_CREATE',        'INVENTORY_EDIT',
+    'PRODUCTS_VIEW',        'PRODUCTS_CREATE',         'PRODUCTS_EDIT',
     'PURCHASE_ORDERS_VIEW'
 )
 WHERE  r.name = 'BODEGA'

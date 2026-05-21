@@ -1,6 +1,6 @@
 package com.dispocol.dispofast.modules.customers.api.dtos;
 
-import com.dispocol.dispofast.modules.temp.api.dtos.MediaAssetDTO;
+import com.dispocol.dispofast.shared.MediaAsset.dtos.MediaAssetDTO;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 import lombok.AllArgsConstructor;

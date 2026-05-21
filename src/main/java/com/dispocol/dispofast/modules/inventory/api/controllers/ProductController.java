@@ -29,33 +29,33 @@ public class ProductController {
   private final ProductService productService;
 
   @PostMapping
-  @PreAuthorize("hasAuthority('INVENTORY_CREATE')")
+  @PreAuthorize("hasAuthority('PRODUCTS_CREATE')")
   public ResponseEntity<ProductResponseDTO> createProduct(
       @Valid @RequestBody CreateProductRequestDTO request) {
     return ResponseEntity.status(HttpStatus.CREATED).body(productService.createProduct(request));
   }
 
   @GetMapping
-  @PreAuthorize("hasAuthority('INVENTORY_VIEW')")
+  @PreAuthorize("hasAuthority('PRODUCTS_VIEW')")
   public ResponseEntity<Page<ProductResponseDTO>> getAllProducts(Pageable pageable) {
     return ResponseEntity.ok(productService.getAllProducts(pageable));
   }
 
   @GetMapping("/{id}")
-  @PreAuthorize("hasAuthority('INVENTORY_VIEW')")
+  @PreAuthorize("hasAuthority('PRODUCTS_VIEW')")
   public ResponseEntity<ProductResponseDTO> getProductById(@PathVariable UUID id) {
     return ResponseEntity.ok(productService.getProductById(id));
   }
 
   @PutMapping("/{id}")
-  @PreAuthorize("hasAuthority('INVENTORY_EDIT')")
+  @PreAuthorize("hasAuthority('PRODUCTS_EDIT')")
   public ResponseEntity<ProductResponseDTO> updateProduct(
       @PathVariable UUID id, @Valid @RequestBody UpdateProductRequestDTO request) {
     return ResponseEntity.ok(productService.updateProduct(id, request));
   }
 
   @DeleteMapping("/{id}")
-  @PreAuthorize("hasAuthority('INVENTORY_DELETE')")
+  @PreAuthorize("hasAuthority('PRODUCTS_DELETE')")
   public ResponseEntity<Void> deleteProduct(@PathVariable UUID id) {
     productService.deleteProduct(id);
     return ResponseEntity.noContent().build();

@@ -20,6 +20,9 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -163,6 +166,20 @@ public class GlobalExceptionHandler {
       InvalidOrderStateException ex, HttpServletRequest request) {
     log.warn("Invalid order state transition: {}", ex.getMessage());
     return buildErrorResponseEntity(ex, request, HttpStatus.UNPROCESSABLE_ENTITY);
+  }
+
+  @ExceptionHandler(AuthenticationException.class)
+  public ResponseEntity<GlobalErrorResponse> handleAuthentication(
+      AuthenticationException ex, HttpServletRequest request) {
+    log.warn("Unauthenticated request: {} {}", request.getMethod(), request.getRequestURI());
+    return buildErrorResponseEntity(ex, request, HttpStatus.UNAUTHORIZED);
+  }
+
+  @ExceptionHandler({AuthorizationDeniedException.class, AccessDeniedException.class})
+  public ResponseEntity<GlobalErrorResponse> handleAccessDenied(
+      Exception ex, HttpServletRequest request) {
+    log.warn("Access denied: {} {}", request.getMethod(), request.getRequestURI());
+    return buildErrorResponseEntity(ex, request, HttpStatus.FORBIDDEN);
   }
 
   @ExceptionHandler(Exception.class)

@@ -18,6 +18,8 @@ spring:
     show-sql: false
   flyway:
     enabled: true
+    baseline-on-migrate: true
+    baseline-version: 29
 
 app:
   jwt:
