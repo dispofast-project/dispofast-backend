@@ -34,7 +34,8 @@ public class PriceListController {
   @PreAuthorize("hasAuthority('PRICE_LISTS_EDIT')")
   public ResponseEntity<PriceListResponseDTO> createPriceList(
       @Valid @RequestBody CreatePriceListRequestDTO request) {
-    return ResponseEntity.status(HttpStatus.CREATED).body(priceListService.createPriceList(request));
+    return ResponseEntity.status(HttpStatus.CREATED)
+        .body(priceListService.createPriceList(request));
   }
 
   @GetMapping
