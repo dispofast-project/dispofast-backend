@@ -2,6 +2,7 @@ package com.dispocol.dispofast.modules.pricelist.application.impl;
 
 import com.dispocol.dispofast.modules.inventory.infra.persistence.InventoryStockRepository;
 import com.dispocol.dispofast.modules.inventory.infra.persistence.ProductRepository;
+import com.dispocol.dispofast.modules.pricelist.api.dtos.CreatePriceListRequestDTO;
 import com.dispocol.dispofast.modules.pricelist.api.dtos.PriceListItemDTO;
 import com.dispocol.dispofast.modules.pricelist.api.dtos.PriceListResponseDTO;
 import com.dispocol.dispofast.modules.pricelist.application.interfaces.PriceListService;
@@ -40,6 +41,14 @@ public class PriceListServiceImpl implements PriceListService {
   private final ProductRepository productRepository;
   private final InventoryStockRepository inventoryStockRepository;
   private final S3Service s3Service;
+
+  @Override
+  public PriceListResponseDTO createPriceList(CreatePriceListRequestDTO request) {
+    PriceList priceList = new PriceList();
+    priceList.setName(request.getName());
+    PriceList saved = priceListRepository.save(priceList);
+    return new PriceListResponseDTO(saved.getId(), saved.getName(), false);
+  }
 
   @Override
   public List<PriceListResponseDTO> getAllPriceLists() {
