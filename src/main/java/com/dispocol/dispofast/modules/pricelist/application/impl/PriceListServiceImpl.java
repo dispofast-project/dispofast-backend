@@ -190,8 +190,7 @@ public class PriceListServiceImpl implements PriceListService {
     Map<UUID, BigDecimal> priceByProductId =
         priceListItemRepository.findByPriceList_Id(priceListId).stream()
             .collect(
-                Collectors.toMap(
-                    item -> item.getProduct().getId(), PriceListItem::getUnitPrice));
+                Collectors.toMap(item -> item.getProduct().getId(), PriceListItem::getUnitPrice));
 
     return productRepository.findAll().stream()
         .map(
