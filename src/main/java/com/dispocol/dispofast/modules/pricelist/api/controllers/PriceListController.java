@@ -50,6 +50,12 @@ public class PriceListController {
     return ResponseEntity.ok(priceListService.getItemsByPriceList(id));
   }
 
+  @GetMapping("/{id}/catalog")
+  @PreAuthorize("hasAuthority('PRICE_LISTS_VIEW')")
+  public ResponseEntity<List<PriceListItemDTO>> getProductsCatalog(@PathVariable UUID id) {
+    return ResponseEntity.ok(priceListService.getAllProductsWithPrice(id));
+  }
+
   @PostMapping("/{id}/upload")
   @PreAuthorize("hasAuthority('PRICE_LISTS_EDIT')")
   public ResponseEntity<Void> uploadPriceListItems(

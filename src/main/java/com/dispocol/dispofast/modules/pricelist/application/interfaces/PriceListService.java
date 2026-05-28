@@ -23,5 +23,7 @@ public interface PriceListService {
 
   String getPriceListOriginalFileName(UUID priceListId);
 
-  Optional<BigDecimal> resolveUnitPrice(UUID priceListId, String reference);
+  Optional<BigDecimal> resolveUnitPrice(UUID priceListId, UUID productId);
+
+  List<PriceListItemDTO> getAllProductsWithPrice(UUID priceListId);
 }

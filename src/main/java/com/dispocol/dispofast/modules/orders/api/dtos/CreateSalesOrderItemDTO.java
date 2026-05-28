@@ -18,4 +18,10 @@ public class CreateSalesOrderItemDTO {
 
   @DecimalMin(value = "0.00", inclusive = true, message = "El descuento no puede ser negativo")
   private BigDecimal discount;
+
+  @DecimalMin(
+      value = "0.00",
+      inclusive = true,
+      message = "El precio unitario no puede ser negativo")
+  private BigDecimal unitPrice;
 }
