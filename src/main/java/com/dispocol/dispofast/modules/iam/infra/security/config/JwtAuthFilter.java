@@ -2,6 +2,7 @@ package com.dispocol.dispofast.modules.iam.infra.security.config;
 
 import com.dispocol.dispofast.modules.iam.infra.security.JWTProvider;
 import com.dispocol.dispofast.modules.iam.infra.security.UserDetailService;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -71,9 +72,16 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             SecurityContextHolder.getContext().setAuthentication(authenticationToken);
           }
         }
-      } catch (Exception e) {
+      } catch (JwtException e) {
         log.warn(
             "JWT processing failed for {} {}: {}",
+            request.getMethod(),
+            request.getRequestURI(),
+            e.toString());
+        SecurityContextHolder.clearContext();
+      } catch (Exception e) {
+        log.warn(
+            "Unexpected error during JWT processing for {} {}: {}",
             request.getMethod(),
             request.getRequestURI(),
             e.toString());
