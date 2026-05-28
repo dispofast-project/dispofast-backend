@@ -345,13 +345,15 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 
       BigDecimal unitPrice =
           priceListService
-              .resolveUnitPrice(priceListId, product.getReference())
-              .orElseThrow(
-                  () ->
-                      new IllegalArgumentException(
-                          "El producto '"
-                              + product.getReference()
-                              + "' no tiene precio en la lista de precios seleccionada"));
+              .resolveUnitPrice(priceListId, product.getId())
+              .orElseGet(
+                  () -> {
+                    if (dto.getUnitPrice() != null) return dto.getUnitPrice();
+                    throw new IllegalArgumentException(
+                        "El producto '"
+                            + product.getSku()
+                            + "' no está en la lista de precios y no se proporcionó un precio");
+                  });
 
       BigDecimal itemDiscount = dto.getDiscount() != null ? dto.getDiscount() : BigDecimal.ZERO;
       BigDecimal lineTotal = dto.getQuantity().multiply(unitPrice).subtract(itemDiscount);
