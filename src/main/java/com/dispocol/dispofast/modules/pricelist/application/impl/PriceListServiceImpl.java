@@ -15,8 +15,10 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Cell;
@@ -70,7 +72,7 @@ public class PriceListServiceImpl implements PriceListService {
                       .orElse(null);
               return new PriceListItemDTO(
                   productId,
-                  item.getProduct().getReference(),
+                  item.getProduct().getSku(),
                   item.getProduct().getName(),
                   item.getProduct().isTaxFree(),
                   item.getUnitPrice(),
@@ -97,31 +99,34 @@ public class PriceListServiceImpl implements PriceListService {
         Row row = sheet.getRow(rowIndex);
         if (row == null) continue;
 
-        Cell codeCell = row.getCell(0); // Col A: product reference
+        Cell codeCell = row.getCell(0); // Col A: product SKU (may have # prefix)
         Cell priceCell = row.getCell(2); // Col C: unit price sin IVA
 
         if (codeCell == null || priceCell == null) continue;
 
-        String reference = getCellStringValue(codeCell).trim();
-        if (reference.isBlank()) continue;
+        String rawCode = getCellStringValue(codeCell).trim();
+        if (rawCode.isBlank()) continue;
+        // Strip leading # (e.g. "#019" → "019")
+        String sku = rawCode.startsWith("#") ? rawCode.substring(1).trim() : rawCode;
+        if (sku.isBlank()) continue;
 
         BigDecimal unitPrice = getCellNumericValue(priceCell);
         if (unitPrice == null || unitPrice.compareTo(BigDecimal.ZERO) < 0) continue;
 
         productRepository
-            .findByReference(reference)
+            .findBySku(sku)
             .ifPresentOrElse(
                 product -> {
                   PriceListItem item =
                       priceListItemRepository
-                          .findByPriceList_IdAndProduct_Reference(priceListId, reference)
+                          .findByPriceList_IdAndProduct_Id(priceListId, product.getId())
                           .orElse(new PriceListItem());
                   item.setPriceList(priceList);
                   item.setProduct(product);
                   item.setUnitPrice(unitPrice);
                   items.add(item);
                 },
-                () -> log.warn("Product with reference '{}' not found, skipping", reference));
+                () -> log.warn("Product with SKU '{}' not found, skipping", sku));
       }
 
       priceListItemRepository.saveAll(items);
@@ -174,10 +179,37 @@ public class PriceListServiceImpl implements PriceListService {
   }
 
   @Override
-  public Optional<BigDecimal> resolveUnitPrice(UUID priceListId, String reference) {
+  public Optional<BigDecimal> resolveUnitPrice(UUID priceListId, UUID productId) {
     return priceListItemRepository
-        .findByPriceList_IdAndProduct_Reference(priceListId, reference)
+        .findByPriceList_IdAndProduct_Id(priceListId, productId)
         .map(PriceListItem::getUnitPrice);
+  }
+
+  @Override
+  public List<PriceListItemDTO> getAllProductsWithPrice(UUID priceListId) {
+    Map<UUID, BigDecimal> priceByProductId =
+        priceListItemRepository.findByPriceList_Id(priceListId).stream()
+            .collect(
+                Collectors.toMap(
+                    item -> item.getProduct().getId(), PriceListItem::getUnitPrice));
+
+    return productRepository.findAll().stream()
+        .map(
+            product -> {
+              Integer available =
+                  inventoryStockRepository
+                      .findByProduct_Id(product.getId())
+                      .map(stock -> stock.getQuantityAvailable())
+                      .orElse(null);
+              return new PriceListItemDTO(
+                  product.getId(),
+                  product.getSku(),
+                  product.getName(),
+                  product.isTaxFree(),
+                  priceByProductId.get(product.getId()),
+                  available);
+            })
+        .toList();
   }
 
   private String getCellStringValue(Cell cell) {
