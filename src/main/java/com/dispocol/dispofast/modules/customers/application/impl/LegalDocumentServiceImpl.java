@@ -37,7 +37,8 @@ public class LegalDocumentServiceImpl implements LegalDocumentService {
     var client =
         clientRepository
             .findById(clientId)
-            .orElseThrow(() -> new ResourceNotFoundException("No se encontró el cliente solicitado."));
+            .orElseThrow(
+                () -> new ResourceNotFoundException("No se encontró el cliente solicitado."));
 
     String storageKey = clientId + "/" + UUID.randomUUID() + "_" + file.getOriginalFilename();
     try {
@@ -78,7 +79,8 @@ public class LegalDocumentServiceImpl implements LegalDocumentService {
     LegalDocument doc =
         legalDocumentRepository
             .findById(docId)
-            .orElseThrow(() -> new ResourceNotFoundException("El documento solicitado no fue encontrado."));
+            .orElseThrow(
+                () -> new ResourceNotFoundException("El documento solicitado no fue encontrado."));
 
     if (!doc.getClient().getId().equals(clientId)) {
       throw new IllegalArgumentException("El documento no pertenece al cliente indicado");
@@ -98,7 +100,8 @@ public class LegalDocumentServiceImpl implements LegalDocumentService {
     LegalDocument doc =
         legalDocumentRepository
             .findById(docId)
-            .orElseThrow(() -> new ResourceNotFoundException("El documento solicitado no fue encontrado."));
+            .orElseThrow(
+                () -> new ResourceNotFoundException("El documento solicitado no fue encontrado."));
 
     if (doc.getFileAttachment() == null) {
       throw new IllegalStateException("El documento no tiene ningún archivo adjunto.");
@@ -113,7 +116,8 @@ public class LegalDocumentServiceImpl implements LegalDocumentService {
     LegalDocument doc =
         legalDocumentRepository
             .findById(docId)
-            .orElseThrow(() -> new ResourceNotFoundException("El documento solicitado no fue encontrado."));
+            .orElseThrow(
+                () -> new ResourceNotFoundException("El documento solicitado no fue encontrado."));
 
     if (doc.getFileAttachment() == null) return "documento";
     return doc.getFileAttachment().getFilename();

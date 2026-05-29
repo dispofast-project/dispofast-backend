@@ -84,7 +84,8 @@ public class ClientServiceImpl implements ClientService {
     Client client =
         clientRepository
             .findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("No se encontró el cliente solicitado."));
+            .orElseThrow(
+                () -> new ResourceNotFoundException("No se encontró el cliente solicitado."));
     return clientMapper.toResponseDTO(client);
   }
 
@@ -103,9 +104,7 @@ public class ClientServiceImpl implements ClientService {
         cityRepository
             .findById(request.getCityCode())
             .orElseThrow(
-                () ->
-                    new ResourceNotFoundException(
-                        "La ciudad seleccionada no fue encontrada."));
+                () -> new ResourceNotFoundException("La ciudad seleccionada no fue encontrada."));
 
     AppUser advisor;
     if (request.getDefaultAdvisorId() != null) {
@@ -113,9 +112,7 @@ public class ClientServiceImpl implements ClientService {
           userRepository
               .findById(request.getDefaultAdvisorId())
               .orElseThrow(
-                  () ->
-                      new ResourceNotFoundException(
-                          "El asesor seleccionado no fue encontrado."));
+                  () -> new ResourceNotFoundException("El asesor seleccionado no fue encontrado."));
     } else {
       boolean isAdmin =
           createdByUser.getRoles().stream().anyMatch(r -> r.getName().equals("ADMIN"));
@@ -205,7 +202,8 @@ public class ClientServiceImpl implements ClientService {
     Client client =
         clientRepository
             .findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("No se encontró el cliente solicitado."));
+            .orElseThrow(
+                () -> new ResourceNotFoundException("No se encontró el cliente solicitado."));
 
     if (!client.getIdentificationNumber().equals(request.getIdentificationNumber())
         && clientRepository.existsByIdentificationNumberAndIdNot(
@@ -221,17 +219,13 @@ public class ClientServiceImpl implements ClientService {
         cityRepository
             .findById(request.getCityCode())
             .orElseThrow(
-                () ->
-                    new ResourceNotFoundException(
-                        "La ciudad seleccionada no fue encontrada."));
+                () -> new ResourceNotFoundException("La ciudad seleccionada no fue encontrada."));
 
     AppUser advisor =
         userRepository
             .findById(request.getDefaultAdvisorId())
             .orElseThrow(
-                () ->
-                    new ResourceNotFoundException(
-                        "El asesor seleccionado no fue encontrado."));
+                () -> new ResourceNotFoundException("El asesor seleccionado no fue encontrado."));
 
     ClientType clientType =
         clientTypeRepository

@@ -76,8 +76,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
   @Transactional
   public SalesOrderResponseDTO createSalesOrder(CreateSalesOrderRequestDTO request) {
     if (salesOrderRepository.existsByOrderNumber(request.getOrderNumber())) {
-      throw new SalesOrderAlreadyExistsException(
-          "Ya existe una orden con ese número de pedido.");
+      throw new SalesOrderAlreadyExistsException("Ya existe una orden con ese número de pedido.");
     }
 
     SalesOrder order = salesOrderMapper.toEntity(request);
@@ -266,8 +265,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     SalesOrder order = findOrderOrThrow(id);
 
     if (order.getState() != OrderState.PENDING) {
-      throw new InvalidOrderStateException(
-          "Solo se pueden eliminar órdenes en estado pendiente.");
+      throw new InvalidOrderStateException("Solo se pueden eliminar órdenes en estado pendiente.");
     }
 
     // Release reserved stock before deleting

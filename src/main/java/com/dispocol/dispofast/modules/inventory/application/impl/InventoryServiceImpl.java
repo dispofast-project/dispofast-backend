@@ -10,7 +10,6 @@ import com.dispocol.dispofast.modules.inventory.infra.exceptions.InsufficientSto
 import com.dispocol.dispofast.modules.inventory.infra.exceptions.ProductNotFoundException;
 import com.dispocol.dispofast.modules.inventory.infra.persistence.InventoryStockRepository;
 import com.dispocol.dispofast.modules.inventory.infra.persistence.ProductRepository;
-
 import java.math.BigDecimal;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -55,8 +54,11 @@ public class InventoryServiceImpl implements InventoryService {
   public void reserveStock(UUID productId, BigDecimal quantity) {
     int qty = quantity.intValue();
     InventoryStock stock = findStockOrThrow(productId);
-    Product product = productRepository.findById(productId).orElseThrow(
-        () -> new ProductNotFoundException("Producto no encontrado: " + productId));
+    Product product =
+        productRepository
+            .findById(productId)
+            .orElseThrow(
+                () -> new ProductNotFoundException("Producto no encontrado: " + productId));
 
     if (stock.getQuantityAvailable() < qty) {
       throw new InsufficientStockException(
