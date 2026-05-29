@@ -9,6 +9,8 @@ import com.dispocol.dispofast.modules.inventory.domain.StockState;
 import com.dispocol.dispofast.modules.inventory.infra.exceptions.InsufficientStockException;
 import com.dispocol.dispofast.modules.inventory.infra.exceptions.ProductNotFoundException;
 import com.dispocol.dispofast.modules.inventory.infra.persistence.InventoryStockRepository;
+import com.dispocol.dispofast.modules.inventory.infra.persistence.ProductRepository;
+
 import java.math.BigDecimal;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +26,7 @@ public class InventoryServiceImpl implements InventoryService {
   private static final int LOW_STOCK_THRESHOLD = 10;
 
   private final InventoryStockRepository inventoryStockRepository;
+  private final ProductRepository productRepository;
   private final InventoryMapper inventoryMapper;
 
   @Override
@@ -52,11 +55,13 @@ public class InventoryServiceImpl implements InventoryService {
   public void reserveStock(UUID productId, BigDecimal quantity) {
     int qty = quantity.intValue();
     InventoryStock stock = findStockOrThrow(productId);
+    Product product = productRepository.findById(productId).orElseThrow(
+        () -> new ProductNotFoundException("Producto no encontrado: " + productId));
 
     if (stock.getQuantityAvailable() < qty) {
       throw new InsufficientStockException(
           "Stock insuficiente para el producto "
-              + productId
+              + product.getName()
               + ". Disponible: "
               + stock.getQuantityAvailable()
               + ", solicitado: "
