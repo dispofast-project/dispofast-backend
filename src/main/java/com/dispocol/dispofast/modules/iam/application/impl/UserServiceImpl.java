@@ -50,13 +50,14 @@ public class UserServiceImpl implements UserService {
     email = userRequest.getEmail().trim().toLowerCase();
 
     if (userRepository.existsByEmailIgnoreCase(email)) {
-      throw new UserAlreadyExistsException("El usuario ya existe con el correo: " + email);
+      throw new UserAlreadyExistsException(
+          "Ya existe una cuenta registrada con ese correo electrónico.");
     }
 
     Role role =
         roleRepository
             .findById(userRequest.getRoleId())
-            .orElseThrow(() -> new RoleNotFoundException("Rol no encontrado"));
+            .orElseThrow(() -> new RoleNotFoundException("El rol seleccionado no existe."));
 
     AppUser newUser = userMapper.fromCreateUserRequestDTO(userRequest);
     newUser.setPasswordHash(passwordEncoder.encode(userRequest.getPassword()));
@@ -75,7 +76,7 @@ public class UserServiceImpl implements UserService {
     Role role =
         roleRepository
             .findById(user.getRoleId())
-            .orElseThrow(() -> new RoleNotFoundException("Rol no encontrado"));
+            .orElseThrow(() -> new RoleNotFoundException("El rol seleccionado no existe."));
 
     existingUser.setFullName(user.getName());
     existingUser.setEmail(user.getEmail().trim().toLowerCase());
@@ -100,7 +101,8 @@ public class UserServiceImpl implements UserService {
     List<Permission> permissions = permissionRepository.findAllById(permissionsIds);
 
     if (permissions.size() != permissionsIds.size()) {
-      throw new PermissionNotFoundException("Alguna de las permisoso no fue encontrada");
+      throw new PermissionNotFoundException(
+          "Uno o más permisos seleccionados no fueron encontrados.");
     }
 
     user.getPermissions().clear();
@@ -165,6 +167,6 @@ public class UserServiceImpl implements UserService {
   private AppUser getUserById(UUID id) {
     return userRepository
         .findById(id)
-        .orElseThrow(() -> new UserNotFoundException("No se encontró un usuario con el id: " + id));
+        .orElseThrow(() -> new UserNotFoundException("No se encontró el usuario solicitado."));
   }
 }

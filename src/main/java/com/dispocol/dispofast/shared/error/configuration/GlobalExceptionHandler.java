@@ -36,8 +36,8 @@ public class GlobalExceptionHandler {
       MethodArgumentNotValidException ex, HttpServletRequest request) {
     String errors =
         ex.getBindingResult().getFieldErrors().stream()
-            .map(fe -> fe.getField() + ": " + fe.getDefaultMessage())
-            .collect(Collectors.joining("; "));
+            .map(fe -> fe.getDefaultMessage())
+            .collect(Collectors.joining(". "));
     log.warn("Validation failed: {}", errors);
     GlobalErrorResponse errorResponse =
         new GlobalErrorResponse(
@@ -172,21 +172,33 @@ public class GlobalExceptionHandler {
   public ResponseEntity<GlobalErrorResponse> handleAuthentication(
       AuthenticationException ex, HttpServletRequest request) {
     log.warn("Unauthenticated request: {} {}", request.getMethod(), request.getRequestURI());
-    return buildErrorResponseEntity(ex, request, HttpStatus.UNAUTHORIZED);
+    return buildErrorResponseEntity(
+        "Tu sesión ha expirado o no tienes autorización. Por favor inicia sesión.",
+        "AuthenticationException",
+        request,
+        HttpStatus.UNAUTHORIZED);
   }
 
   @ExceptionHandler({AuthorizationDeniedException.class, AccessDeniedException.class})
   public ResponseEntity<GlobalErrorResponse> handleAccessDenied(
       Exception ex, HttpServletRequest request) {
     log.warn("Access denied: {} {}", request.getMethod(), request.getRequestURI());
-    return buildErrorResponseEntity(ex, request, HttpStatus.FORBIDDEN);
+    return buildErrorResponseEntity(
+        "No tienes permiso para realizar esta acción.",
+        "AccessDeniedException",
+        request,
+        HttpStatus.FORBIDDEN);
   }
 
   @ExceptionHandler(Exception.class)
   public ResponseEntity<GlobalErrorResponse> handleGenericException(
       Exception ex, HttpServletRequest request) {
     log.error("Internal server error", ex);
-    return buildErrorResponseEntity(ex, request, HttpStatus.INTERNAL_SERVER_ERROR);
+    return buildErrorResponseEntity(
+        "Ocurrió un error inesperado. Por favor intenta de nuevo más tarde.",
+        ex.getClass().getSimpleName(),
+        request,
+        HttpStatus.INTERNAL_SERVER_ERROR);
   }
 
   private ResponseEntity<GlobalErrorResponse> buildErrorResponseEntity(
