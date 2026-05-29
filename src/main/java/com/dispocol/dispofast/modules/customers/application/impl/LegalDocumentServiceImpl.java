@@ -37,14 +37,16 @@ public class LegalDocumentServiceImpl implements LegalDocumentService {
     var client =
         clientRepository
             .findById(clientId)
-            .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado: " + clientId));
+            .orElseThrow(
+                () -> new ResourceNotFoundException("No se encontró el cliente solicitado."));
 
     String storageKey = clientId + "/" + UUID.randomUUID() + "_" + file.getOriginalFilename();
     try {
       s3Service.uploadFile(
           BUCKET, storageKey, file.getInputStream(), file.getContentType(), file.getSize());
     } catch (IOException e) {
-      throw new IllegalArgumentException("Error al subir el archivo: " + e.getMessage(), e);
+      throw new IllegalArgumentException(
+          "No fue posible subir el documento. Por favor intenta de nuevo.", e);
     }
 
     MediaAsset asset = new MediaAsset();
@@ -77,7 +79,8 @@ public class LegalDocumentServiceImpl implements LegalDocumentService {
     LegalDocument doc =
         legalDocumentRepository
             .findById(docId)
-            .orElseThrow(() -> new ResourceNotFoundException("Documento no encontrado: " + docId));
+            .orElseThrow(
+                () -> new ResourceNotFoundException("El documento solicitado no fue encontrado."));
 
     if (!doc.getClient().getId().equals(clientId)) {
       throw new IllegalArgumentException("El documento no pertenece al cliente indicado");
@@ -97,10 +100,11 @@ public class LegalDocumentServiceImpl implements LegalDocumentService {
     LegalDocument doc =
         legalDocumentRepository
             .findById(docId)
-            .orElseThrow(() -> new ResourceNotFoundException("Documento no encontrado: " + docId));
+            .orElseThrow(
+                () -> new ResourceNotFoundException("El documento solicitado no fue encontrado."));
 
     if (doc.getFileAttachment() == null) {
-      throw new IllegalStateException("El documento no tiene archivo adjunto: " + docId);
+      throw new IllegalStateException("El documento no tiene ningún archivo adjunto.");
     }
 
     return s3Service.downloadFile(BUCKET, doc.getFileAttachment().getStoragePath());
@@ -112,7 +116,8 @@ public class LegalDocumentServiceImpl implements LegalDocumentService {
     LegalDocument doc =
         legalDocumentRepository
             .findById(docId)
-            .orElseThrow(() -> new ResourceNotFoundException("Documento no encontrado: " + docId));
+            .orElseThrow(
+                () -> new ResourceNotFoundException("El documento solicitado no fue encontrado."));
 
     if (doc.getFileAttachment() == null) return "documento";
     return doc.getFileAttachment().getFilename();

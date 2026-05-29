@@ -84,7 +84,8 @@ public class ClientServiceImpl implements ClientService {
     Client client =
         clientRepository
             .findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Client not found with id: " + id));
+            .orElseThrow(
+                () -> new ResourceNotFoundException("No se encontró el cliente solicitado."));
     return clientMapper.toResponseDTO(client);
   }
 
@@ -103,9 +104,7 @@ public class ClientServiceImpl implements ClientService {
         cityRepository
             .findById(request.getCityCode())
             .orElseThrow(
-                () ->
-                    new ResourceNotFoundException(
-                        "City not found with code: " + request.getCityCode()));
+                () -> new ResourceNotFoundException("La ciudad seleccionada no fue encontrada."));
 
     AppUser advisor;
     if (request.getDefaultAdvisorId() != null) {
@@ -113,9 +112,7 @@ public class ClientServiceImpl implements ClientService {
           userRepository
               .findById(request.getDefaultAdvisorId())
               .orElseThrow(
-                  () ->
-                      new ResourceNotFoundException(
-                          "Advisor user not found with ID: " + request.getDefaultAdvisorId()));
+                  () -> new ResourceNotFoundException("El asesor seleccionado no fue encontrado."));
     } else {
       boolean isAdmin =
           createdByUser.getRoles().stream().anyMatch(r -> r.getName().equals("ADMIN"));
@@ -132,7 +129,7 @@ public class ClientServiceImpl implements ClientService {
             .orElseThrow(
                 () ->
                     new ResourceNotFoundException(
-                        "Client type not found with ID: " + request.getClientTypeId()));
+                        "El tipo de cliente seleccionado no fue encontrado."));
 
     PriceList priceList =
         priceListRepository
@@ -140,7 +137,7 @@ public class ClientServiceImpl implements ClientService {
             .orElseThrow(
                 () ->
                     new ResourceNotFoundException(
-                        "Price list not found with ID: " + request.getPriceListId()));
+                        "La lista de precios seleccionada no fue encontrada."));
 
     Client client;
     if (request instanceof CreateIndividualRequestDTO individualRequest) {
@@ -148,7 +145,7 @@ public class ClientServiceImpl implements ClientService {
     } else if (request instanceof CreateOrganizationRequestDTO organizationRequest) {
       client = clientMapper.toOrganization(organizationRequest);
     } else {
-      throw new IllegalArgumentException("Invalid client request type");
+      throw new IllegalArgumentException("Tipo de cliente no válido.");
     }
 
     client.setCity(city);
@@ -205,7 +202,8 @@ public class ClientServiceImpl implements ClientService {
     Client client =
         clientRepository
             .findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Client not found with id: " + id));
+            .orElseThrow(
+                () -> new ResourceNotFoundException("No se encontró el cliente solicitado."));
 
     if (!client.getIdentificationNumber().equals(request.getIdentificationNumber())
         && clientRepository.existsByIdentificationNumberAndIdNot(
@@ -221,17 +219,13 @@ public class ClientServiceImpl implements ClientService {
         cityRepository
             .findById(request.getCityCode())
             .orElseThrow(
-                () ->
-                    new ResourceNotFoundException(
-                        "City not found with code: " + request.getCityCode()));
+                () -> new ResourceNotFoundException("La ciudad seleccionada no fue encontrada."));
 
     AppUser advisor =
         userRepository
             .findById(request.getDefaultAdvisorId())
             .orElseThrow(
-                () ->
-                    new ResourceNotFoundException(
-                        "Advisor user not found with ID: " + request.getDefaultAdvisorId()));
+                () -> new ResourceNotFoundException("El asesor seleccionado no fue encontrado."));
 
     ClientType clientType =
         clientTypeRepository
@@ -239,7 +233,7 @@ public class ClientServiceImpl implements ClientService {
             .orElseThrow(
                 () ->
                     new ResourceNotFoundException(
-                        "Client type not found with ID: " + request.getClientTypeId()));
+                        "El tipo de cliente seleccionado no fue encontrado."));
 
     PriceList priceList =
         priceListRepository
@@ -247,7 +241,7 @@ public class ClientServiceImpl implements ClientService {
             .orElseThrow(
                 () ->
                     new ResourceNotFoundException(
-                        "Price list not found with ID: " + request.getPriceListId()));
+                        "La lista de precios seleccionada no fue encontrada."));
 
     if (client instanceof Individual individual
         && request instanceof CreateIndividualRequestDTO individualRequest) {
@@ -256,7 +250,7 @@ public class ClientServiceImpl implements ClientService {
         && request instanceof CreateOrganizationRequestDTO organizationRequest) {
       clientMapper.updateOrganization(organizationRequest, organization);
     } else {
-      throw new IllegalArgumentException("Mismatched client and request types.");
+      throw new IllegalArgumentException("No es posible cambiar el tipo de cliente.");
     }
 
     client.setCity(city);
@@ -311,14 +305,14 @@ public class ClientServiceImpl implements ClientService {
         clientRepository
             .findById(clientId)
             .orElseThrow(
-                () -> new ResourceNotFoundException("Client not found with id: " + clientId));
+                () -> new ResourceNotFoundException("No se encontró el cliente solicitado."));
 
     LegalDocument doc =
         client.getLegalDocuments().stream()
             .filter(d -> d.getId().equals(documentId))
             .findFirst()
             .orElseThrow(
-                () -> new ResourceNotFoundException("Document not found with id: " + documentId));
+                () -> new ResourceNotFoundException("El documento solicitado no fue encontrado."));
 
     return s3Service.downloadFile(LEGAL_DOCS_BUCKET, doc.getFileAttachment().getStoragePath());
   }

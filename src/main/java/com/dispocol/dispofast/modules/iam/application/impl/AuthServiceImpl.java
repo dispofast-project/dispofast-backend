@@ -29,10 +29,11 @@ public class AuthServiceImpl implements AuthService {
     AppUser user =
         userRepository
             .findByEmailIgnoreCase(loginRequest.getEmail().trim())
-            .orElseThrow(() -> new IllegalArgumentException("Invalid email or password"));
+            .orElseThrow(
+                () -> new IllegalArgumentException("Correo electrónico o contraseña incorrectos."));
 
     if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPasswordHash())) {
-      throw new IllegalArgumentException("Invalid email or password");
+      throw new IllegalArgumentException("Correo electrónico o contraseña incorrectos.");
     }
 
     return buildAuthResponse(user);
