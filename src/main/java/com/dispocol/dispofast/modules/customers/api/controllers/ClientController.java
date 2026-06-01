@@ -55,8 +55,7 @@ public class ClientController {
   @PostMapping
   @PreAuthorize("hasAuthority('CUSTOMERS_CREATE')")
   public ResponseEntity<ClientResponseDTO> createClient(
-      @Valid @RequestBody CreateClientRequestDTO request,
-      Authentication authentication) {
+      @Valid @RequestBody CreateClientRequestDTO request, Authentication authentication) {
     var currentUser =
         userRepository
             .findByEmailIgnoreCase(authentication.getName())
