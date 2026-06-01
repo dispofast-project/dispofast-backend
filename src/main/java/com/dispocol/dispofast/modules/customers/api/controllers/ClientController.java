@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -54,15 +55,13 @@ public class ClientController {
   @PostMapping
   @PreAuthorize("hasAuthority('CUSTOMERS_CREATE')")
   public ResponseEntity<ClientResponseDTO> createClient(
-      @Valid @RequestPart("clientData") CreateClientRequestDTO request,
-      @RequestPart(value = "documents", required = false) List<MultipartFile> documents,
-      Authentication authentication) {
+      @Valid @RequestBody CreateClientRequestDTO request, Authentication authentication) {
     var currentUser =
         userRepository
             .findByEmailIgnoreCase(authentication.getName())
             .orElseThrow(() -> new ResourceNotFoundException("User not found"));
     return ResponseEntity.status(HttpStatus.CREATED)
-        .body(clientService.createClient(request, documents, currentUser));
+        .body(clientService.createClient(request, null, currentUser));
   }
 
   @PutMapping("/{id}")
