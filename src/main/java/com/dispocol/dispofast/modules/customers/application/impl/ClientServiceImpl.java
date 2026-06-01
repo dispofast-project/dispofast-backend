@@ -99,11 +99,6 @@ public class ClientServiceImpl implements ClientService {
     if (clientRepository.existsByEmailIgnoreCase(request.getEmail())) {
       throw new IllegalArgumentException("Ya existe un cliente con este correo electrónico.");
     }
-    if (request instanceof CreateOrganizationRequestDTO
-        && (documents == null || documents.isEmpty())) {
-      throw new IllegalArgumentException(
-          "Los documentos legales son obligatorios para clientes de tipo empresa.");
-    }
 
     City city =
         cityRepository
