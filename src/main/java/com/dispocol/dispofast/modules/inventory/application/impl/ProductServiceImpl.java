@@ -40,7 +40,8 @@ public class ProductServiceImpl implements ProductService {
   @Override
   @Transactional
   public ProductResponseDTO createProduct(CreateProductRequestDTO request) {
-    if (productRepository.existsBySeoTitle(request.getSeoTitle()) || productRepository.existsByName(request.getName())) {
+    if (productRepository.existsBySeoTitle(request.getSeoTitle())
+        || productRepository.existsByName(request.getName())) {
       throw new ProductAlreadyExistsException(
           "El producto: '" + request.getName() + "' ya existe.");
     }
@@ -107,12 +108,18 @@ public class ProductServiceImpl implements ProductService {
   public ProductResponseDTO uploadProductImage(UUID productId, MultipartFile file) {
     Product product = findProductOrThrow(productId);
 
-    String storageKey = "products/" + productId + "/" + UUID.randomUUID() + "_" + file.getOriginalFilename();
+    String storageKey =
+        "products/" + productId + "/" + UUID.randomUUID() + "_" + file.getOriginalFilename();
     try {
       s3Service.uploadFile(
-          PRODUCT_IMAGES_BUCKET, storageKey, file.getInputStream(), file.getContentType(), file.getSize());
+          PRODUCT_IMAGES_BUCKET,
+          storageKey,
+          file.getInputStream(),
+          file.getContentType(),
+          file.getSize());
     } catch (IOException e) {
-      throw new IllegalArgumentException("No fue posible subir la imagen. Por favor intenta de nuevo.", e);
+      throw new IllegalArgumentException(
+          "No fue posible subir la imagen. Por favor intenta de nuevo.", e);
     }
 
     MediaAsset asset = new MediaAsset();
