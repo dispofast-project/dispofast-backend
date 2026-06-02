@@ -76,8 +76,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
   @Transactional
   public SalesOrderResponseDTO createSalesOrder(CreateSalesOrderRequestDTO request) {
     if (salesOrderRepository.existsByOrderNumber(request.getOrderNumber())) {
-      throw new SalesOrderAlreadyExistsException(
-          "Ya existe una orden con el numero: " + request.getOrderNumber());
+      throw new SalesOrderAlreadyExistsException("Ya existe una orden con ese número de pedido.");
     }
 
     SalesOrder order = salesOrderMapper.toEntity(request);
@@ -118,17 +117,17 @@ public class SalesOrderServiceImpl implements SalesOrderService {
             .findById(quoteId)
             .orElseThrow(
                 () ->
-                    new SalesOrderNotFoundException("Cotizacion no encontrada con id: " + quoteId));
+                    new SalesOrderNotFoundException(
+                        "La cotización seleccionada no fue encontrada."));
 
     if (quote.getStatus() != QuoteStatus.ACCEPTED) {
       throw new InvalidOrderStateException(
-          "Solo se puede crear una orden a partir de una cotizacion aceptada. Estado actual: "
-              + quote.getStatus().getValue());
+          "Solo se pueden crear órdenes a partir de cotizaciones aceptadas.");
     }
 
     if (salesOrderRepository.existsByQuoteId(quoteId)) {
       throw new SalesOrderAlreadyExistsException(
-          "Ya existe una orden generada para la cotizacion: " + quoteId);
+          "Ya existe una orden generada para esta cotización.");
     }
 
     SalesOrder order = new SalesOrder();
@@ -175,7 +174,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 
     if (TERMINAL_STATES.contains(order.getState())) {
       throw new InvalidOrderStateException(
-          "No se puede modificar una orden en estado: " + order.getState().getValue());
+          "Esta orden no puede ser modificada porque ya fue entregada o cancelada.");
     }
 
     OrderState previousState = order.getState();
@@ -266,9 +265,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     SalesOrder order = findOrderOrThrow(id);
 
     if (order.getState() != OrderState.PENDING) {
-      throw new InvalidOrderStateException(
-          "Solo se pueden eliminar ordenes en estado pendiente. Estado actual: "
-              + order.getState().getValue());
+      throw new InvalidOrderStateException("Solo se pueden eliminar órdenes en estado pendiente.");
     }
 
     // Release reserved stock before deleting
@@ -306,7 +303,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     return salesOrderRepository
         .findById(id)
         .orElseThrow(
-            () -> new SalesOrderNotFoundException("Orden de venta no encontrada con id: " + id));
+            () -> new SalesOrderNotFoundException("La orden solicitada no fue encontrada."));
   }
 
   private static final BigDecimal IVA = BigDecimal.valueOf(0.19);
@@ -337,7 +334,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
               .orElseThrow(
                   () ->
                       new IllegalArgumentException(
-                          "Producto no encontrado: " + dto.getProductId()));
+                          "Uno de los productos seleccionados no fue encontrado."));
 
       SalesOrderItem item = salesOrderItemMapper.toEntity(dto);
       item.setOrder(order);
@@ -352,7 +349,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
                     throw new IllegalArgumentException(
                         "El producto '"
                             + product.getSku()
-                            + "' no está en la lista de precios y no se proporcionó un precio");
+                            + "' no tiene precio configurado en la lista de precios seleccionada.");
                   });
 
       BigDecimal itemDiscount = dto.getDiscount() != null ? dto.getDiscount() : BigDecimal.ZERO;

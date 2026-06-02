@@ -19,6 +19,7 @@ public interface SalesOrderItemMapper {
 
   @Mapping(target = "productId", source = "product.id")
   @Mapping(target = "productReference", source = "product.reference")
+  @Mapping(target = "productSku", source = "product.sku")
   @Mapping(target = "taxFree", source = "product.taxFree")
   @Mapping(
       target = "productName",
