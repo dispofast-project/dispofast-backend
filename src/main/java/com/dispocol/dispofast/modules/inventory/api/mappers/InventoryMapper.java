@@ -12,6 +12,7 @@ public interface InventoryMapper {
   @Mapping(target = "productName", source = "stock.product.name")
   @Mapping(target = "sku", source = "stock.product.sku")
   @Mapping(target = "category", source = "stock.product.category.name")
+  @Mapping(target = "imageUrl", source = "stock.product.imageUrl")
   @Mapping(target = "taxFree", source = "stock.product.taxFree")
   InventoryResponseDTO toInventoryResponseDTO(InventoryStock stock);
 }

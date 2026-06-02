@@ -14,7 +14,7 @@ public interface ProductMapper {
   @Mapping(target = "name", expression = "java(dto.getName().trim())")
   @Mapping(target = "shortDescription", expression = "java(dto.getShortDescription().trim())")
   @Mapping(target = "longDescription", expression = "java(dto.getLongDescription().trim())")
-  @Mapping(target = "imageUrl", expression = "java(dto.getImageUrl().trim())")
+  @Mapping(target = "imageUrl", expression = "java(dto.getImageUrl() != null ? dto.getImageUrl().trim() : null)")
   @Mapping(target = "sku", expression = "java(dto.getSku().trim().toUpperCase())")
   @Mapping(target = "reference", expression = "java(dto.getReference().trim().toUpperCase())")
   @Mapping(target = "size", expression = "java(dto.getSize().trim())")
