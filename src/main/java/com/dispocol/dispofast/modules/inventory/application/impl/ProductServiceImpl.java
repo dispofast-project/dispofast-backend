@@ -40,9 +40,9 @@ public class ProductServiceImpl implements ProductService {
   @Override
   @Transactional
   public ProductResponseDTO createProduct(CreateProductRequestDTO request) {
-    if (productRepository.existsBySeoTitle(request.getSeoTitle())) {
+    if (productRepository.existsBySeoTitle(request.getSeoTitle()) || productRepository.existsByName(request.getName())) {
       throw new ProductAlreadyExistsException(
-          "El producto con el SEO Title '" + request.getSeoTitle() + "' ya existe.");
+          "El producto: '" + request.getName() + "' ya existe.");
     }
 
     Product product = productMapper.fromCreateProductRequestDTO(request);
