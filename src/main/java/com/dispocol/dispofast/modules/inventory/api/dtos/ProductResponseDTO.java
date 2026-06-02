@@ -25,4 +25,5 @@ public class ProductResponseDTO {
   private String state;
 
   private String categoryName;
+  private Integer stock;
 }

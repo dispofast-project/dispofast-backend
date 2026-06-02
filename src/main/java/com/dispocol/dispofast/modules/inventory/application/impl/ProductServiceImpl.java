@@ -1,6 +1,7 @@
 package com.dispocol.dispofast.modules.inventory.application.impl;
 
 import com.dispocol.dispofast.modules.inventory.api.dtos.CreateProductRequestDTO;
+import com.dispocol.dispofast.modules.inventory.api.dtos.InventoryResponseDTO;
 import com.dispocol.dispofast.modules.inventory.api.dtos.ProductResponseDTO;
 import com.dispocol.dispofast.modules.inventory.api.dtos.UpdateProductRequestDTO;
 import com.dispocol.dispofast.modules.inventory.api.mappers.ProductMapper;
@@ -47,7 +48,9 @@ public class ProductServiceImpl implements ProductService {
   @Override
   @Transactional(readOnly = true)
   public ProductResponseDTO getProductById(UUID productId) {
-    return productMapper.toProductResponseDTO(findProductOrThrow(productId));
+    ProductResponseDTO dto = productMapper.toProductResponseDTO(findProductOrThrow(productId));
+    dto.setStock(inventoryService.getStockByProductId(productId).getQuantityAvailable());
+    return dto;
   }
 
   @Override
@@ -78,7 +81,18 @@ public class ProductServiceImpl implements ProductService {
       product.setCategory(categoryRepository.getReferenceById(request.getCategoryId()));
     }
 
-    return productMapper.toProductResponseDTO(productRepository.save(product));
+    ProductResponseDTO dto = productMapper.toProductResponseDTO(productRepository.save(product));
+
+    if (request.getStock() != null) {
+      int currentStock = inventoryService.getStockByProductId(productId).getQuantityAvailable();
+      int delta = request.getStock() - currentStock;
+      InventoryResponseDTO updatedInventory = inventoryService.adjustStock(productId, delta);
+      dto.setStock(updatedInventory.getQuantityAvailable());
+    } else {
+      dto.setStock(inventoryService.getStockByProductId(productId).getQuantityAvailable());
+    }
+
+    return dto;
   }
 
   @Override

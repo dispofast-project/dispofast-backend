@@ -47,4 +47,6 @@ public class UpdateProductRequestDTO {
 
   @NotNull(message = "ID de categoría es requerido")
   private UUID categoryId;
+
+  private Integer stock;
 }
