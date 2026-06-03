@@ -1,0 +1,8 @@
+ALTER TABLE products
+ALTER COLUMN reference DROP NOT NULL;
+
+ALTER TABLE products
+ALTER COLUMN size DROP NOT NULL;
+
+ALTER TABLE products
+DROP CONSTRAINT IF EXISTS products_reference_key;

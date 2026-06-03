@@ -13,6 +13,7 @@ public class InventoryResponseDTO {
   private String productName;
   private String sku;
   private String category;
+  private String imageUrl;
   private boolean taxFree;
   private int quantityAvailable;
   private int quantityReserved;

@@ -18,7 +18,6 @@ public class UpdateProductRequestDTO {
   @NotBlank(message = "Descripción larga es requerida")
   private String longDescription;
 
-  @NotBlank(message = "URL de la imagen es requerida")
   private String imageUrl;
 
   @NotNull(message = "Indicador de libre de impuestos es requerido")
@@ -27,10 +26,8 @@ public class UpdateProductRequestDTO {
   @NotBlank(message = "SKU es requerido")
   private String sku;
 
-  @NotBlank(message = "Referencia es requerida")
   private String reference;
 
-  @NotBlank(message = "Tamaño es requerido")
   private String size;
 
   @NotBlank(message = "Título SEO es requerido")
