@@ -37,10 +37,10 @@ public class Product {
   @Column(nullable = false, unique = true)
   private String sku;
 
-  @Column(nullable = false, unique = true)
+  @Column(nullable = true)
   private String reference;
 
-  @Column(nullable = false)
+  @Column(nullable = true)
   private String size;
 
   @Column(nullable = false)
