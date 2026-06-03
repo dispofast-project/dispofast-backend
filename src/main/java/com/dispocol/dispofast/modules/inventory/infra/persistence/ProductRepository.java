@@ -12,6 +12,8 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
 
   boolean existsBySeoTitle(String seoTitle);
 
+  boolean existsByName(String name);
+
   java.util.Optional<Product> findByReference(String reference);
 
   java.util.Optional<Product> findBySku(String sku);
