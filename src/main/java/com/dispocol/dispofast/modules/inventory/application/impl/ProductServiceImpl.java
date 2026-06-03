@@ -83,8 +83,14 @@ public class ProductServiceImpl implements ProductService {
     }
     product.setTaxFree(request.getTaxFree());
     product.setSku(request.getSku().trim().toUpperCase());
-    product.setReference(request.getReference() != null && !request.getReference().isBlank() ? request.getReference().trim().toUpperCase() : null);
-    product.setSize(request.getSize() != null && !request.getSize().isBlank() ? request.getSize().trim() : null);
+    product.setReference(
+        request.getReference() != null && !request.getReference().isBlank()
+            ? request.getReference().trim().toUpperCase()
+            : null);
+    product.setSize(
+        request.getSize() != null && !request.getSize().isBlank()
+            ? request.getSize().trim()
+            : null);
     product.setSeoTitle(request.getSeoTitle().trim());
     product.setSeoDescription(request.getSeoDescription().trim());
     product.setSeoKeywords(request.getSeoKeywords().trim());
