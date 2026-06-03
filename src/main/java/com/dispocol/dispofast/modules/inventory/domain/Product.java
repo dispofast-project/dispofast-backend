@@ -28,7 +28,7 @@ public class Product {
   @Column(nullable = false, unique = true)
   private String longDescription;
 
-  @Column(nullable = false)
+  @Column(nullable = true)
   private String imageUrl;
 
   @Column(nullable = false)

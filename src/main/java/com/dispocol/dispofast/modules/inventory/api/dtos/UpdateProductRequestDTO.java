@@ -18,7 +18,6 @@ public class UpdateProductRequestDTO {
   @NotBlank(message = "Descripción larga es requerida")
   private String longDescription;
 
-  @NotBlank(message = "URL de la imagen es requerida")
   private String imageUrl;
 
   @NotNull(message = "Indicador de libre de impuestos es requerido")

@@ -9,7 +9,8 @@ import lombok.Getter;
 @Getter
 public enum MediaAssetType {
   INVOICE("factura"),
-  LEGAL_DOC("documento legal");
+  LEGAL_DOC("documento legal"),
+  PRODUCT_IMAGE("imagen producto");
 
   @JsonValue private final String value;
 
