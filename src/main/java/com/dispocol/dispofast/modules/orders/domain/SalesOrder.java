@@ -89,4 +89,7 @@ public class SalesOrder {
 
   @Column(name = "freight", precision = 18, scale = 2)
   private BigDecimal freight;
+
+  @Column(name = "observations", columnDefinition = "text")
+  private String observations;
 }

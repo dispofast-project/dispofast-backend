@@ -31,6 +31,8 @@ public class UpdateSalesOrderRequestDTO {
 
   private PaymentCondition paymentCondition;
 
+  private String observations;
+
   private Integer discountRate;
 
   private BigDecimal additionalDiscountRate;
