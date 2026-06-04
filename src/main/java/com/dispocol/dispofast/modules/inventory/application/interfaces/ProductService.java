@@ -6,6 +6,7 @@ import com.dispocol.dispofast.modules.inventory.api.dtos.UpdateProductRequestDTO
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface ProductService {
 
@@ -18,4 +19,6 @@ public interface ProductService {
   ProductResponseDTO updateProduct(UUID productId, UpdateProductRequestDTO request);
 
   void deleteProduct(UUID productId);
+
+  ProductResponseDTO uploadProductImage(UUID productId, MultipartFile file);
 }
