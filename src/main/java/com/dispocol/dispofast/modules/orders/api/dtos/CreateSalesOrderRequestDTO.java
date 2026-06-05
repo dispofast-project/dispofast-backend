@@ -50,6 +50,8 @@ public class CreateSalesOrderRequestDTO {
 
   private BigDecimal freight;
 
+  private String observations;
+
   @NotEmpty(message = "La orden debe contener al menos un ítem")
   @Valid
   private List<CreateSalesOrderItemDTO> items;
