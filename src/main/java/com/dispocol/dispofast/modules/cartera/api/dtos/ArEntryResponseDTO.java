@@ -15,6 +15,9 @@ public class ArEntryResponseDTO {
   /** Estado de la cartera (PENDING / PAID) */
   private ArEntryState state;
 
+  private UUID clientId;
+  private UUID orderId;
+
   private ArEntrySource source;
 
   /** Cliente */
