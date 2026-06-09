@@ -92,4 +92,10 @@ public class CarteraController {
   public ResponseEntity<PaymentReceiptResponseDTO> getReceiptById(@PathVariable UUID receiptId) {
     return ResponseEntity.ok(paymentReceiptService.getReceiptById(receiptId));
   }
+
+  @GetMapping("/total-value")
+  public double getTotalPaidValue() {
+      return paymentReceiptService.getTotalPaidValue();
+  }
+  
 }

@@ -4,8 +4,12 @@ import com.dispocol.dispofast.modules.cartera.domain.PaymentReceipt;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 public interface PaymentReceiptRepository extends JpaRepository<PaymentReceipt, UUID> {
 
   List<PaymentReceipt> findByArEntryIdOrderByPaymentDateDesc(UUID arEntryId);
+
+  @Query("SELECT SUM(value), 0 FROM PaymentReceipt")
+  double sumTotalPaidValue();
 }

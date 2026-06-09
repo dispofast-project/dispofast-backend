@@ -96,4 +96,9 @@ public class PaymentReceiptServiceImpl implements PaymentReceiptService {
         .map(paymentReceiptMapper::toResponseDTO)
         .orElseThrow(() -> new ResourceNotFoundException("Recibo no encontrado: " + id));
   }
+
+  @Override
+  public double getTotalPaidValue() {
+    return paymentReceiptRepository.sumTotalPaidValue();
+  }
 }

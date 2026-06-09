@@ -12,4 +12,6 @@ public interface PaymentReceiptService {
   List<PaymentReceiptResponseDTO> getReceiptsByArEntry(UUID arEntryId);
 
   PaymentReceiptResponseDTO getReceiptById(UUID id);
+
+  double getTotalPaidValue();
 }
