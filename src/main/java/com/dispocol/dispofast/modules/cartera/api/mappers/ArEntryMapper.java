@@ -32,6 +32,10 @@ public interface ArEntryMapper {
   @Mapping(
       target = "cityName",
       expression = "java(entry.getCity() != null ? entry.getCity().getName() : null)")
+  @Mapping(target = "paidAmount", source = "paidAmount")
+  @Mapping(
+      target = "balance",
+      expression = "java(entry.getValue().subtract(entry.getPaidAmount()))")
   ArEntryResponseDTO toResponseDTO(ArEntry entry);
 
   List<ArEntryResponseDTO> toResponseDTOList(List<ArEntry> entries);

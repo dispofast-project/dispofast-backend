@@ -3,10 +3,14 @@ package com.dispocol.dispofast.modules.cartera.api.controllers;
 import com.dispocol.dispofast.modules.cartera.api.dtos.ArEntryFilterDTO;
 import com.dispocol.dispofast.modules.cartera.api.dtos.ArEntryResponseDTO;
 import com.dispocol.dispofast.modules.cartera.api.dtos.CreateManualArEntryRequestDTO;
+import com.dispocol.dispofast.modules.cartera.api.dtos.CreatePaymentReceiptRequestDTO;
+import com.dispocol.dispofast.modules.cartera.api.dtos.PaymentReceiptResponseDTO;
 import com.dispocol.dispofast.modules.cartera.application.interfaces.ArEntryService;
+import com.dispocol.dispofast.modules.cartera.application.interfaces.PaymentReceiptService;
 import com.dispocol.dispofast.modules.cartera.domain.ArEntryState;
 import jakarta.validation.Valid;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -16,6 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,6 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class CarteraController {
 
   private final ArEntryService arEntryService;
+  private final PaymentReceiptService paymentReceiptService;
 
   /**
    * Lista la cartera con filtros opcionales. VENDEDOR ve solo los clientes que tiene asignados.
@@ -60,5 +66,30 @@ public class CarteraController {
       @Valid @RequestBody CreateManualArEntryRequestDTO request) {
     return ResponseEntity.status(HttpStatus.CREATED)
         .body(arEntryService.createManualEntry(request));
+  }
+
+  /** Crea un recibo de caja sobre una entrada de cartera. */
+  @PostMapping("/{arEntryId}/recibos")
+  @PreAuthorize("hasAuthority('ACCOUNTS_VIEW')")
+  public ResponseEntity<PaymentReceiptResponseDTO> createReceipt(
+      @PathVariable UUID arEntryId,
+      @Valid @RequestBody CreatePaymentReceiptRequestDTO request) {
+    return ResponseEntity.status(HttpStatus.CREATED)
+        .body(paymentReceiptService.createReceipt(arEntryId, request));
+  }
+
+  /** Lista los recibos de caja de una entrada de cartera. */
+  @GetMapping("/{arEntryId}/recibos")
+  @PreAuthorize("hasAuthority('ACCOUNTS_VIEW')")
+  public ResponseEntity<List<PaymentReceiptResponseDTO>> getReceipts(
+      @PathVariable UUID arEntryId) {
+    return ResponseEntity.ok(paymentReceiptService.getReceiptsByArEntry(arEntryId));
+  }
+
+  /** Obtiene un recibo de caja por su ID. */
+  @GetMapping("/recibos/{receiptId}")
+  @PreAuthorize("hasAuthority('ACCOUNTS_VIEW')")
+  public ResponseEntity<PaymentReceiptResponseDTO> getReceiptById(@PathVariable UUID receiptId) {
+    return ResponseEntity.ok(paymentReceiptService.getReceiptById(receiptId));
   }
 }

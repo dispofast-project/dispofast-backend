@@ -71,6 +71,9 @@ public class ArEntry {
   @Column(nullable = false, length = 20)
   private ArEntrySource source = ArEntrySource.ORDER;
 
+  @Column(name = "paid_amount", nullable = false, precision = 18, scale = 2)
+  private BigDecimal paidAmount = BigDecimal.ZERO;
+
   @Column(name = "created_at", nullable = false)
   private OffsetDateTime createdAt;
 
