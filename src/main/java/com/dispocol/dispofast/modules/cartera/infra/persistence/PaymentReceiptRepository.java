@@ -10,6 +10,6 @@ public interface PaymentReceiptRepository extends JpaRepository<PaymentReceipt, 
 
   List<PaymentReceipt> findByArEntryIdOrderByPaymentDateDesc(UUID arEntryId);
 
-  @Query("SELECT SUM(value), 0 FROM PaymentReceipt")
+  @Query("SELECT COALESCE(SUM(pr.value), 0) FROM PaymentReceipt pr WHERE pr.state = 'ACTIVE'")
   double sumTotalPaidValue();
 }
