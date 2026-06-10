@@ -26,8 +26,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class PaymentReceipt {
 
-  @Id
-  private UUID id;
+  @Id private UUID id;
 
   @Column(name = "receipt_code", nullable = false, unique = true, length = 30)
   private String receiptCode;

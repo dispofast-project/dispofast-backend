@@ -76,8 +76,7 @@ public class CarteraController {
   @PostMapping("/{arEntryId}/recibos")
   @PreAuthorize("hasAuthority('ACCOUNTS_VIEW')")
   public ResponseEntity<PaymentReceiptResponseDTO> createReceipt(
-      @PathVariable UUID arEntryId,
-      @Valid @RequestBody CreatePaymentReceiptRequestDTO request) {
+      @PathVariable UUID arEntryId, @Valid @RequestBody CreatePaymentReceiptRequestDTO request) {
     return ResponseEntity.status(HttpStatus.CREATED)
         .body(paymentReceiptService.createReceipt(arEntryId, request));
   }
@@ -85,8 +84,7 @@ public class CarteraController {
   /** Lista los recibos de caja de una entrada de cartera. */
   @GetMapping("/{arEntryId}/recibos")
   @PreAuthorize("hasAuthority('ACCOUNTS_VIEW')")
-  public ResponseEntity<List<PaymentReceiptResponseDTO>> getReceipts(
-      @PathVariable UUID arEntryId) {
+  public ResponseEntity<List<PaymentReceiptResponseDTO>> getReceipts(@PathVariable UUID arEntryId) {
     return ResponseEntity.ok(paymentReceiptService.getReceiptsByArEntry(arEntryId));
   }
 

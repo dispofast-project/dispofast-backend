@@ -44,7 +44,8 @@ public class PaymentReceiptServiceImpl implements PaymentReceiptService {
     ArEntry arEntry =
         arEntryRepository
             .findById(arEntryId)
-            .orElseThrow(() -> new ResourceNotFoundException("Cartera no encontrada: " + arEntryId));
+            .orElseThrow(
+                () -> new ResourceNotFoundException("Cartera no encontrada: " + arEntryId));
 
     if (arEntry.getState() == ArEntryState.PAID) {
       throw new IllegalStateException("Esta cartera ya se encuentra pagada");
@@ -53,7 +54,11 @@ public class PaymentReceiptServiceImpl implements PaymentReceiptService {
     BigDecimal balance = arEntry.getValue().subtract(arEntry.getPaidAmount());
     if (request.getValue().compareTo(balance) > 0) {
       throw new IllegalArgumentException(
-          "El valor del recibo (" + request.getValue() + ") supera el saldo pendiente (" + balance + ")");
+          "El valor del recibo ("
+              + request.getValue()
+              + ") supera el saldo pendiente ("
+              + balance
+              + ")");
     }
 
     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -115,7 +120,9 @@ public class PaymentReceiptServiceImpl implements PaymentReceiptService {
     String key = UUID.randomUUID() + ext;
     try {
       s3Service.uploadFile(
-          VOUCHERS_BUCKET, key, file.getInputStream(),
+          VOUCHERS_BUCKET,
+          key,
+          file.getInputStream(),
           file.getContentType() != null ? file.getContentType() : "application/octet-stream",
           file.getSize());
     } catch (IOException e) {
@@ -127,9 +134,10 @@ public class PaymentReceiptServiceImpl implements PaymentReceiptService {
   @Override
   @Transactional(readOnly = true)
   public byte[] downloadVoucher(UUID receiptId) {
-    PaymentReceipt receipt = paymentReceiptRepository
-        .findById(receiptId)
-        .orElseThrow(() -> new ResourceNotFoundException("Recibo no encontrado: " + receiptId));
+    PaymentReceipt receipt =
+        paymentReceiptRepository
+            .findById(receiptId)
+            .orElseThrow(() -> new ResourceNotFoundException("Recibo no encontrado: " + receiptId));
     if (receipt.getVoucherS3Key() == null) {
       throw new ResourceNotFoundException("Este recibo no tiene comprobante adjunto");
     }
@@ -139,14 +147,16 @@ public class PaymentReceiptServiceImpl implements PaymentReceiptService {
   @Override
   @Transactional(readOnly = true)
   public String getVoucherFilename(UUID receiptId) {
-    PaymentReceipt receipt = paymentReceiptRepository
-        .findById(receiptId)
-        .orElseThrow(() -> new ResourceNotFoundException("Recibo no encontrado: " + receiptId));
+    PaymentReceipt receipt =
+        paymentReceiptRepository
+            .findById(receiptId)
+            .orElseThrow(() -> new ResourceNotFoundException("Recibo no encontrado: " + receiptId));
     String key = receipt.getVoucherS3Key();
     String ext = (key != null && key.contains(".")) ? key.substring(key.lastIndexOf('.')) : "";
-    String docRef = receipt.getDocumentNumber() != null
-        ? receipt.getDocumentNumber()
-        : receipt.getReceiptCode();
+    String docRef =
+        receipt.getDocumentNumber() != null
+            ? receipt.getDocumentNumber()
+            : receipt.getReceiptCode();
     return "comprobante_" + docRef + ext;
   }
 

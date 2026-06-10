@@ -10,9 +10,7 @@ import org.mapstruct.Mapping;
 public interface PaymentReceiptMapper {
 
   @Mapping(target = "arEntryId", source = "arEntry.id")
-  @Mapping(
-      target = "createdByName",
-      expression = "java(receipt.getCreatedBy().getFullName())")
+  @Mapping(target = "createdByName", expression = "java(receipt.getCreatedBy().getFullName())")
   PaymentReceiptResponseDTO toResponseDTO(PaymentReceipt receipt);
 
   List<PaymentReceiptResponseDTO> toResponseDTOList(List<PaymentReceipt> receipts);
