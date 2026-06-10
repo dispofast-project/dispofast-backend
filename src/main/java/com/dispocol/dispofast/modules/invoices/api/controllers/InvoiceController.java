@@ -34,7 +34,7 @@ public class InvoiceController {
   }
 
   @GetMapping("/{id}/download")
-  @PreAuthorize("hasAuthority('PURCHASE_ORDERS_VIEW')")
+  @PreAuthorize("hasAnyAuthority('PURCHASE_ORDERS_VIEW', 'ACCOUNTS_VIEW')")
   public ResponseEntity<byte[]> downloadPdf(@PathVariable UUID id) {
     byte[] data = invoiceService.downloadPdf(id);
     String fileName = invoiceService.getPdfFileName(id);
