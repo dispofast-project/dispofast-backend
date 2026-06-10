@@ -27,11 +27,19 @@ public interface ArEntryMapper {
   @Mapping(
       target = "invoiceDate",
       expression = "java(entry.getInvoice() != null ? entry.getInvoice().getIssueDate() : null)")
+  @Mapping(target = "clientId", source = "client.id")
+  @Mapping(
+      target = "orderId",
+      expression = "java(entry.getOrder() != null ? entry.getOrder().getId() : null)")
   @Mapping(target = "diasCartera", expression = "java(entry.getDiasCartera())")
   @Mapping(target = "diasVencimiento", expression = "java(entry.getDiasVencimiento())")
   @Mapping(
       target = "cityName",
       expression = "java(entry.getCity() != null ? entry.getCity().getName() : null)")
+  @Mapping(target = "paidAmount", source = "paidAmount")
+  @Mapping(
+      target = "balance",
+      expression = "java(entry.getValue().subtract(entry.getPaidAmount()))")
   ArEntryResponseDTO toResponseDTO(ArEntry entry);
 
   List<ArEntryResponseDTO> toResponseDTOList(List<ArEntry> entries);

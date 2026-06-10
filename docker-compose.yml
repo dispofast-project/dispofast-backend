@@ -65,6 +65,7 @@ services:
       mc mb --ignore-existing local/dispofast-legal-docs;
       mc mb --ignore-existing local/dispofast-product-images;
       mc mb --ignore-existing local/dispofast-invoices;
+      mc mb --ignore-existing local/dispofast-payment-vouchers;
       mc anonymous set download local/dispofast-product-images;
       echo 'Buckets initialized successfully';
       "
