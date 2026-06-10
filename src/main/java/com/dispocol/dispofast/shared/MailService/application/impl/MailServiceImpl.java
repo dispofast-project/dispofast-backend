@@ -1,5 +1,11 @@
 package com.dispocol.dispofast.shared.MailService.application.impl;
 
+import org.springframework.stereotype.Service;
+
+import com.dispocol.dispofast.shared.MailService.application.interfaces.MailService;
+
+import lombok.RequiredArgsConstructor;
+
 @Service
 @RequiredArgsConstructor
 public class MailServiceImpl implements MailService {
