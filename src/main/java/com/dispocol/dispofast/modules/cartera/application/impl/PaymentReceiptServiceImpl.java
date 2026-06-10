@@ -11,7 +11,9 @@ import com.dispocol.dispofast.modules.cartera.infra.persistence.ArEntryRepositor
 import com.dispocol.dispofast.modules.cartera.infra.persistence.PaymentReceiptRepository;
 import com.dispocol.dispofast.modules.iam.domain.AppUser;
 import com.dispocol.dispofast.modules.iam.infra.persistence.UserRepository;
+import com.dispocol.dispofast.shared.S3.application.interfaces.S3Service;
 import com.dispocol.dispofast.shared.error.ResourceNotFoundException;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
@@ -20,15 +22,19 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
 public class PaymentReceiptServiceImpl implements PaymentReceiptService {
 
+  private static final String VOUCHERS_BUCKET = "dispofast-payment-vouchers";
+
   private final PaymentReceiptRepository paymentReceiptRepository;
   private final ArEntryRepository arEntryRepository;
   private final UserRepository userRepository;
   private final PaymentReceiptMapper paymentReceiptMapper;
+  private final S3Service s3Service;
 
   @Override
   @Transactional
@@ -100,5 +106,52 @@ public class PaymentReceiptServiceImpl implements PaymentReceiptService {
   @Override
   public double getTotalPaidValue() {
     return paymentReceiptRepository.sumTotalPaidValue();
+  }
+
+  @Override
+  public String uploadVoucher(MultipartFile file) {
+    String original = file.getOriginalFilename() != null ? file.getOriginalFilename() : "file";
+    String ext = original.contains(".") ? original.substring(original.lastIndexOf('.')) : "";
+    String key = UUID.randomUUID() + ext;
+    try {
+      s3Service.uploadFile(
+          VOUCHERS_BUCKET, key, file.getInputStream(),
+          file.getContentType() != null ? file.getContentType() : "application/octet-stream",
+          file.getSize());
+    } catch (IOException e) {
+      throw new RuntimeException("Error al subir el comprobante", e);
+    }
+    return key;
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public byte[] downloadVoucher(UUID receiptId) {
+    PaymentReceipt receipt = paymentReceiptRepository
+        .findById(receiptId)
+        .orElseThrow(() -> new ResourceNotFoundException("Recibo no encontrado: " + receiptId));
+    if (receipt.getVoucherS3Key() == null) {
+      throw new ResourceNotFoundException("Este recibo no tiene comprobante adjunto");
+    }
+    return s3Service.downloadFile(VOUCHERS_BUCKET, receipt.getVoucherS3Key());
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public String getVoucherFilename(UUID receiptId) {
+    PaymentReceipt receipt = paymentReceiptRepository
+        .findById(receiptId)
+        .orElseThrow(() -> new ResourceNotFoundException("Recibo no encontrado: " + receiptId));
+    String key = receipt.getVoucherS3Key();
+    String ext = (key != null && key.contains(".")) ? key.substring(key.lastIndexOf('.')) : "";
+    String docRef = receipt.getDocumentNumber() != null
+        ? receipt.getDocumentNumber()
+        : receipt.getReceiptCode();
+    return "comprobante_" + docRef + ext;
+  }
+
+  private static String getExtension(String filename) {
+    if (filename == null || !filename.contains(".")) return "";
+    return filename.substring(filename.lastIndexOf('.'));
   }
 }

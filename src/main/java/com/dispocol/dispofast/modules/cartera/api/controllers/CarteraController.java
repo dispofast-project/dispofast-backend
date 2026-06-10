@@ -16,7 +16,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,6 +29,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/cartera")
@@ -95,7 +99,25 @@ public class CarteraController {
 
   @GetMapping("/total-value")
   public double getTotalPaidValue() {
-      return paymentReceiptService.getTotalPaidValue();
+    return paymentReceiptService.getTotalPaidValue();
   }
-  
+
+  /** Sube un comprobante de pago a S3 y retorna la key. */
+  @PostMapping(value = "/vouchers/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  @PreAuthorize("hasAuthority('ACCOUNTS_VIEW')")
+  public ResponseEntity<String> uploadVoucher(@RequestParam("file") MultipartFile file) {
+    return ResponseEntity.ok(paymentReceiptService.uploadVoucher(file));
+  }
+
+  /** Descarga el comprobante de pago de un recibo. */
+  @GetMapping("/recibos/{receiptId}/voucher")
+  @PreAuthorize("hasAuthority('ACCOUNTS_VIEW')")
+  public ResponseEntity<byte[]> downloadVoucher(@PathVariable UUID receiptId) {
+    byte[] data = paymentReceiptService.downloadVoucher(receiptId);
+    String filename = paymentReceiptService.getVoucherFilename(receiptId);
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentDisposition(ContentDisposition.attachment().filename(filename).build());
+    headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+    return ResponseEntity.ok().headers(headers).body(data);
+  }
 }

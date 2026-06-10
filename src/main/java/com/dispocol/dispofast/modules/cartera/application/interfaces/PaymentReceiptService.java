@@ -4,6 +4,7 @@ import com.dispocol.dispofast.modules.cartera.api.dtos.CreatePaymentReceiptReque
 import com.dispocol.dispofast.modules.cartera.api.dtos.PaymentReceiptResponseDTO;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface PaymentReceiptService {
 
@@ -14,4 +15,10 @@ public interface PaymentReceiptService {
   PaymentReceiptResponseDTO getReceiptById(UUID id);
 
   double getTotalPaidValue();
+
+  String uploadVoucher(MultipartFile file);
+
+  byte[] downloadVoucher(UUID receiptId);
+
+  String getVoucherFilename(UUID receiptId);
 }
