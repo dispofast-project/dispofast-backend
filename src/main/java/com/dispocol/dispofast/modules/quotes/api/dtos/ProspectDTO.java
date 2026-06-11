@@ -1,6 +1,5 @@
 package com.dispocol.dispofast.modules.quotes.api.dtos;
 
-import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,9 +9,11 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class CreateQuoteRequestDTO {
-
-  private UUID accountId;
-
-  private ProspectDTO prospect;
+public class ProspectDTO {
+  private String name;
+  private String legalEntityType;
+  private Long clientTypeId;
+  private String clientTypeName;
+  private String phone;
+  private String email;
 }

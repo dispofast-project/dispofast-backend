@@ -1,18 +1,24 @@
 package com.dispocol.dispofast.modules.quotes.application.impl;
 
 import com.dispocol.dispofast.modules.customers.domain.Client;
+import com.dispocol.dispofast.modules.customers.domain.ClientType;
 import com.dispocol.dispofast.modules.customers.domain.Individual;
+import com.dispocol.dispofast.modules.customers.domain.LegalEntityType;
 import com.dispocol.dispofast.modules.customers.infra.persistence.ClientRepository;
+import com.dispocol.dispofast.modules.customers.infra.persistence.ClientTypeRepository;
 import com.dispocol.dispofast.modules.iam.domain.AppUser;
 import com.dispocol.dispofast.modules.iam.infra.persistence.UserRepository;
+import com.dispocol.dispofast.modules.pricelist.domain.PriceList;
 import com.dispocol.dispofast.modules.pricelist.infra.persistence.PriceListRepository;
 import com.dispocol.dispofast.modules.quotes.api.dtos.ChangeQuoteStatusRequestDTO;
 import com.dispocol.dispofast.modules.quotes.api.dtos.CreateQuoteRequestDTO;
+import com.dispocol.dispofast.modules.quotes.api.dtos.ProspectDTO;
 import com.dispocol.dispofast.modules.quotes.api.dtos.QuotePreviewResponseDTO;
 import com.dispocol.dispofast.modules.quotes.api.dtos.QuoteResponseDTO;
 import com.dispocol.dispofast.modules.quotes.api.dtos.UpdateQuoteRequestDTO;
 import com.dispocol.dispofast.modules.quotes.api.mappers.QuoteMapper;
 import com.dispocol.dispofast.modules.quotes.application.interfaces.QuoteService;
+import com.dispocol.dispofast.modules.quotes.domain.Prospect;
 import com.dispocol.dispofast.modules.quotes.domain.QuoteItem;
 import com.dispocol.dispofast.modules.quotes.domain.QuoteStatus;
 import com.dispocol.dispofast.modules.quotes.domain.Quotes;
@@ -43,10 +49,20 @@ public class QuoteServiceImpl implements QuoteService {
   private final PriceListRepository priceListRepository;
   private final UserRepository userRepository;
   private final SystemParamRepository systemParamRepository;
+  private final ClientTypeRepository clientTypeRepository;
 
   @Override
   @Transactional
   public QuoteResponseDTO createQuote(CreateQuoteRequestDTO dto) {
+    if (dto.getAccountId() != null) {
+      return createQuoteForClient(dto);
+    } else if (dto.getProspect() != null) {
+      return createQuoteForProspect(dto.getProspect());
+    }
+    throw new IllegalArgumentException("Debe proporcionar accountId o los datos del prospecto.");
+  }
+
+  private QuoteResponseDTO createQuoteForClient(CreateQuoteRequestDTO dto) {
     Client client =
         clientRepository
             .findById(dto.getAccountId())
@@ -55,7 +71,7 @@ public class QuoteServiceImpl implements QuoteService {
                     new ResourceNotFoundException(
                         "Client not found with id: " + dto.getAccountId()));
 
-    Quotes quote = quoteMapper.toEntity(dto);
+    Quotes quote = new Quotes();
     quote.setAccount(client);
     quote.setNumber("QT-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
     quote.setStatus(QuoteStatus.PENDING);
@@ -64,13 +80,7 @@ public class QuoteServiceImpl implements QuoteService {
     quote.setCity(client.getCity());
     quote.setZone(client.getZone());
 
-    // Tasas iniciales: IVA leído de system_params
-    BigDecimal ivaRate =
-        systemParamRepository
-            .findByClave("IVA")
-            .map(p -> p.getValor())
-            .orElse(new BigDecimal("0.19"));
-    quote.setIvaRate(ivaRate);
+    applyDefaultFinancials(quote);
 
     Integer defaultDiscount = client.getDefaultDiscountRate();
     BigDecimal commRate =
@@ -79,7 +89,6 @@ public class QuoteServiceImpl implements QuoteService {
             : BigDecimal.ZERO;
     quote.setCommercialDiscountRate(commRate);
 
-    // Retenciones solo para personas jurídicas que apliquen retefuente
     if (!(client instanceof Individual) && Boolean.TRUE.equals(client.getRetefuenteApplies())) {
       BigDecimal retefuenteRate =
           systemParamRepository
@@ -87,17 +96,64 @@ public class QuoteServiceImpl implements QuoteService {
               .map(p -> p.getValor())
               .orElse(new BigDecimal("0.0250"));
       quote.setRetefuenteRate(retefuenteRate);
+      quote.setRetefuenteAmount(BigDecimal.ZERO);
     }
-    // Montos en cero hasta que se agreguen ítems
+
+    return quoteMapper.toResponseDTO(quotesRepository.save(quote));
+  }
+
+  private QuoteResponseDTO createQuoteForProspect(ProspectDTO prospectDTO) {
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    AppUser currentUser =
+        userRepository
+            .findByEmailIgnoreCase(auth.getName())
+            .orElseThrow(() -> new ResourceNotFoundException("User not found: " + auth.getName()));
+
+    Prospect prospect = new Prospect();
+    prospect.setName(prospectDTO.getName());
+    prospect.setLegalEntityType(LegalEntityType.fromValue(prospectDTO.getLegalEntityType()));
+    prospect.setPhone(prospectDTO.getPhone());
+    prospect.setEmail(prospectDTO.getEmail());
+    if (prospectDTO.getClientTypeId() != null) {
+      ClientType clientType =
+          clientTypeRepository.findById(prospectDTO.getClientTypeId()).orElse(null);
+      prospect.setClientType(clientType);
+    }
+
+    // Usar la primera lista de precios activa como default
+    PriceList defaultPriceList = priceListRepository.findAll().stream().findFirst().orElse(null);
+
+    Quotes quote = new Quotes();
+    quote.setProspect(prospect);
+    quote.setAccount(null);
+    quote.setNumber("QT-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
+    quote.setStatus(QuoteStatus.PENDING);
+    quote.setSeller(currentUser);
+    quote.setPriceList(defaultPriceList);
+    quote.setCity(null);
+    quote.setZone(null);
+
+    applyDefaultFinancials(quote);
+
+    return quoteMapper.toResponseDTO(quotesRepository.save(quote));
+  }
+
+  private void applyDefaultFinancials(Quotes quote) {
+    BigDecimal ivaRate =
+        systemParamRepository
+            .findByClave("IVA")
+            .map(p -> p.getValor())
+            .orElse(new BigDecimal("0.19"));
+    quote.setIvaRate(ivaRate);
+    quote.setCommercialDiscountRate(BigDecimal.ZERO);
     quote.setSubtotalAmount(BigDecimal.ZERO);
     quote.setCommercialDiscountAmount(BigDecimal.ZERO);
     quote.setOtherDiscountsRate(BigDecimal.ZERO);
     quote.setOtherDiscountsAmount(BigDecimal.ZERO);
     quote.setIvaAmount(BigDecimal.ZERO);
-    quote.setRetefuenteAmount(quote.getRetefuenteRate() != null ? BigDecimal.ZERO : null);
+    quote.setRetefuenteAmount(null);
+    quote.setRetefuenteRate(null);
     quote.setTotalAmount(BigDecimal.ZERO);
-
-    return quoteMapper.toResponseDTO(quotesRepository.save(quote));
   }
 
   @Override
