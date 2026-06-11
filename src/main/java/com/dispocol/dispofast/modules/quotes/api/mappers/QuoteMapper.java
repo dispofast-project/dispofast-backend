@@ -77,9 +77,7 @@ public interface QuoteMapper {
       expression = "java(quotes.getSeller() != null ? quotes.getSeller().getFullName() : null)")
   QuoteResponseDTO toResponseDTO(Quotes quotes);
 
-  @Mapping(
-      target = "accountName",
-      expression = "java(resolveAccountName(quote))")
+  @Mapping(target = "accountName", expression = "java(resolveAccountName(quote))")
   @Mapping(
       target = "prospect",
       expression = "java(quote.getAccount() == null && quote.getProspect() != null)")
@@ -115,9 +113,11 @@ public interface QuoteMapper {
     if (prospect == null) return null;
     return ProspectDTO.builder()
         .name(prospect.getName())
-        .legalEntityType(prospect.getLegalEntityType() != null ? prospect.getLegalEntityType().getValue() : null)
+        .legalEntityType(
+            prospect.getLegalEntityType() != null ? prospect.getLegalEntityType().getValue() : null)
         .clientTypeId(prospect.getClientType() != null ? prospect.getClientType().getId() : null)
-        .clientTypeName(prospect.getClientType() != null ? prospect.getClientType().getName() : null)
+        .clientTypeName(
+            prospect.getClientType() != null ? prospect.getClientType().getName() : null)
         .phone(prospect.getPhone())
         .email(prospect.getEmail())
         .build();

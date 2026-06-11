@@ -67,7 +67,9 @@ public class QuoteServiceImpl implements QuoteService {
         clientRepository
             .findById(dto.getAccountId())
             .orElseThrow(
-                () -> new ResourceNotFoundException("Client not found with id: " + dto.getAccountId()));
+                () ->
+                    new ResourceNotFoundException(
+                        "Client not found with id: " + dto.getAccountId()));
 
     Quotes quote = new Quotes();
     quote.setAccount(client);
@@ -114,9 +116,7 @@ public class QuoteServiceImpl implements QuoteService {
     prospect.setEmail(prospectDTO.getEmail());
     if (prospectDTO.getClientTypeId() != null) {
       ClientType clientType =
-          clientTypeRepository
-              .findById(prospectDTO.getClientTypeId())
-              .orElse(null);
+          clientTypeRepository.findById(prospectDTO.getClientTypeId()).orElse(null);
       prospect.setClientType(clientType);
     }
 
