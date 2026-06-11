@@ -5,9 +5,11 @@ import com.dispocol.dispofast.modules.customers.domain.Client;
 import com.dispocol.dispofast.modules.customers.domain.Individual;
 import com.dispocol.dispofast.modules.customers.domain.Organization;
 import com.dispocol.dispofast.modules.quotes.api.dtos.CreateQuoteRequestDTO;
+import com.dispocol.dispofast.modules.quotes.api.dtos.ProspectDTO;
 import com.dispocol.dispofast.modules.quotes.api.dtos.QuotePreviewResponseDTO;
 import com.dispocol.dispofast.modules.quotes.api.dtos.QuoteResponseDTO;
 import com.dispocol.dispofast.modules.quotes.api.dtos.UpdateQuoteRequestDTO;
+import com.dispocol.dispofast.modules.quotes.domain.Prospect;
 import com.dispocol.dispofast.modules.quotes.domain.Quotes;
 import com.dispocol.dispofast.shared.location.api.mappers.CityMapper;
 import java.util.List;
@@ -25,6 +27,7 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 public interface QuoteMapper {
 
   @Mapping(target = "account", ignore = true)
+  @Mapping(target = "prospect", ignore = true)
   @Mapping(target = "status", ignore = true)
   @Mapping(target = "seller", ignore = true)
   @Mapping(target = "city", ignore = true)
@@ -44,6 +47,7 @@ public interface QuoteMapper {
   @Mapping(target = "id", ignore = true)
   @Mapping(target = "number", ignore = true)
   @Mapping(target = "account", ignore = true)
+  @Mapping(target = "prospect", ignore = true)
   @Mapping(target = "createdAt", ignore = true)
   @Mapping(target = "updatedAt", ignore = true)
   // Campos calculados — ignorados en el update, el servicio los recalcula
@@ -61,6 +65,7 @@ public interface QuoteMapper {
 
   @Mapping(target = "status", source = "status")
   @Mapping(target = "account", source = "account")
+  @Mapping(target = "prospect", source = "prospect", qualifiedByName = "prospectToDTO")
   @Mapping(target = "location", source = "city")
   @Mapping(target = "priceList", source = "priceList")
   @Mapping(target = "items", source = "items")
@@ -72,9 +77,24 @@ public interface QuoteMapper {
       expression = "java(quotes.getSeller() != null ? quotes.getSeller().getFullName() : null)")
   QuoteResponseDTO toResponseDTO(Quotes quotes);
 
-  @Mapping(target = "accountName", source = "account", qualifiedByName = "clientToName")
+  @Mapping(
+      target = "accountName",
+      expression = "java(resolveAccountName(quote))")
+  @Mapping(
+      target = "prospect",
+      expression = "java(quote.getAccount() == null && quote.getProspect() != null)")
   @Mapping(target = "total", source = "totalAmount")
   QuotePreviewResponseDTO toPreviewResponseDTO(Quotes quote);
+
+  default String resolveAccountName(Quotes quote) {
+    if (quote.getAccount() != null) {
+      return clientToName(quote.getAccount());
+    }
+    if (quote.getProspect() != null) {
+      return quote.getProspect().getName();
+    }
+    return null;
+  }
 
   @Named("clientToName")
   default String clientToName(Client client) {
@@ -88,6 +108,19 @@ public interface QuoteMapper {
       return org.getLegalName();
     }
     return "";
+  }
+
+  @Named("prospectToDTO")
+  default ProspectDTO prospectToDTO(Prospect prospect) {
+    if (prospect == null) return null;
+    return ProspectDTO.builder()
+        .name(prospect.getName())
+        .legalEntityType(prospect.getLegalEntityType() != null ? prospect.getLegalEntityType().getValue() : null)
+        .clientTypeId(prospect.getClientType() != null ? prospect.getClientType().getId() : null)
+        .clientTypeName(prospect.getClientType() != null ? prospect.getClientType().getName() : null)
+        .phone(prospect.getPhone())
+        .email(prospect.getEmail())
+        .build();
   }
 
   List<QuoteResponseDTO> toResponseDTOList(List<Quotes> quotesList);

@@ -43,15 +43,19 @@ public class Quotes {
   // ── Relaciones ───────────────────────────────────────────────
 
   @ManyToOne
-  @JoinColumn(name = "account_id", nullable = false)
+  @JoinColumn(name = "account_id", nullable = true)
   private Client account;
+
+  @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+  @JoinColumn(name = "prospect_id", nullable = true)
+  private Prospect prospect;
 
   @ManyToOne
   @JoinColumn(name = "seller_id", nullable = false)
   private AppUser seller;
 
   @ManyToOne
-  @JoinColumn(name = "city_id", nullable = false)
+  @JoinColumn(name = "city_id", nullable = true)
   private City city;
 
   @Enumerated(EnumType.STRING)

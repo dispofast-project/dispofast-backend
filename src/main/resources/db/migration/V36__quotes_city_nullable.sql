@@ -1,0 +1,1 @@
+ALTER TABLE quotes ALTER COLUMN city_id DROP NOT NULL;
