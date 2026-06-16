@@ -37,6 +37,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -74,6 +76,14 @@ public class ClientServiceImpl implements ClientService {
       spec = spec.and((root, query, cb) -> cb.equal(root.get("city").get("code"), city.trim()));
     }
 
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    boolean isAdmin = auth.getAuthorities().stream()
+        .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+    if (!isAdmin) {
+      spec = spec.and((root, query, cb) ->
+          cb.equal(root.get("defaultAdvisor").get("email"), auth.getName()));
+    }
+
     Page<Client> clientPage = clientRepository.findAll(spec, pageable);
     return clientPage.map(clientMapper::toPreviewDTO);
   }
@@ -86,6 +96,18 @@ public class ClientServiceImpl implements ClientService {
             .findById(id)
             .orElseThrow(
                 () -> new ResourceNotFoundException("No se encontró el cliente solicitado."));
+
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    boolean isAdmin = auth.getAuthorities().stream()
+        .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+    if (!isAdmin) {
+      boolean isOwner = client.getDefaultAdvisor() != null
+          && auth.getName().equalsIgnoreCase(client.getDefaultAdvisor().getEmail());
+      if (!isOwner) {
+        throw new ResourceNotFoundException("No se encontró el cliente solicitado.");
+      }
+    }
+
     return clientMapper.toResponseDTO(client);
   }
 
