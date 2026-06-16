@@ -83,6 +83,10 @@ public class UserServiceImpl implements UserService {
     existingUser.getRoles().clear();
     existingUser.getRoles().add(role);
 
+    if (user.getPassword() != null && !user.getPassword().isBlank()) {
+      existingUser.setPasswordHash(passwordEncoder.encode(user.getPassword()));
+    }
+
     existingUser = userRepository.save(existingUser);
 
     return userMapper.toUserResponseDTO(existingUser);

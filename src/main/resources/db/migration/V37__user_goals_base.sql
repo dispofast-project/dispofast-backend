@@ -1,7 +1,7 @@
 CREATE TABLE user_goals (
     id         UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id    UUID         NOT NULL,
-    type       VARCHAR(30)  NOT NULL CHECK (type IN ('SALES_QUOTA', 'COLLECTION_QUOTA', 'COMMISSION')),
+    type       VARCHAR(30)  NOT NULL CHECK (type IN ('SALES_QUOTA', 'COLLECTION_QUOTA')),
     month      SMALLINT     NOT NULL CHECK (month BETWEEN 1 AND 12),
     year       SMALLINT     NOT NULL CHECK (year >= 2000),
     value      NUMERIC(15,4) NOT NULL CHECK (value >= 0),
