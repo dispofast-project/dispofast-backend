@@ -41,8 +41,7 @@ public class UserGoalController {
   }
 
   @DeleteMapping("/{goalId}")
-  public ResponseEntity<Void> deleteGoal(
-      @PathVariable UUID userId, @PathVariable UUID goalId) {
+  public ResponseEntity<Void> deleteGoal(@PathVariable UUID userId, @PathVariable UUID goalId) {
     userGoalService.deleteGoal(userId, goalId);
     return ResponseEntity.noContent().build();
   }

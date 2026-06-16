@@ -77,11 +77,13 @@ public class ClientServiceImpl implements ClientService {
     }
 
     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-    boolean isAdmin = auth.getAuthorities().stream()
-        .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+    boolean isAdmin =
+        auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
     if (!isAdmin) {
-      spec = spec.and((root, query, cb) ->
-          cb.equal(root.get("defaultAdvisor").get("email"), auth.getName()));
+      spec =
+          spec.and(
+              (root, query, cb) ->
+                  cb.equal(root.get("defaultAdvisor").get("email"), auth.getName()));
     }
 
     Page<Client> clientPage = clientRepository.findAll(spec, pageable);
@@ -98,11 +100,12 @@ public class ClientServiceImpl implements ClientService {
                 () -> new ResourceNotFoundException("No se encontró el cliente solicitado."));
 
     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-    boolean isAdmin = auth.getAuthorities().stream()
-        .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+    boolean isAdmin =
+        auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
     if (!isAdmin) {
-      boolean isOwner = client.getDefaultAdvisor() != null
-          && auth.getName().equalsIgnoreCase(client.getDefaultAdvisor().getEmail());
+      boolean isOwner =
+          client.getDefaultAdvisor() != null
+              && auth.getName().equalsIgnoreCase(client.getDefaultAdvisor().getEmail());
       if (!isOwner) {
         throw new ResourceNotFoundException("No se encontró el cliente solicitado.");
       }

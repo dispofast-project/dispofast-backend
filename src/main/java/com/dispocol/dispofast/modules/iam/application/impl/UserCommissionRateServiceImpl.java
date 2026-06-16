@@ -61,9 +61,6 @@ public class UserCommissionRateServiceImpl implements UserCommissionRateService 
 
   private UserCommissionRateDTO toDTO(UserCommissionRate rate) {
     return new UserCommissionRateDTO(
-        rate.getId(),
-        rate.getCategory().getId(),
-        rate.getCategory().getName(),
-        rate.getRate());
+        rate.getId(), rate.getCategory().getId(), rate.getCategory().getName(), rate.getRate());
   }
 }

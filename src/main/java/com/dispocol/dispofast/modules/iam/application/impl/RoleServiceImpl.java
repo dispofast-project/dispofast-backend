@@ -28,9 +28,7 @@ public class RoleServiceImpl implements RoleService {
         .map(
             role -> {
               Set<UUID> rolePermIds =
-                  role.getPermissions().stream()
-                      .map(Permission::getId)
-                      .collect(Collectors.toSet());
+                  role.getPermissions().stream().map(Permission::getId).collect(Collectors.toSet());
 
               Set<PermissionSummaryDTO> permSummaries =
                   allPermissions.stream()

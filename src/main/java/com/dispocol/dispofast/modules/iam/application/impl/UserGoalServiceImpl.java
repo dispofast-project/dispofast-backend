@@ -23,9 +23,7 @@ public class UserGoalServiceImpl implements UserGoalService {
 
   @Override
   public List<UserGoalDTO> getGoalsByType(UUID userId, GoalType type) {
-    return userGoalRepository
-        .findByUserIdAndTypeOrderByYearDescMonthDesc(userId, type)
-        .stream()
+    return userGoalRepository.findByUserIdAndTypeOrderByYearDescMonthDesc(userId, type).stream()
         .map(this::toDTO)
         .collect(Collectors.toList());
   }
@@ -59,10 +57,6 @@ public class UserGoalServiceImpl implements UserGoalService {
 
   private UserGoalDTO toDTO(UserGoal goal) {
     return new UserGoalDTO(
-        goal.getId(),
-        goal.getType().name(),
-        goal.getMonth(),
-        goal.getYear(),
-        goal.getValue());
+        goal.getId(), goal.getType().name(), goal.getMonth(), goal.getYear(), goal.getValue());
   }
 }

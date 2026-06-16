@@ -27,8 +27,7 @@ public class UserCommissionRateController {
   private final UserCommissionRateService commissionRateService;
 
   @GetMapping
-  public ResponseEntity<List<UserCommissionRateDTO>> getCommissionRates(
-      @PathVariable UUID userId) {
+  public ResponseEntity<List<UserCommissionRateDTO>> getCommissionRates(@PathVariable UUID userId) {
     return ResponseEntity.ok(commissionRateService.getCommissionRates(userId));
   }
 

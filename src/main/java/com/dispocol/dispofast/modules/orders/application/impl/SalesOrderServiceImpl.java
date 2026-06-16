@@ -154,11 +154,12 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     SalesOrder order = findOrderOrThrow(id);
 
     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-    boolean isAdmin = auth.getAuthorities().stream()
-        .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+    boolean isAdmin =
+        auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
     if (!isAdmin) {
-      boolean isOwner = order.getAsesor() != null
-          && auth.getName().equalsIgnoreCase(order.getAsesor().getEmail());
+      boolean isOwner =
+          order.getAsesor() != null
+              && auth.getName().equalsIgnoreCase(order.getAsesor().getEmail());
       if (!isOwner) {
         throw new SalesOrderNotFoundException("La orden solicitada no fue encontrada.");
       }
@@ -452,8 +453,8 @@ public class SalesOrderServiceImpl implements SalesOrderService {
       List<Predicate> predicates = new ArrayList<>();
 
       Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-      boolean isAdmin = auth.getAuthorities().stream()
-          .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+      boolean isAdmin =
+          auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
       if (!isAdmin) {
         predicates.add(cb.equal(root.get("asesor").get("email"), auth.getName()));
       }
