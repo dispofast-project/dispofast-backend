@@ -52,7 +52,6 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 public class SalesOrderServiceImpl implements SalesOrderService {
 
-
   private final SalesOrderRepository salesOrderRepository;
   private final SalesOrderItemRepository salesOrderItemRepository;
   private final SalesOrderMapper salesOrderMapper;

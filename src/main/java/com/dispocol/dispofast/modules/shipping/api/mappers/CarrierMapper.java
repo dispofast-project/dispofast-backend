@@ -13,5 +13,4 @@ public class CarrierMapper {
     }
     return new CarrierResponseDTO(carrier.getId(), carrier.getName(), carrier.getPlate());
   }
-
 }

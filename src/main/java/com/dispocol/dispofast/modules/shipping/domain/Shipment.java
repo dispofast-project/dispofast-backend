@@ -28,9 +28,7 @@ import org.hibernate.annotations.CreationTimestamp;
 @NoArgsConstructor
 public class Shipment {
 
-  @Id @GeneratedValue
-  @EqualsAndHashCode.Include
-  private UUID id;
+  @Id @GeneratedValue @EqualsAndHashCode.Include private UUID id;
 
   @Column(name = "invoice_id", nullable = false)
   private UUID invoiceId;
