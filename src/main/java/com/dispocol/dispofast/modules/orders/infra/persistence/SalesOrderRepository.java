@@ -24,17 +24,16 @@ public interface SalesOrderRepository
 
   @Query(
       "SELECT COALESCE(SUM(o.totalValue), 0) FROM SalesOrder o "
-          + "WHERE FUNCTION('YEAR', o.orderDate) = :year "
-          + "AND FUNCTION('MONTH', o.orderDate) = :month "
+          + "WHERE year(o.orderDate) = :year "
+          + "AND month(o.orderDate) = :month "
           + "AND o.state <> 'CANCELLED'")
   BigDecimal getTotalVentasMes(@Param("year") int year, @Param("month") int month);
 
   @Query(
-      "SELECT FUNCTION('YEAR', o.orderDate), FUNCTION('MONTH', o.orderDate), "
-          + "COALESCE(SUM(o.totalValue), 0) "
+      "SELECT year(o.orderDate), month(o.orderDate), COALESCE(SUM(o.totalValue), 0) "
           + "FROM SalesOrder o "
           + "WHERE o.orderDate >= :startDate AND o.state <> 'CANCELLED' "
-          + "GROUP BY FUNCTION('YEAR', o.orderDate), FUNCTION('MONTH', o.orderDate) "
-          + "ORDER BY FUNCTION('YEAR', o.orderDate), FUNCTION('MONTH', o.orderDate)")
+          + "GROUP BY year(o.orderDate), month(o.orderDate) "
+          + "ORDER BY year(o.orderDate), month(o.orderDate)")
   List<Object[]> getMonthlySales(@Param("startDate") OffsetDateTime startDate);
 }
