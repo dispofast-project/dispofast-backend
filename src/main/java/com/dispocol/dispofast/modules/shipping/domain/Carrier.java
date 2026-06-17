@@ -5,10 +5,12 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.time.LocalDate;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 
 @Entity
 @Table(name = "carriers")
@@ -22,6 +24,10 @@ public class Carrier {
   @Column(name = "name", length = 100, nullable = false)
   private String name;
 
-  @Column(name = "plate", length = 50, nullable = false, unique = true)
-  private String plate;
+  @Column(name = "website", length = 255)
+  private String website;
+
+  @CreationTimestamp
+  @Column(name = "registered_at", updatable = false)
+  private LocalDate registeredAt;
 }

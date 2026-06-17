@@ -7,9 +7,10 @@ import com.dispocol.dispofast.modules.shipping.application.interfaces.CarrierSer
 import com.dispocol.dispofast.modules.shipping.domain.Carrier;
 import com.dispocol.dispofast.modules.shipping.infra.exceptions.CarrierNotFoundException;
 import com.dispocol.dispofast.modules.shipping.infra.persistence.CarrierRepository;
-import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,37 +29,26 @@ public class CarrierServiceImpl implements CarrierService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<CarrierResponseDTO> getAll() {
-    return carrierRepository.findAll().stream().map(carrierMapper::toResponseDTO).toList();
+  public Page<CarrierResponseDTO> getAll(Pageable pageable) {
+    return carrierRepository.findAll(pageable).map(carrierMapper::toResponseDTO);
   }
 
   @Override
   @Transactional
   public CarrierResponseDTO create(CreateCarrierDTO dto) {
-    if (carrierRepository.findByPlate(dto.getPlate()).isPresent()) {
-      throw new IllegalArgumentException(
-          "Ya existe un transportista con la placa: " + dto.getPlate());
-    }
     Carrier carrier = new Carrier();
     carrier.setName(dto.getName());
-    carrier.setPlate(dto.getPlate());
-    Carrier saved = carrierRepository.save(carrier);
-    return carrierMapper.toResponseDTO(saved);
+    carrier.setWebsite(dto.getWebsite());
+    return carrierMapper.toResponseDTO(carrierRepository.save(carrier));
   }
 
   @Override
   @Transactional
   public CarrierResponseDTO update(UUID id, CreateCarrierDTO dto) {
     Carrier carrier = findEntityById(id);
-    if (!carrier.getPlate().equals(dto.getPlate())
-        && carrierRepository.findByPlate(dto.getPlate()).isPresent()) {
-      throw new IllegalArgumentException(
-          "Ya existe un transportista con la placa: " + dto.getPlate());
-    }
     carrier.setName(dto.getName());
-    carrier.setPlate(dto.getPlate());
-    Carrier updated = carrierRepository.save(carrier);
-    return carrierMapper.toResponseDTO(updated);
+    carrier.setWebsite(dto.getWebsite());
+    return carrierMapper.toResponseDTO(carrierRepository.save(carrier));
   }
 
   @Override
@@ -75,14 +65,5 @@ public class CarrierServiceImpl implements CarrierService {
         .findById(id)
         .orElseThrow(
             () -> new CarrierNotFoundException("Transportista no encontrado con id: " + id));
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public Carrier findByPlate(String plate) {
-    return carrierRepository
-        .findByPlate(plate)
-        .orElseThrow(
-            () -> new CarrierNotFoundException("Transportista no encontrado con placa: " + plate));
   }
 }

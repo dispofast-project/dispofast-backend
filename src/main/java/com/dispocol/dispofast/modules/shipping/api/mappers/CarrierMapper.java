@@ -11,6 +11,7 @@ public class CarrierMapper {
     if (carrier == null) {
       return null;
     }
-    return new CarrierResponseDTO(carrier.getId(), carrier.getName(), carrier.getPlate());
+    return new CarrierResponseDTO(
+        carrier.getId(), carrier.getName(), carrier.getWebsite(), carrier.getRegisteredAt());
   }
 }

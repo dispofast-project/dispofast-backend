@@ -1,5 +1,6 @@
 package com.dispocol.dispofast.modules.shipping.api.dtos;
 
+import java.time.LocalDate;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,5 +13,6 @@ public class CarrierResponseDTO {
 
   private UUID id;
   private String name;
-  private String plate;
+  private String website;
+  private LocalDate registeredAt;
 }
