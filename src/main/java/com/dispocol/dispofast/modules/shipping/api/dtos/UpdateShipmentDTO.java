@@ -11,8 +11,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class UpdateShipmentDTO {
 
+  private String deliveryType;
   private String deliveryAddress;
+  private String addressDetail;
   private UUID carrierId;
+  private UUID driverId;
   private String cityCode;
   private LocalDate estimatedDeliveryDate;
+  private String trackingCode;
 }

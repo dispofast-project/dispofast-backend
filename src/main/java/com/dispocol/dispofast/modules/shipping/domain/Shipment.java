@@ -40,6 +40,9 @@ public class Shipment {
   @Column(name = "delivery_address", length = 500, nullable = false)
   private String deliveryAddress;
 
+  @Column(name = "address_detail", length = 255)
+  private String addressDetail;
+
   @Column(name = "departure_date")
   private OffsetDateTime departureDate;
 
@@ -49,6 +52,10 @@ public class Shipment {
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "carrier_id")
   private Carrier carrier;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "driver_id")
+  private Driver driver;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "city_code")
@@ -72,4 +79,10 @@ public class Shipment {
 
   @Column(name = "product_count")
   private Integer productCount;
+
+  @Column(name = "delivery_type", length = 20)
+  private String deliveryType;
+
+  @Column(name = "tracking_code", length = 100)
+  private String trackingCode;
 }

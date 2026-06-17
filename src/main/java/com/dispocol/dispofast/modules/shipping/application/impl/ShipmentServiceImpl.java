@@ -10,12 +10,16 @@ import com.dispocol.dispofast.modules.shipping.api.dtos.UpdateShipmentDTO;
 import com.dispocol.dispofast.modules.shipping.api.mappers.ShipmentMapper;
 import com.dispocol.dispofast.modules.shipping.application.interfaces.ShipmentService;
 import com.dispocol.dispofast.modules.shipping.domain.Carrier;
+import com.dispocol.dispofast.modules.shipping.domain.Driver;
 import com.dispocol.dispofast.modules.shipping.domain.Shipment;
+import com.dispocol.dispofast.modules.shipping.domain.ShipmentItem;
 import com.dispocol.dispofast.modules.shipping.domain.ShipmentState;
 import com.dispocol.dispofast.modules.shipping.infra.exceptions.DuplicateShipmentException;
 import com.dispocol.dispofast.modules.shipping.infra.exceptions.ShipmentNotEditableException;
 import com.dispocol.dispofast.modules.shipping.infra.exceptions.ShipmentNotFoundException;
 import com.dispocol.dispofast.modules.shipping.infra.persistence.CarrierRepository;
+import com.dispocol.dispofast.modules.shipping.infra.persistence.DriverRepository;
+import com.dispocol.dispofast.modules.shipping.infra.persistence.ShipmentItemRepository;
 import com.dispocol.dispofast.modules.shipping.infra.persistence.ShipmentRepository;
 import com.dispocol.dispofast.shared.location.domain.City;
 import com.dispocol.dispofast.shared.location.infra.persistence.CityRepository;
@@ -41,7 +45,9 @@ public class ShipmentServiceImpl implements ShipmentService {
       EnumSet.of(ShipmentState.PENDING, ShipmentState.ASSIGNED);
 
   private final ShipmentRepository shipmentRepository;
+  private final ShipmentItemRepository shipmentItemRepository;
   private final CarrierRepository carrierRepository;
+  private final DriverRepository driverRepository;
   private final CityRepository cityRepository;
   private final ShipmentMapper shipmentMapper;
   private final InvoiceService invoiceService;
@@ -51,14 +57,18 @@ public class ShipmentServiceImpl implements ShipmentService {
   @Autowired
   public ShipmentServiceImpl(
       ShipmentRepository shipmentRepository,
+      ShipmentItemRepository shipmentItemRepository,
       CarrierRepository carrierRepository,
+      DriverRepository driverRepository,
       CityRepository cityRepository,
       ShipmentMapper shipmentMapper,
       InvoiceService invoiceService,
       SalesOrderItemRepository salesOrderItemRepository,
       @Lazy SalesOrderService salesOrderService) {
     this.shipmentRepository = shipmentRepository;
+    this.shipmentItemRepository = shipmentItemRepository;
     this.carrierRepository = carrierRepository;
+    this.driverRepository = driverRepository;
     this.cityRepository = cityRepository;
     this.shipmentMapper = shipmentMapper;
     this.invoiceService = invoiceService;
@@ -93,7 +103,13 @@ public class ShipmentServiceImpl implements ShipmentService {
   @Override
   @Transactional(readOnly = true)
   public ShipmentResponseDTO getById(UUID id) {
-    return shipmentMapper.toResponseDTO(findEntityById(id));
+    Shipment shipment = findEntityById(id);
+    ShipmentResponseDTO dto = shipmentMapper.toResponseDTO(shipment);
+    List<ShipmentItem> items = shipmentItemRepository.findByShipmentId(id);
+    if (!items.isEmpty()) {
+      dto.setItems(items.stream().map(shipmentMapper::toItemDTO).toList());
+    }
+    return dto;
   }
 
   @Override
@@ -144,11 +160,20 @@ public class ShipmentServiceImpl implements ShipmentService {
       if (order.getAsesor() != null) {
         shipment.setAsesorName(order.getAsesor().getFullName());
       }
-      List<SalesOrderItem> items = salesOrderItemRepository.findByOrderId(order.getId());
-      shipment.setProductCount(items.size());
+      List<SalesOrderItem> orderItems = salesOrderItemRepository.findByOrderId(order.getId());
+      shipment.setProductCount(orderItems.size());
     }
 
-    return shipmentMapper.toResponseDTO(shipmentRepository.save(shipment));
+    Shipment saved = shipmentRepository.save(shipment);
+
+    if (order != null) {
+      List<SalesOrderItem> orderItems = salesOrderItemRepository.findByOrderId(order.getId());
+      List<ShipmentItem> shipmentItems =
+          orderItems.stream().map(oi -> toShipmentItem(saved.getId(), oi)).toList();
+      shipmentItemRepository.saveAll(shipmentItems);
+    }
+
+    return shipmentMapper.toResponseDTO(saved);
   }
 
   @Override
@@ -165,6 +190,10 @@ public class ShipmentServiceImpl implements ShipmentService {
       shipment.setDeliveryAddress(dto.getDeliveryAddress());
     }
 
+    shipment.setAddressDetail(dto.getAddressDetail());
+    shipment.setDeliveryType(dto.getDeliveryType());
+    shipment.setTrackingCode(dto.getTrackingCode());
+
     if (dto.getCityCode() != null) {
       City city =
           cityRepository
@@ -176,19 +205,47 @@ public class ShipmentServiceImpl implements ShipmentService {
       shipment.setCity(city);
     }
 
-    if (dto.getCarrierId() == null) {
+    String deliveryType = dto.getDeliveryType();
+
+    if ("CONDUCTOR".equals(deliveryType)) {
       shipment.setCarrier(null);
-      shipment.setState(ShipmentState.PENDING);
-    } else {
-      Carrier carrier =
-          carrierRepository
-              .findById(dto.getCarrierId())
-              .orElseThrow(
-                  () ->
-                      new IllegalArgumentException(
-                          "Transportista no encontrado con id: " + dto.getCarrierId()));
-      shipment.setCarrier(carrier);
+      if (dto.getDriverId() != null) {
+        Driver driver =
+            driverRepository
+                .findById(dto.getDriverId())
+                .orElseThrow(
+                    () ->
+                        new IllegalArgumentException(
+                            "Conductor no encontrado con id: " + dto.getDriverId()));
+        shipment.setDriver(driver);
+      } else {
+        shipment.setDriver(null);
+      }
       shipment.setState(ShipmentState.ASSIGNED);
+    } else if ("TRANSPORTADORA".equals(deliveryType)) {
+      shipment.setDriver(null);
+      if (dto.getCarrierId() != null) {
+        Carrier carrier =
+            carrierRepository
+                .findById(dto.getCarrierId())
+                .orElseThrow(
+                    () ->
+                        new IllegalArgumentException(
+                            "Transportista no encontrado con id: " + dto.getCarrierId()));
+        shipment.setCarrier(carrier);
+      } else {
+        shipment.setCarrier(null);
+      }
+      shipment.setState(ShipmentState.ASSIGNED);
+    } else if ("RECOGEN".equals(deliveryType)) {
+      shipment.setCarrier(null);
+      shipment.setDriver(null);
+      shipment.setState(ShipmentState.ASSIGNED);
+    } else {
+      // Sin tipo de entrega definido: limpiar asignaciones
+      shipment.setCarrier(null);
+      shipment.setDriver(null);
+      shipment.setState(ShipmentState.PENDING);
     }
 
     if (dto.getEstimatedDeliveryDate() != null) {
@@ -202,6 +259,11 @@ public class ShipmentServiceImpl implements ShipmentService {
   @Transactional
   public ShipmentResponseDTO updateState(UUID id, ShipmentState state) {
     Shipment shipment = findEntityById(id);
+
+    if (shipment.getState() == ShipmentState.DELIVERED) {
+      throw new ShipmentNotEditableException("Un despacho entregado no puede cambiar de estado");
+    }
+
     shipment.setState(state);
     Shipment saved = shipmentRepository.save(shipment);
 
@@ -240,5 +302,24 @@ public class ShipmentServiceImpl implements ShipmentService {
     if (invoice.getSalesOrder() != null) {
       salesOrderService.cancelOrderByDelayedShipment(invoice.getSalesOrder().getId());
     }
+  }
+
+  private ShipmentItem toShipmentItem(UUID shipmentId, SalesOrderItem oi) {
+    var product = oi.getProduct();
+    ShipmentItem si = new ShipmentItem();
+    si.setShipmentId(shipmentId);
+    if (product != null) {
+      si.setProductId(product.getId());
+      si.setProductSku(product.getSku());
+      si.setProductName(product.getName());
+      si.setTaxPercent(product.isTaxFree() ? 0 : 19);
+    } else {
+      si.setProductName("—");
+      si.setTaxPercent(0);
+    }
+    si.setQuantity(oi.getQuantity());
+    si.setUnitPrice(oi.getUnitPrice());
+    si.setLineTotal(oi.getLineTotal());
+    return si;
   }
 }
