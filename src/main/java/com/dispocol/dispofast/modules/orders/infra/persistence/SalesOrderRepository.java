@@ -36,4 +36,12 @@ public interface SalesOrderRepository
           + "GROUP BY year(o.orderDate), month(o.orderDate) "
           + "ORDER BY year(o.orderDate), month(o.orderDate)")
   List<Object[]> getMonthlySales(@Param("startDate") OffsetDateTime startDate);
+
+  @Query(
+      "SELECT o.asesor.id, o.asesor.fullName, year(o.orderDate), month(o.orderDate), COALESCE(SUM(o.totalValue), 0) "
+          + "FROM SalesOrder o "
+          + "WHERE o.orderDate >= :startDate AND o.state <> 'CANCELLED' AND o.asesor IS NOT NULL "
+          + "GROUP BY o.asesor.id, o.asesor.fullName, year(o.orderDate), month(o.orderDate) "
+          + "ORDER BY year(o.orderDate), month(o.orderDate), o.asesor.fullName")
+  List<Object[]> getSalesByAsesorAndMonth(@Param("startDate") OffsetDateTime startDate);
 }
