@@ -5,6 +5,7 @@ import com.dispocol.dispofast.modules.dashboard.api.dtos.AsesorVSQuotaDTO;
 import com.dispocol.dispofast.modules.dashboard.api.dtos.DashboardStatsDto;
 import com.dispocol.dispofast.modules.dashboard.api.dtos.MonthlySalesDto;
 import com.dispocol.dispofast.modules.dashboard.api.dtos.TopProductDto;
+import com.dispocol.dispofast.modules.iam.domain.GoalType;
 import com.dispocol.dispofast.modules.iam.infra.persistence.UserGoalRepository;
 import com.dispocol.dispofast.modules.orders.infra.persistence.SalesOrderItemRepository;
 import com.dispocol.dispofast.modules.orders.infra.persistence.SalesOrderRepository;
@@ -63,9 +64,10 @@ public class DashboardServiceImpl implements DashboardService {
   }
 
   @Override
-  public List<AsesorVSQuotaDTO> getAsesorVSQuotaStats(int months) {
+  public List<AsesorVSQuotaDTO> getAsesorVSQuotaStats(int months, String type) {
     LocalDate start = LocalDate.now().minusMonths(months - 1).withDayOfMonth(1);
     OffsetDateTime startDate = start.atStartOfDay().atOffset(ZoneOffset.UTC);
+
 
     Map<String, BigDecimal> salesMap = new HashMap<>();
     salesOrderRepository.getSalesByAsesorAndMonth(startDate).forEach(row -> {
@@ -74,7 +76,7 @@ public class DashboardServiceImpl implements DashboardService {
     });
 
     return userGoalRepository
-        .findAllSalesQuotaFrom(start.getYear(), start.getMonthValue())
+        .findAllSalesQuotaFrom(start.getYear(), start.getMonthValue(), GoalType.valueOf(type))
         .stream()
         .map(goal -> {
           UUID asesorId = goal.getUser().getId();

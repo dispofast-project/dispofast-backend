@@ -7,5 +7,5 @@ import com.dispocol.dispofast.modules.dashboard.api.dtos.DashboardStatsDto;
 
 public interface DashboardService {
   DashboardStatsDto getStats();
-  List<AsesorVSQuotaDTO> getAsesorVSQuotaStats(int months);
+  List<AsesorVSQuotaDTO> getAsesorVSQuotaStats(int months, String type);
 }
