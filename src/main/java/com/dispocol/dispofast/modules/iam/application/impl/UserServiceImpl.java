@@ -71,7 +71,7 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public UserResponseDTO updatedUser(String id, UpdateUserRequestDTO user) {
-    AppUser existingUser = getUserById(UUID.fromString(id));
+    AppUser existingUser = findUserEntity(UUID.fromString(id));
 
     Role role =
         roleRepository
@@ -83,6 +83,10 @@ public class UserServiceImpl implements UserService {
     existingUser.getRoles().clear();
     existingUser.getRoles().add(role);
 
+    if (user.getPassword() != null && !user.getPassword().isBlank()) {
+      existingUser.setPasswordHash(passwordEncoder.encode(user.getPassword()));
+    }
+
     existingUser = userRepository.save(existingUser);
 
     return userMapper.toUserResponseDTO(existingUser);
@@ -91,7 +95,7 @@ public class UserServiceImpl implements UserService {
   @Override
   public UserPermissionsDetailDTO updateUserPermissions(
       UUID id, UpdateUserPermissionRequestDTO request) {
-    AppUser user = getUserById(id);
+    AppUser user = findUserEntity(id);
 
     Set<UUID> permissionsIds =
         request.getPermissions().stream()
@@ -140,7 +144,7 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public void deleteUser(UUID id) {
-    AppUser user = getUserById(id);
+    AppUser user = findUserEntity(id);
 
     userRepository.delete(user);
   }
@@ -154,6 +158,11 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
+  public UserResponseDTO getUserById(UUID id) {
+    return userMapper.toUserResponseDTO(findUserEntity(id));
+  }
+
+  @Override
   public Page<UserResponseDTO> getUsersPaged(Pageable pageable) {
     Page<AppUser> users = userRepository.findAll(pageable);
     return users.map(userMapper::toUserResponseDTO);
@@ -161,10 +170,10 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public UserPermissionsDetailDTO getUserPermissions(UUID id) {
-    return userMapper.toUserPermissionsDetailDTO(getUserById(id));
+    return userMapper.toUserPermissionsDetailDTO(findUserEntity(id));
   }
 
-  private AppUser getUserById(UUID id) {
+  private AppUser findUserEntity(UUID id) {
     return userRepository
         .findById(id)
         .orElseThrow(() -> new UserNotFoundException("No se encontró el usuario solicitado."));
