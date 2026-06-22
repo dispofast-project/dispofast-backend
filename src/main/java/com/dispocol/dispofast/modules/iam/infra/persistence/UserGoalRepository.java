@@ -15,10 +15,10 @@ public interface UserGoalRepository extends JpaRepository<UserGoal, UUID> {
   List<UserGoal> findByUserIdAndTypeOrderByYearDescMonthDesc(UUID userId, GoalType type);
 
   @Query(
-      "SELECT g FROM UserGoal g JOIN FETCH g.user " +
-      "WHERE g.type = :type " +
-      "AND (g.year > :year OR (g.year = :year AND g.month >= :month)) " +
-      "ORDER BY g.year, g.month"
-  )
-  List<UserGoal> findAllSalesQuotaFrom(@Param("year") int year, @Param("month") int month, @Param("type") GoalType type);
+      "SELECT g FROM UserGoal g JOIN FETCH g.user "
+          + "WHERE g.type = :type "
+          + "AND (g.year > :year OR (g.year = :year AND g.month >= :month)) "
+          + "ORDER BY g.year, g.month")
+  List<UserGoal> findAllSalesQuotaFrom(
+      @Param("year") int year, @Param("month") int month, @Param("type") GoalType type);
 }

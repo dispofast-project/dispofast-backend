@@ -25,7 +25,8 @@ public class DashboardController {
 
   @GetMapping("/asesor-vs-quota")
   public ResponseEntity<List<AsesorVSQuotaDTO>> getAsesorVSQuotaStats(
-      @RequestParam(defaultValue = "6") int months, @RequestParam(defaultValue = "SALES_QUOTA") String type) {
+      @RequestParam(defaultValue = "6") int months,
+      @RequestParam(defaultValue = "SALES_QUOTA") String type) {
     return ResponseEntity.ok(dashboardService.getAsesorVSQuotaStats(months, type));
   }
 }

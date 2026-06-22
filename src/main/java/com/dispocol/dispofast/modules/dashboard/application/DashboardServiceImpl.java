@@ -60,7 +60,8 @@ public class DashboardServiceImpl implements DashboardService {
             .map(row -> new TopProductDto((String) row[0], (BigDecimal) row[1]))
             .toList();
 
-    return new DashboardStatsDto(totalVentasMes, carteraVencida, ventasPorMes, productosMasVendidos);
+    return new DashboardStatsDto(
+        totalVentasMes, carteraVencida, ventasPorMes, productosMasVendidos);
   }
 
   @Override
@@ -68,29 +69,37 @@ public class DashboardServiceImpl implements DashboardService {
     LocalDate start = LocalDate.now().minusMonths(months - 1).withDayOfMonth(1);
     OffsetDateTime startDate = start.atStartOfDay().atOffset(ZoneOffset.UTC);
 
-
     Map<String, BigDecimal> salesMap = new HashMap<>();
-    salesOrderRepository.getSalesByAsesorAndMonth(startDate).forEach(row -> {
-      String key = row[0] + "_" + ((Number) row[2]).intValue() + "_" + ((Number) row[3]).intValue();
-      salesMap.put(key, (BigDecimal) row[4]);
-    });
+    salesOrderRepository
+        .getSalesByAsesorAndMonth(startDate)
+        .forEach(
+            row -> {
+              String key =
+                  row[0] + "_" + ((Number) row[2]).intValue() + "_" + ((Number) row[3]).intValue();
+              salesMap.put(key, (BigDecimal) row[4]);
+            });
 
     return userGoalRepository
         .findAllSalesQuotaFrom(start.getYear(), start.getMonthValue(), GoalType.valueOf(type))
         .stream()
-        .map(goal -> {
-          UUID asesorId = goal.getUser().getId();
-          int year     = goal.getYear();
-          int month    = goal.getMonth();
-          BigDecimal cuota  = goal.getValue();
-          BigDecimal ventas = salesMap.getOrDefault(asesorId + "_" + year + "_" + month, BigDecimal.ZERO);
-          double pct = cuota.compareTo(BigDecimal.ZERO) > 0
-              ? ventas.divide(cuota, 4, RoundingMode.HALF_UP)
-                      .multiply(BigDecimal.valueOf(100))
-                      .doubleValue()
-              : 0.0;
-          return new AsesorVSQuotaDTO(asesorId, goal.getUser().getFullName(), year, month, ventas, cuota, pct);
-        })
+        .map(
+            goal -> {
+              UUID asesorId = goal.getUser().getId();
+              int year = goal.getYear();
+              int month = goal.getMonth();
+              BigDecimal cuota = goal.getValue();
+              BigDecimal ventas =
+                  salesMap.getOrDefault(asesorId + "_" + year + "_" + month, BigDecimal.ZERO);
+              double pct =
+                  cuota.compareTo(BigDecimal.ZERO) > 0
+                      ? ventas
+                          .divide(cuota, 4, RoundingMode.HALF_UP)
+                          .multiply(BigDecimal.valueOf(100))
+                          .doubleValue()
+                      : 0.0;
+              return new AsesorVSQuotaDTO(
+                  asesorId, goal.getUser().getFullName(), year, month, ventas, cuota, pct);
+            })
         .toList();
   }
 }
