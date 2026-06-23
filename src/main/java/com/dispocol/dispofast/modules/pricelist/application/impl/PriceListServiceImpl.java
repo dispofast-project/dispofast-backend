@@ -13,7 +13,7 @@ import com.dispocol.dispofast.modules.pricelist.infra.persistence.PriceListRepos
 import com.dispocol.dispofast.shared.S3.application.interfaces.S3Service;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -91,22 +91,26 @@ public class PriceListServiceImpl implements PriceListService {
                 () ->
                     new IllegalArgumentException("Lista de precios no encontrada: " + priceListId));
 
+    Map<UUID, PriceListItem> existingItems =
+        priceListItemRepository.findByPriceList_Id(priceListId).stream()
+            .collect(Collectors.toMap(item -> item.getProduct().getId(), item -> item));
+
     try (Workbook workbook = new XSSFWorkbook(file.getInputStream())) {
       Sheet sheet = workbook.getSheetAt(0);
-      List<PriceListItem> items = new ArrayList<>();
+
+      Map<UUID, PriceListItem> itemsToSave = new HashMap<>();
 
       for (int rowIndex = DATA_START_ROW_INDEX; rowIndex <= sheet.getLastRowNum(); rowIndex++) {
         Row row = sheet.getRow(rowIndex);
         if (row == null) continue;
 
-        Cell codeCell = row.getCell(0); // Col A: product SKU (may have # prefix)
-        Cell priceCell = row.getCell(2); // Col C: unit price sin IVA
+        Cell codeCell = row.getCell(0);
+        Cell priceCell = row.getCell(2);
 
         if (codeCell == null || priceCell == null) continue;
 
         String rawCode = getCellStringValue(codeCell).trim();
         if (rawCode.isBlank()) continue;
-        // Strip leading # (e.g. "#019" → "019")
         String sku = rawCode.startsWith("#") ? rawCode.substring(1).trim() : rawCode;
         if (sku.isBlank()) continue;
 
@@ -117,26 +121,31 @@ public class PriceListServiceImpl implements PriceListService {
             .findBySku(sku)
             .ifPresentOrElse(
                 product -> {
-                  PriceListItem item =
-                      priceListItemRepository
-                          .findByPriceList_IdAndProduct_Id(priceListId, product.getId())
-                          .orElse(new PriceListItem());
-                  item.setPriceList(priceList);
-                  item.setProduct(product);
+                  UUID productId = product.getId();
+
+                  PriceListItem item = itemsToSave.get(productId);
+                  if (item == null) {
+                    item = existingItems.get(productId);
+                    if (item == null) {
+                      item = new PriceListItem();
+                      item.setPriceList(priceList);
+                      item.setProduct(product);
+                    }
+                  }
+
                   item.setUnitPrice(unitPrice);
-                  items.add(item);
+                  itemsToSave.put(productId, item);
                 },
                 () -> log.warn("Product with SKU '{}' not found, skipping", sku));
       }
 
-      priceListItemRepository.saveAll(items);
-      log.info("Uploaded {} price list items for price list {}", items.size(), priceListId);
+      priceListItemRepository.saveAll(itemsToSave.values());
+      log.info("Uploaded {} price list items for price list {}", itemsToSave.size(), priceListId);
     } catch (IOException e) {
       throw new IllegalArgumentException(
           "Error al procesar el archivo Excel: " + e.getMessage(), e);
     }
 
-    // Store the original file in S3
     String fileKey = priceListId + "/" + file.getOriginalFilename();
     try {
       s3Service.uploadFile(
