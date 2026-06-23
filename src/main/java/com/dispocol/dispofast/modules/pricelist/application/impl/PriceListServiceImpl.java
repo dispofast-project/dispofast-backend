@@ -84,15 +84,20 @@ public class PriceListServiceImpl implements PriceListService {
   @Override
   @Transactional
   public void uploadPriceListItems(UUID priceListId, MultipartFile file) {
-    PriceList priceList = priceListRepository.findById(priceListId).orElseThrow(
-        () -> new IllegalArgumentException("Lista de precios no encontrada: " + priceListId));
+    PriceList priceList =
+        priceListRepository
+            .findById(priceListId)
+            .orElseThrow(
+                () ->
+                    new IllegalArgumentException("Lista de precios no encontrada: " + priceListId));
 
-    Map<UUID, PriceListItem> existingItems = priceListItemRepository.findByPriceList_Id(priceListId).stream()
-    .collect(Collectors.toMap(item -> item.getProduct().getId(), item -> item));
+    Map<UUID, PriceListItem> existingItems =
+        priceListItemRepository.findByPriceList_Id(priceListId).stream()
+            .collect(Collectors.toMap(item -> item.getProduct().getId(), item -> item));
 
     try (Workbook workbook = new XSSFWorkbook(file.getInputStream())) {
       Sheet sheet = workbook.getSheetAt(0);
-      
+
       Map<UUID, PriceListItem> itemsToSave = new HashMap<>();
 
       for (int rowIndex = DATA_START_ROW_INDEX; rowIndex <= sheet.getLastRowNum(); rowIndex++) {
@@ -117,7 +122,7 @@ public class PriceListServiceImpl implements PriceListService {
             .ifPresentOrElse(
                 product -> {
                   UUID productId = product.getId();
-                  
+
                   PriceListItem item = itemsToSave.get(productId);
                   if (item == null) {
                     item = existingItems.get(productId);
@@ -127,7 +132,7 @@ public class PriceListServiceImpl implements PriceListService {
                       item.setProduct(product);
                     }
                   }
-                  
+
                   item.setUnitPrice(unitPrice);
                   itemsToSave.put(productId, item);
                 },
