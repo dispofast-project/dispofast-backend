@@ -20,6 +20,7 @@ public class QuotePreviewResponseDTO {
   private String number;
   private QuoteStatus status;
   private String accountName;
+  private boolean prospect;
   private UserPreview seller;
   private OffsetDateTime createdAt;
   private BigDecimal total;

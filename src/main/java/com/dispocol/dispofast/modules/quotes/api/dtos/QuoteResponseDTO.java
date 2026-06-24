@@ -27,6 +27,7 @@ public class QuoteResponseDTO {
   private PaymentCondition paymentCondition;
   private OfferValidity offerValidity;
   private ClientResponseDTO account;
+  private ProspectDTO prospect;
   private UUID sellerId;
   private String sellerName;
   private CityDTO location;

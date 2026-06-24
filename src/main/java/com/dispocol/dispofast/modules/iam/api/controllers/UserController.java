@@ -54,6 +54,11 @@ public class UserController {
     return ResponseEntity.ok(userService.getUsersPaged(pageable));
   }
 
+  @GetMapping("/{id}")
+  public ResponseEntity<UserResponseDTO> getUserById(@PathVariable UUID id) {
+    return ResponseEntity.ok(userService.getUserById(id));
+  }
+
   @GetMapping("/by-email")
   public ResponseEntity<AppUser> getUserByEmail(@RequestParam String email) {
     return ResponseEntity.ok(userService.getUserByEmail(email));

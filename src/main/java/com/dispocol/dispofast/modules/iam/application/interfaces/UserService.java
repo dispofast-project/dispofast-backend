@@ -21,6 +21,8 @@ public interface UserService {
    */
   UserResponseDTO register(CreateUserRequestDTO user);
 
+  UserResponseDTO getUserById(UUID id);
+
   /**
    * Update the information of a user in the application
    *
