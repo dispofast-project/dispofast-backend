@@ -21,7 +21,7 @@ public class MailServiceImpl implements MailService {
   private String from;
 
   @Override
-  public void send(String to, String subject, String body) {
+  public void send(String[] to, String subject, String body) {
     try {
       MimeMessage message = javaMailSender.createMimeMessage();
       MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -32,16 +32,16 @@ public class MailServiceImpl implements MailService {
       helper.setText(body, true);
 
       javaMailSender.send(message);
-      log.info("Correo electrónico enviado a: {}", to);
+      log.info("Correo electrónico enviado a: {}", (Object) to);
     } catch (Exception e) {
-      log.error("Error al enviar el correo electrónico a: {}", to, e);
+      log.error("Error al enviar el correo electrónico a: {}", (Object) to, e);
       throw new RuntimeException("Error al enviar el correo electrónico", e);
     }
   }
 
   @Override
   public void sendWithAttchment(
-      String to,
+      String[] to,
       String subject,
       String body,
       byte[] attachment,
@@ -67,7 +67,7 @@ public class MailServiceImpl implements MailService {
       }
 
       javaMailSender.send(message);
-      log.info("Correo con adjunto [{}] enviado exitosamente a: {}", attachmentName, to);
+      log.info("Correo con adjunto [{}] enviado exitosamente a: {}", attachmentName, (Object) to);
     } catch (Exception e) {
       log.error("Error al enviar el correo electrónico con adjunto a: {}", to, e);
       throw new RuntimeException("Error al enviar el correo electrónico con adjunto", e);

@@ -37,7 +37,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class PaymentReceiptServiceImpl implements PaymentReceiptService {
 
   private static final String VOUCHERS_BUCKET = "dispofast-payment-vouchers";
-  private static final String NOTIFICATION_EMAIL = "sebasgnv0207@gmail.com";
+  private static final String NOTIFICATION_EMAIL = "cartera@dispocol.com";
 
   private final PaymentReceiptRepository paymentReceiptRepository;
   private final ArEntryRepository arEntryRepository;
@@ -192,9 +192,14 @@ public class PaymentReceiptServiceImpl implements PaymentReceiptService {
         String ext = getExtension(receipt.getVoucherS3Key());
         String filename = "comprobante_" + receipt.getReceiptCode() + ext;
         mailService.sendWithAttchment(
-            NOTIFICATION_EMAIL, subject, body, voucherBytes, filename, resolveContentType(ext));
+            new String[] {NOTIFICATION_EMAIL},
+            subject,
+            body,
+            voucherBytes,
+            filename,
+            resolveContentType(ext));
       } else {
-        mailService.send(NOTIFICATION_EMAIL, subject, body);
+        mailService.send(new String[] {NOTIFICATION_EMAIL}, subject, body);
       }
     } catch (Exception e) {
       log.error(
