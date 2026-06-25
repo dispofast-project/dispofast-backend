@@ -15,6 +15,7 @@ import com.dispocol.dispofast.modules.orders.api.dtos.SalesOrderResponseDTO;
 import com.dispocol.dispofast.modules.orders.api.dtos.UpdateSalesOrderRequestDTO;
 import com.dispocol.dispofast.modules.orders.api.mappers.SalesOrderItemMapper;
 import com.dispocol.dispofast.modules.orders.api.mappers.SalesOrderMapper;
+import com.dispocol.dispofast.modules.orders.application.impl.OrderEmailComposer;
 import com.dispocol.dispofast.modules.orders.application.interfaces.SalesOrderService;
 import com.dispocol.dispofast.modules.orders.domain.OrderState;
 import com.dispocol.dispofast.modules.orders.domain.SalesOrder;
@@ -73,6 +74,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
   private final ArEntryService arEntryService;
   private final SystemParamRepository systemParamRepository;
   private final InvoiceService invoiceService;
+  private final OrderEmailComposer orderEmailComposer;
 
   @Override
   @Transactional
@@ -107,6 +109,8 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 
     // Persist totalValue calculated in saveItems
     salesOrderRepository.save(savedOrder);
+
+    orderEmailComposer.sendOrderCreatedEmail(savedOrder, itemResponses);
 
     return buildResponse(savedOrder, itemResponses);
   }
