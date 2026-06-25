@@ -25,4 +25,7 @@ public class UpdateUserRequestDTO {
 
   @NotNull(message = "El rol es obligatorio")
   private UUID roleId;
+
+  @Size(min = 8, message = "La contraseña debe tener al menos 8 caracteres")
+  private String password;
 }

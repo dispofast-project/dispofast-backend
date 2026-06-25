@@ -44,6 +44,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -147,6 +149,19 @@ public class SalesOrderServiceImpl implements SalesOrderService {
   @Transactional(readOnly = true)
   public SalesOrderResponseDTO getSalesOrderById(UUID id) {
     SalesOrder order = findOrderOrThrow(id);
+
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    boolean isAdmin =
+        auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+    if (!isAdmin) {
+      boolean isOwner =
+          order.getAsesor() != null
+              && auth.getName().equalsIgnoreCase(order.getAsesor().getEmail());
+      if (!isOwner) {
+        throw new SalesOrderNotFoundException("La orden solicitada no fue encontrada.");
+      }
+    }
+
     List<SalesOrderItem> items = salesOrderItemRepository.findByOrderId(id);
     return buildResponse(order, salesOrderItemMapper.toResponseDTOList(items));
   }
@@ -455,6 +470,13 @@ public class SalesOrderServiceImpl implements SalesOrderService {
   private Specification<SalesOrder> buildSpecification(SalesOrderFilterDTO filter) {
     return (root, query, cb) -> {
       List<Predicate> predicates = new ArrayList<>();
+
+      Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+      boolean isAdmin =
+          auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+      if (!isAdmin) {
+        predicates.add(cb.equal(root.get("asesor").get("email"), auth.getName()));
+      }
 
       if (filter.getState() != null) {
         predicates.add(cb.equal(root.get("state"), filter.getState()));
