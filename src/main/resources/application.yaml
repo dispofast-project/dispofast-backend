@@ -22,7 +22,7 @@ spring:
     baseline-version: 38
   mail:
     host: ${MAIL_HOST:business40.web-hosting.com}
-    port: ${MAIL_PORT:995}
+    port: ${MAIL_PORT:587}
     username: ${MAIL_USERNAME:informacion@dispocol.com}
     password: ${MAIL_PASSWORD}
     properties:

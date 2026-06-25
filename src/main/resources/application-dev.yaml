@@ -13,9 +13,9 @@ spring:
     validate-on-migrate: false
   mail:
     host: business40.web-hosting.com
-    port: 995
+    port: 587
     username: sistemassl@dispocol.com
-    password: password123
+    password: Sistemas2026*
     properties:
       mail:
         smtp:
