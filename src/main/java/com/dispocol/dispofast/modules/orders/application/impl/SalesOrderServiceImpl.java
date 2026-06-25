@@ -15,7 +15,6 @@ import com.dispocol.dispofast.modules.orders.api.dtos.SalesOrderResponseDTO;
 import com.dispocol.dispofast.modules.orders.api.dtos.UpdateSalesOrderRequestDTO;
 import com.dispocol.dispofast.modules.orders.api.mappers.SalesOrderItemMapper;
 import com.dispocol.dispofast.modules.orders.api.mappers.SalesOrderMapper;
-import com.dispocol.dispofast.modules.orders.application.impl.OrderEmailComposer;
 import com.dispocol.dispofast.modules.orders.application.interfaces.SalesOrderService;
 import com.dispocol.dispofast.modules.orders.domain.OrderState;
 import com.dispocol.dispofast.modules.orders.domain.SalesOrder;

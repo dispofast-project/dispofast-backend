@@ -380,7 +380,10 @@ public class PaymentReceiptServiceImpl implements PaymentReceiptService {
 
   private static String esc(String s) {
     if (s == null) return "";
-    return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;");
+    return s.replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace("\"", "&quot;");
   }
 
   private static String resolveContentType(String extension) {
