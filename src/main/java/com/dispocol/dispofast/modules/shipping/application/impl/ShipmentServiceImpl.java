@@ -5,6 +5,7 @@ import com.dispocol.dispofast.modules.invoices.domain.Invoice;
 import com.dispocol.dispofast.modules.orders.application.interfaces.SalesOrderService;
 import com.dispocol.dispofast.modules.orders.domain.SalesOrderItem;
 import com.dispocol.dispofast.modules.orders.infra.persistence.SalesOrderItemRepository;
+import com.dispocol.dispofast.modules.shipping.api.dtos.ShipmentHistoryResponseDTO;
 import com.dispocol.dispofast.modules.shipping.api.dtos.ShipmentResponseDTO;
 import com.dispocol.dispofast.modules.shipping.api.dtos.UpdateShipmentDTO;
 import com.dispocol.dispofast.modules.shipping.api.mappers.ShipmentMapper;
@@ -12,6 +13,7 @@ import com.dispocol.dispofast.modules.shipping.application.interfaces.ShipmentSe
 import com.dispocol.dispofast.modules.shipping.domain.Carrier;
 import com.dispocol.dispofast.modules.shipping.domain.Driver;
 import com.dispocol.dispofast.modules.shipping.domain.Shipment;
+import com.dispocol.dispofast.modules.shipping.domain.ShipmentHistory;
 import com.dispocol.dispofast.modules.shipping.domain.ShipmentItem;
 import com.dispocol.dispofast.modules.shipping.domain.ShipmentState;
 import com.dispocol.dispofast.modules.shipping.infra.exceptions.DuplicateShipmentException;
@@ -19,6 +21,7 @@ import com.dispocol.dispofast.modules.shipping.infra.exceptions.ShipmentNotEdita
 import com.dispocol.dispofast.modules.shipping.infra.exceptions.ShipmentNotFoundException;
 import com.dispocol.dispofast.modules.shipping.infra.persistence.CarrierRepository;
 import com.dispocol.dispofast.modules.shipping.infra.persistence.DriverRepository;
+import com.dispocol.dispofast.modules.shipping.infra.persistence.ShipmentHistoryRepository;
 import com.dispocol.dispofast.modules.shipping.infra.persistence.ShipmentItemRepository;
 import com.dispocol.dispofast.modules.shipping.infra.persistence.ShipmentRepository;
 import com.dispocol.dispofast.shared.location.domain.City;
@@ -35,6 +38,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,6 +50,7 @@ public class ShipmentServiceImpl implements ShipmentService {
 
   private final ShipmentRepository shipmentRepository;
   private final ShipmentItemRepository shipmentItemRepository;
+  private final ShipmentHistoryRepository shipmentHistoryRepository;
   private final CarrierRepository carrierRepository;
   private final DriverRepository driverRepository;
   private final CityRepository cityRepository;
@@ -58,6 +63,7 @@ public class ShipmentServiceImpl implements ShipmentService {
   public ShipmentServiceImpl(
       ShipmentRepository shipmentRepository,
       ShipmentItemRepository shipmentItemRepository,
+      ShipmentHistoryRepository shipmentHistoryRepository,
       CarrierRepository carrierRepository,
       DriverRepository driverRepository,
       CityRepository cityRepository,
@@ -67,6 +73,7 @@ public class ShipmentServiceImpl implements ShipmentService {
       @Lazy SalesOrderService salesOrderService) {
     this.shipmentRepository = shipmentRepository;
     this.shipmentItemRepository = shipmentItemRepository;
+    this.shipmentHistoryRepository = shipmentHistoryRepository;
     this.carrierRepository = carrierRepository;
     this.driverRepository = driverRepository;
     this.cityRepository = cityRepository;
@@ -173,6 +180,7 @@ public class ShipmentServiceImpl implements ShipmentService {
       shipmentItemRepository.saveAll(shipmentItems);
     }
 
+    recordHistory(saved.getId(), "Despacho creado");
     return shipmentMapper.toResponseDTO(saved);
   }
 
@@ -207,6 +215,8 @@ public class ShipmentServiceImpl implements ShipmentService {
 
     String deliveryType = dto.getDeliveryType();
 
+    String historyDescription;
+
     if ("CONDUCTOR".equals(deliveryType)) {
       shipment.setCarrier(null);
       if (dto.getDriverId() != null) {
@@ -218,8 +228,10 @@ public class ShipmentServiceImpl implements ShipmentService {
                         new IllegalArgumentException(
                             "Conductor no encontrado con id: " + dto.getDriverId()));
         shipment.setDriver(driver);
+        historyDescription = "Pedido asignado a conductor: " + driver.getName();
       } else {
         shipment.setDriver(null);
+        historyDescription = "Pedido asignado a conductor";
       }
       shipment.setState(ShipmentState.ASSIGNED);
     } else if ("TRANSPORTADORA".equals(deliveryType)) {
@@ -233,26 +245,32 @@ public class ShipmentServiceImpl implements ShipmentService {
                         new IllegalArgumentException(
                             "Transportista no encontrado con id: " + dto.getCarrierId()));
         shipment.setCarrier(carrier);
+        historyDescription = "Pedido asignado a transportadora: " + carrier.getName();
       } else {
         shipment.setCarrier(null);
+        historyDescription = "Pedido asignado a transportadora";
       }
       shipment.setState(ShipmentState.ASSIGNED);
     } else if ("RECOGEN".equals(deliveryType)) {
       shipment.setCarrier(null);
       shipment.setDriver(null);
       shipment.setState(ShipmentState.ASSIGNED);
+      historyDescription = "Pedido marcado para recoger en tienda";
     } else {
       // Sin tipo de entrega definido: limpiar asignaciones
       shipment.setCarrier(null);
       shipment.setDriver(null);
       shipment.setState(ShipmentState.PENDING);
+      historyDescription = "Información de despacho actualizada";
     }
 
     if (dto.getEstimatedDeliveryDate() != null) {
       shipment.setEstimatedDeliveryDate(dto.getEstimatedDeliveryDate());
     }
 
-    return shipmentMapper.toResponseDTO(shipmentRepository.save(shipment));
+    Shipment saved = shipmentRepository.save(shipment);
+    recordHistory(saved.getId(), historyDescription);
+    return shipmentMapper.toResponseDTO(saved);
   }
 
   @Override
@@ -266,6 +284,15 @@ public class ShipmentServiceImpl implements ShipmentService {
 
     shipment.setState(state);
     Shipment saved = shipmentRepository.save(shipment);
+
+    String historyDescription =
+        switch (state) {
+          case IN_ROUTE -> "Pedido en ruta";
+          case DELIVERED -> "Pedido entregado";
+          case DELAYED -> "Pedido marcado como retrasado";
+          default -> "Estado cambiado a: " + state.getValue();
+        };
+    recordHistory(saved.getId(), historyDescription);
 
     if (state == ShipmentState.DELAYED) {
       cancelAssociatedOrder(shipment);
@@ -285,6 +312,8 @@ public class ShipmentServiceImpl implements ShipmentService {
               if (shipment.getState() != ShipmentState.DELIVERED) {
                 shipment.setState(ShipmentState.DELAYED);
                 shipmentRepository.save(shipment);
+                recordHistory(
+                    shipment.getId(), "Pedido marcado como retrasado por cancelación de orden");
               }
             });
   }
@@ -295,6 +324,37 @@ public class ShipmentServiceImpl implements ShipmentService {
     return shipmentRepository
         .findById(id)
         .orElseThrow(() -> new ShipmentNotFoundException("Despacho no encontrado con id: " + id));
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<ShipmentHistoryResponseDTO> getHistory(UUID id) {
+    if (!shipmentRepository.existsById(id)) {
+      throw new ShipmentNotFoundException("Despacho no encontrado con id: " + id);
+    }
+    return shipmentHistoryRepository.findByShipmentIdOrderByChangedAtDesc(id).stream()
+        .map(
+            h ->
+                new ShipmentHistoryResponseDTO(
+                    h.getId(), h.getChangedAt(), h.getDescription(), h.getUserEmail()))
+        .toList();
+  }
+
+  private String resolveCurrentUserEmail() {
+    var auth = SecurityContextHolder.getContext().getAuthentication();
+    if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+      return "sistema";
+    }
+    return auth.getName();
+  }
+
+  private void recordHistory(UUID shipmentId, String description) {
+    ShipmentHistory entry = new ShipmentHistory();
+    entry.setShipmentId(shipmentId);
+    entry.setChangedAt(OffsetDateTime.now());
+    entry.setDescription(description);
+    entry.setUserEmail(resolveCurrentUserEmail());
+    shipmentHistoryRepository.save(entry);
   }
 
   private void cancelAssociatedOrder(Shipment shipment) {

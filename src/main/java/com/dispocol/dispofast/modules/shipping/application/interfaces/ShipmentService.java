@@ -1,5 +1,6 @@
 package com.dispocol.dispofast.modules.shipping.application.interfaces;
 
+import com.dispocol.dispofast.modules.shipping.api.dtos.ShipmentHistoryResponseDTO;
 import com.dispocol.dispofast.modules.shipping.api.dtos.ShipmentResponseDTO;
 import com.dispocol.dispofast.modules.shipping.api.dtos.UpdateShipmentDTO;
 import com.dispocol.dispofast.modules.shipping.domain.Shipment;
@@ -46,4 +47,7 @@ public interface ShipmentService {
   void delayByOrderId(UUID orderId);
 
   Shipment findEntityById(UUID id);
+
+  /** Retorna el historial de cambios del despacho, más reciente primero. */
+  List<ShipmentHistoryResponseDTO> getHistory(UUID id);
 }
