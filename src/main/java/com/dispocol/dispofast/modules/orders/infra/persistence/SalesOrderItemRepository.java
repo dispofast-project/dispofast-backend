@@ -3,7 +3,9 @@ package com.dispocol.dispofast.modules.orders.infra.persistence;
 import com.dispocol.dispofast.modules.orders.domain.SalesOrderItem;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -12,4 +14,10 @@ public interface SalesOrderItemRepository extends JpaRepository<SalesOrderItem, 
   List<SalesOrderItem> findByOrderId(UUID orderId);
 
   void deleteByOrderId(UUID orderId);
+
+  @Query(
+      "SELECT i.product.name, SUM(i.quantity) FROM SalesOrderItem i "
+          + "GROUP BY i.product.id, i.product.name "
+          + "ORDER BY SUM(i.quantity) DESC")
+  List<Object[]> getTopProducts(Pageable pageable);
 }

@@ -1,5 +1,6 @@
 package com.dispocol.dispofast.modules.shipping.api.controllers;
 
+import com.dispocol.dispofast.modules.shipping.api.dtos.ShipmentHistoryResponseDTO;
 import com.dispocol.dispofast.modules.shipping.api.dtos.ShipmentResponseDTO;
 import com.dispocol.dispofast.modules.shipping.api.dtos.UpdateShipmentDTO;
 import com.dispocol.dispofast.modules.shipping.application.interfaces.ShipmentService;
@@ -66,5 +67,10 @@ public class ShipmentController {
   public ResponseEntity<ShipmentResponseDTO> updateState(
       @PathVariable UUID id, @RequestParam ShipmentState state) {
     return ResponseEntity.ok(shipmentService.updateState(id, state));
+  }
+
+  @GetMapping("/{id}/history")
+  public ResponseEntity<List<ShipmentHistoryResponseDTO>> getHistory(@PathVariable UUID id) {
+    return ResponseEntity.ok(shipmentService.getHistory(id));
   }
 }
