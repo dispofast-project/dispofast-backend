@@ -11,6 +11,21 @@ spring:
   flyway:
     enabled: true
     validate-on-migrate: false
+  mail:
+    host: business40.web-hosting.com
+    port: 587
+    username: sistemassl@dispocol.com
+    password: Sistemas2026*
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
 
 app:
   jwt:
@@ -20,6 +35,10 @@ app:
     endpoint: http://localhost:9000
     access-key: admin
     secret-key: password123
+  
+  # Remitente por defecto para inyectar en MailServiceImpl
+  mail:
+    from: sistemassl@dispocol.com
 
 logging:
   level:
