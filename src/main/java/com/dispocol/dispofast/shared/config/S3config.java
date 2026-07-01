@@ -26,7 +26,7 @@ public class S3config {
   public S3Client s3Client() {
     return S3Client.builder()
         .endpointOverride(URI.create(endpoint))
-        .region(Region.US_EAST_2)
+        .region(Region.US_EAST_1)
         .credentialsProvider(
             StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKey, secretKey)))
         .serviceConfiguration(S3Configuration.builder().pathStyleAccessEnabled(true).build())
