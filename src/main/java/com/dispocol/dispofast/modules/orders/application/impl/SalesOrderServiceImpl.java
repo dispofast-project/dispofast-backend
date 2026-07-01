@@ -70,6 +70,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
   private final SystemParamRepository systemParamRepository;
   private final InvoiceService invoiceService;
   private final ShipmentService shipmentService;
+  private final OrderEmailComposer orderEmailComposer;
 
   @Override
   @Transactional
@@ -104,6 +105,8 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 
     // Persist totalValue calculated in saveItems
     salesOrderRepository.save(savedOrder);
+
+    orderEmailComposer.sendOrderCreatedEmail(savedOrder, itemResponses);
 
     return buildResponse(savedOrder, itemResponses);
   }
