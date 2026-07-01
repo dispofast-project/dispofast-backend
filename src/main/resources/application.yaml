@@ -2,7 +2,7 @@ spring:
   application:
     name: dispofast
   profiles:
-    active: prod
+    active: dev
   jackson:
     time-zone: UTC
     serialization:
@@ -20,6 +20,21 @@ spring:
     enabled: true
     baseline-on-migrate: true
     baseline-version: 38
+  mail:
+    host: ${MAIL_HOST:business40.web-hosting.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:informacion@dispocol.com}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
 
 app:
   jwt:
@@ -29,6 +44,9 @@ app:
     endpoint: ${STORAGE_ENDPOINT}
     access-key: ${STORAGE_ACCESS_KEY}
     secret-key: ${STORAGE_SECRET_KEY}
+  
+  mail:
+    from: ${MAIL_FROM:informacion@dispocol.com}
 
 server:
   port: ${PORT:8080}
