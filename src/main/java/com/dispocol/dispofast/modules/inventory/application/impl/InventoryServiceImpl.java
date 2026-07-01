@@ -14,7 +14,9 @@ import java.math.BigDecimal;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -127,7 +129,12 @@ public class InventoryServiceImpl implements InventoryService {
   @Override
   @Transactional(readOnly = true)
   public Page<InventoryResponseDTO> getInventoryStockForAllProducts(Pageable pageable) {
-    return inventoryStockRepository.findAll(pageable).map(inventoryMapper::toInventoryResponseDTO);
+    Sort categoryAscending = Sort.by("product.category.name").ascending();
+    Pageable sortedPageable =
+        PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), categoryAscending);
+    return inventoryStockRepository
+        .findAll(sortedPageable)
+        .map(inventoryMapper::toInventoryResponseDTO);
   }
 
   private InventoryStock findStockOrThrow(UUID productId) {
