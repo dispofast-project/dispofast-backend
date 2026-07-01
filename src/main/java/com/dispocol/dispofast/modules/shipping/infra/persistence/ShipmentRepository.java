@@ -38,6 +38,9 @@ public interface ShipmentRepository extends JpaRepository<Shipment, UUID> {
             (CAST(:dateTo AS timestamptz)   IS NULL OR s.created_at <= CAST(:dateTo AS timestamptz))
           """,
       nativeQuery = true)
+  @Query("SELECT s.state, COUNT(s) FROM Shipment s GROUP BY s.state")
+  List<Object[]> countGroupedByState();
+
   Page<Shipment> findWithFilters(
       @Param("state") String state,
       @Param("clientName") String clientName,

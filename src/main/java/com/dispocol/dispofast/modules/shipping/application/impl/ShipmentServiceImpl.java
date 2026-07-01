@@ -5,6 +5,7 @@ import com.dispocol.dispofast.modules.invoices.domain.Invoice;
 import com.dispocol.dispofast.modules.orders.application.interfaces.SalesOrderService;
 import com.dispocol.dispofast.modules.orders.domain.SalesOrderItem;
 import com.dispocol.dispofast.modules.orders.infra.persistence.SalesOrderItemRepository;
+import com.dispocol.dispofast.modules.shipping.api.dtos.ShipmentCountsResponseDTO;
 import com.dispocol.dispofast.modules.shipping.api.dtos.ShipmentHistoryResponseDTO;
 import com.dispocol.dispofast.modules.shipping.api.dtos.ShipmentResponseDTO;
 import com.dispocol.dispofast.modules.shipping.api.dtos.UpdateShipmentDTO;
@@ -30,7 +31,9 @@ import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -251,7 +254,7 @@ public class ShipmentServiceImpl implements ShipmentService {
         historyDescription = "Pedido asignado a transportadora";
       }
       shipment.setState(ShipmentState.ASSIGNED);
-    } else if ("RECOGEN".equals(deliveryType)) {
+    } else if ("RETIRO".equals(deliveryType)) {
       shipment.setCarrier(null);
       shipment.setDriver(null);
       shipment.setState(ShipmentState.ASSIGNED);
@@ -338,6 +341,19 @@ public class ShipmentServiceImpl implements ShipmentService {
                 new ShipmentHistoryResponseDTO(
                     h.getId(), h.getChangedAt(), h.getDescription(), h.getUserEmail()))
         .toList();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public ShipmentCountsResponseDTO getCounts() {
+    Map<String, Long> counts = new HashMap<>();
+    for (ShipmentState state : ShipmentState.values()) {
+      counts.put(state.name(), 0L);
+    }
+    shipmentRepository
+        .countGroupedByState()
+        .forEach(row -> counts.put(((ShipmentState) row[0]).name(), (Long) row[1]));
+    return new ShipmentCountsResponseDTO(counts);
   }
 
   private String resolveCurrentUserEmail() {

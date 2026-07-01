@@ -1,5 +1,6 @@
 package com.dispocol.dispofast.modules.shipping.api.controllers;
 
+import com.dispocol.dispofast.modules.shipping.api.dtos.ShipmentCountsResponseDTO;
 import com.dispocol.dispofast.modules.shipping.api.dtos.ShipmentHistoryResponseDTO;
 import com.dispocol.dispofast.modules.shipping.api.dtos.ShipmentResponseDTO;
 import com.dispocol.dispofast.modules.shipping.api.dtos.UpdateShipmentDTO;
@@ -27,6 +28,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class ShipmentController {
 
   private final ShipmentService shipmentService;
+
+  @GetMapping("/counts")
+  public ResponseEntity<ShipmentCountsResponseDTO> getCounts() {
+    return ResponseEntity.ok(shipmentService.getCounts());
+  }
 
   @GetMapping
   public ResponseEntity<Page<ShipmentResponseDTO>> getAll(
