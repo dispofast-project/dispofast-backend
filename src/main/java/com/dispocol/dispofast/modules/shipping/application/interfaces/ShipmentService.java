@@ -1,5 +1,6 @@
 package com.dispocol.dispofast.modules.shipping.application.interfaces;
 
+import com.dispocol.dispofast.modules.shipping.api.dtos.ShipmentCountsResponseDTO;
 import com.dispocol.dispofast.modules.shipping.api.dtos.ShipmentHistoryResponseDTO;
 import com.dispocol.dispofast.modules.shipping.api.dtos.ShipmentResponseDTO;
 import com.dispocol.dispofast.modules.shipping.api.dtos.UpdateShipmentDTO;
@@ -50,4 +51,7 @@ public interface ShipmentService {
 
   /** Retorna el historial de cambios del despacho, más reciente primero. */
   List<ShipmentHistoryResponseDTO> getHistory(UUID id);
+
+  /** Cuenta los despachos agrupados por estado. */
+  ShipmentCountsResponseDTO getCounts();
 }
