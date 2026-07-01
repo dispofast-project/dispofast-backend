@@ -254,7 +254,7 @@ public class ShipmentServiceImpl implements ShipmentService {
         historyDescription = "Pedido asignado a transportadora";
       }
       shipment.setState(ShipmentState.ASSIGNED);
-    } else if ("RECOGEN".equals(deliveryType)) {
+    } else if ("RETIRO".equals(deliveryType)) {
       shipment.setCarrier(null);
       shipment.setDriver(null);
       shipment.setState(ShipmentState.ASSIGNED);
