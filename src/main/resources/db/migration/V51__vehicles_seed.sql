@@ -1,0 +1,3 @@
+INSERT INTO vehicles (plate, state, type, created_at) VALUES
+('ZNL980', 'AVAILABLE', 'FURGON', CURRENT_DATE),
+('MENSAJERIA', 'AVAILABLE', 'MENSAJERIA', CURRENT_DATE);

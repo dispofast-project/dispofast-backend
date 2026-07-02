@@ -1,0 +1,3 @@
+INSERT INTO drivers ( name, phone, cedula ) VALUES
+ ('FURGON', '300 000 0000', '123456789'),
+ ('MENSAJERIA', '300 000 0001', '987654321');
