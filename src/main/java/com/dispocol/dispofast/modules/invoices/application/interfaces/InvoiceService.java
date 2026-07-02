@@ -39,5 +39,7 @@ public interface InvoiceService {
 
   Invoice findEntityById(UUID id);
 
+  Optional<Invoice> findEntityByOrderId(UUID orderId);
+
   Optional<String> findInvoiceNumberByOrderId(UUID orderId);
 }

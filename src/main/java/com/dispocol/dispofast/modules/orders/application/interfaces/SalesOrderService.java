@@ -28,4 +28,10 @@ public interface SalesOrderService {
   String getInvoiceFileName(UUID id);
 
   void deleteSalesOrder(UUID id);
+
+  /**
+   * Cancela la orden y libera el stock reservado. Llamado desde ShipmentService cuando un despacho
+   * pasa a DELAYED; no propaga la cancelación de vuelta al despacho para evitar un ciclo.
+   */
+  void cancelOrderByDelayedShipment(UUID orderId);
 }

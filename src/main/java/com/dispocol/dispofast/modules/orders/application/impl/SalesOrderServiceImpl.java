@@ -29,6 +29,7 @@ import com.dispocol.dispofast.modules.pricelist.infra.persistence.PriceListRepos
 import com.dispocol.dispofast.modules.quotes.domain.QuoteStatus;
 import com.dispocol.dispofast.modules.quotes.domain.Quotes;
 import com.dispocol.dispofast.modules.quotes.infra.persistence.QuotesRepository;
+import com.dispocol.dispofast.modules.shipping.application.interfaces.ShipmentService;
 import com.dispocol.dispofast.shared.location.application.interfaces.LocationService;
 import com.dispocol.dispofast.shared.location.domain.City;
 import com.dispocol.dispofast.shared.params.infra.persistence.SystemParamRepository;
@@ -37,9 +38,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -54,9 +53,6 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 @RequiredArgsConstructor
 public class SalesOrderServiceImpl implements SalesOrderService {
-
-  private static final Set<OrderState> TERMINAL_STATES =
-      EnumSet.of(OrderState.DELIVERED, OrderState.CANCELLED);
 
   private final SalesOrderRepository salesOrderRepository;
   private final SalesOrderItemRepository salesOrderItemRepository;
@@ -73,6 +69,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
   private final ArEntryService arEntryService;
   private final SystemParamRepository systemParamRepository;
   private final InvoiceService invoiceService;
+  private final ShipmentService shipmentService;
   private final OrderEmailComposer orderEmailComposer;
 
   @Override
@@ -190,7 +187,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
   public SalesOrderResponseDTO updateSalesOrder(UUID id, UpdateSalesOrderRequestDTO request) {
     SalesOrder order = findOrderOrThrow(id);
 
-    if (TERMINAL_STATES.contains(order.getState())) {
+    if (OrderState.TERMINAL_STATES.contains(order.getState())) {
       throw new InvalidOrderStateException(
           "Esta orden no puede ser modificada porque ya fue entregada o cancelada.");
     }
@@ -223,6 +220,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
       } else if (requestedState == OrderState.CANCELLED) {
         currentItems.forEach(
             item -> inventoryService.releaseStock(item.getProduct().getId(), item.getQuantity()));
+        shipmentService.delayByOrderId(id);
       }
 
       // Do not process item changes when transitioning to terminal state
@@ -258,6 +256,8 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     order.setState(OrderState.INVOICED);
     SalesOrder savedOrder = salesOrderRepository.save(order);
     arEntryService.createFromOrder(invoice);
+    String cityCode = order.getShipmentCity() != null ? order.getShipmentCity().getCode() : null;
+    shipmentService.createFromInvoice(invoice.getId(), order.getShipmentAddress(), cityCode);
 
     List<SalesOrderItem> items = salesOrderItemRepository.findByOrderId(id);
     return buildResponse(savedOrder, salesOrderItemMapper.toResponseDTOList(items));
@@ -293,6 +293,25 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 
     salesOrderItemRepository.deleteByOrderId(id);
     salesOrderRepository.delete(order);
+  }
+
+  @Override
+  @Transactional
+  public void cancelOrderByDelayedShipment(UUID orderId) {
+    salesOrderRepository
+        .findById(orderId)
+        .filter(order -> !OrderState.TERMINAL_STATES.contains(order.getState()))
+        .ifPresent(
+            order -> {
+              salesOrderItemRepository
+                  .findByOrderId(orderId)
+                  .forEach(
+                      item ->
+                          inventoryService.releaseStock(
+                              item.getProduct().getId(), item.getQuantity()));
+              order.setState(OrderState.CANCELLED);
+              salesOrderRepository.save(order);
+            });
   }
 
   private void resolveOrderReferences(

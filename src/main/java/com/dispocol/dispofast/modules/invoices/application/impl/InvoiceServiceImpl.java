@@ -138,6 +138,12 @@ public class InvoiceServiceImpl implements InvoiceService {
 
   @Override
   @Transactional(readOnly = true)
+  public Optional<Invoice> findEntityByOrderId(UUID orderId) {
+    return invoiceRepository.findBySalesOrderId(orderId);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public Optional<String> findInvoiceNumberByOrderId(UUID orderId) {
     return invoiceRepository.findBySalesOrderId(orderId).map(Invoice::getInvoiceNumber);
   }

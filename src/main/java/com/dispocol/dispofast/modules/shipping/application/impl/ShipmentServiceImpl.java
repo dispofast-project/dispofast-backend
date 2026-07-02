@@ -1,0 +1,401 @@
+package com.dispocol.dispofast.modules.shipping.application.impl;
+
+import com.dispocol.dispofast.modules.invoices.application.interfaces.InvoiceService;
+import com.dispocol.dispofast.modules.invoices.domain.Invoice;
+import com.dispocol.dispofast.modules.orders.application.interfaces.SalesOrderService;
+import com.dispocol.dispofast.modules.orders.domain.SalesOrderItem;
+import com.dispocol.dispofast.modules.orders.infra.persistence.SalesOrderItemRepository;
+import com.dispocol.dispofast.modules.shipping.api.dtos.ShipmentCountsResponseDTO;
+import com.dispocol.dispofast.modules.shipping.api.dtos.ShipmentHistoryResponseDTO;
+import com.dispocol.dispofast.modules.shipping.api.dtos.ShipmentResponseDTO;
+import com.dispocol.dispofast.modules.shipping.api.dtos.UpdateShipmentDTO;
+import com.dispocol.dispofast.modules.shipping.api.mappers.ShipmentMapper;
+import com.dispocol.dispofast.modules.shipping.application.interfaces.ShipmentService;
+import com.dispocol.dispofast.modules.shipping.domain.Carrier;
+import com.dispocol.dispofast.modules.shipping.domain.Driver;
+import com.dispocol.dispofast.modules.shipping.domain.Shipment;
+import com.dispocol.dispofast.modules.shipping.domain.ShipmentHistory;
+import com.dispocol.dispofast.modules.shipping.domain.ShipmentItem;
+import com.dispocol.dispofast.modules.shipping.domain.ShipmentState;
+import com.dispocol.dispofast.modules.shipping.infra.exceptions.DuplicateShipmentException;
+import com.dispocol.dispofast.modules.shipping.infra.exceptions.ShipmentNotEditableException;
+import com.dispocol.dispofast.modules.shipping.infra.exceptions.ShipmentNotFoundException;
+import com.dispocol.dispofast.modules.shipping.infra.persistence.CarrierRepository;
+import com.dispocol.dispofast.modules.shipping.infra.persistence.DriverRepository;
+import com.dispocol.dispofast.modules.shipping.infra.persistence.ShipmentHistoryRepository;
+import com.dispocol.dispofast.modules.shipping.infra.persistence.ShipmentItemRepository;
+import com.dispocol.dispofast.modules.shipping.infra.persistence.ShipmentRepository;
+import com.dispocol.dispofast.shared.location.domain.City;
+import com.dispocol.dispofast.shared.location.infra.persistence.CityRepository;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+public class ShipmentServiceImpl implements ShipmentService {
+
+  private static final Set<ShipmentState> EDITABLE_STATES =
+      EnumSet.of(ShipmentState.PENDING, ShipmentState.ASSIGNED);
+
+  private final ShipmentRepository shipmentRepository;
+  private final ShipmentItemRepository shipmentItemRepository;
+  private final ShipmentHistoryRepository shipmentHistoryRepository;
+  private final CarrierRepository carrierRepository;
+  private final DriverRepository driverRepository;
+  private final CityRepository cityRepository;
+  private final ShipmentMapper shipmentMapper;
+  private final InvoiceService invoiceService;
+  private final SalesOrderItemRepository salesOrderItemRepository;
+  private final SalesOrderService salesOrderService;
+
+  @Autowired
+  public ShipmentServiceImpl(
+      ShipmentRepository shipmentRepository,
+      ShipmentItemRepository shipmentItemRepository,
+      ShipmentHistoryRepository shipmentHistoryRepository,
+      CarrierRepository carrierRepository,
+      DriverRepository driverRepository,
+      CityRepository cityRepository,
+      ShipmentMapper shipmentMapper,
+      InvoiceService invoiceService,
+      SalesOrderItemRepository salesOrderItemRepository,
+      @Lazy SalesOrderService salesOrderService) {
+    this.shipmentRepository = shipmentRepository;
+    this.shipmentItemRepository = shipmentItemRepository;
+    this.shipmentHistoryRepository = shipmentHistoryRepository;
+    this.carrierRepository = carrierRepository;
+    this.driverRepository = driverRepository;
+    this.cityRepository = cityRepository;
+    this.shipmentMapper = shipmentMapper;
+    this.invoiceService = invoiceService;
+    this.salesOrderItemRepository = salesOrderItemRepository;
+    this.salesOrderService = salesOrderService;
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Page<ShipmentResponseDTO> getAll(
+      ShipmentState state,
+      String clientName,
+      String asesorName,
+      LocalDate dateFrom,
+      LocalDate dateTo,
+      Pageable pageable) {
+
+    OffsetDateTime from =
+        dateFrom != null ? dateFrom.atStartOfDay().atOffset(ZoneOffset.UTC) : null;
+    OffsetDateTime to =
+        dateTo != null ? dateTo.plusDays(1).atStartOfDay().atOffset(ZoneOffset.UTC) : null;
+
+    String client = (clientName != null && !clientName.isBlank()) ? clientName.trim() : null;
+    String asesor = (asesorName != null && !asesorName.isBlank()) ? asesorName.trim() : null;
+
+    PageRequest unsorted = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
+    return shipmentRepository
+        .findWithFilters(state != null ? state.name() : null, client, asesor, from, to, unsorted)
+        .map(shipmentMapper::toResponseDTO);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public ShipmentResponseDTO getById(UUID id) {
+    Shipment shipment = findEntityById(id);
+    ShipmentResponseDTO dto = shipmentMapper.toResponseDTO(shipment);
+    List<ShipmentItem> items = shipmentItemRepository.findByShipmentId(id);
+    if (!items.isEmpty()) {
+      dto.setItems(items.stream().map(shipmentMapper::toItemDTO).toList());
+    }
+    return dto;
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public ShipmentResponseDTO getByInvoiceId(UUID invoiceId) {
+    Shipment shipment =
+        shipmentRepository
+            .findByInvoiceId(invoiceId)
+            .orElseThrow(
+                () ->
+                    new ShipmentNotFoundException(
+                        "No se encontró despacho para la factura: " + invoiceId));
+    return shipmentMapper.toResponseDTO(shipment);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<ShipmentResponseDTO> getByCarrierId(UUID carrierId) {
+    return shipmentRepository.findByCarrierId(carrierId).stream()
+        .map(shipmentMapper::toResponseDTO)
+        .toList();
+  }
+
+  @Override
+  @Transactional
+  public ShipmentResponseDTO createFromInvoice(
+      UUID invoiceId, String deliveryAddress, String cityCode) {
+    if (shipmentRepository.findByInvoiceId(invoiceId).isPresent()) {
+      throw new DuplicateShipmentException("Ya existe un despacho para la factura: " + invoiceId);
+    }
+
+    Shipment shipment = new Shipment();
+    shipment.setInvoiceId(invoiceId);
+    shipment.setDeliveryAddress(deliveryAddress != null ? deliveryAddress : "");
+    shipment.setState(ShipmentState.PENDING);
+
+    if (cityCode != null) {
+      cityRepository.findById(cityCode).ifPresent(shipment::setCity);
+    }
+
+    Invoice invoice = invoiceService.findEntityById(invoiceId);
+    shipment.setInvoiceNumber(invoice.getInvoiceNumber());
+    var order = invoice.getSalesOrder();
+    if (order != null) {
+      if (order.getClient() != null) {
+        shipment.setClientName(order.getClient().getDisplayName());
+      }
+      if (order.getAsesor() != null) {
+        shipment.setAsesorName(order.getAsesor().getFullName());
+      }
+      List<SalesOrderItem> orderItems = salesOrderItemRepository.findByOrderId(order.getId());
+      shipment.setProductCount(orderItems.size());
+    }
+
+    Shipment saved = shipmentRepository.save(shipment);
+
+    if (order != null) {
+      List<SalesOrderItem> orderItems = salesOrderItemRepository.findByOrderId(order.getId());
+      List<ShipmentItem> shipmentItems =
+          orderItems.stream().map(oi -> toShipmentItem(saved.getId(), oi)).toList();
+      shipmentItemRepository.saveAll(shipmentItems);
+    }
+
+    recordHistory(saved.getId(), "Despacho creado");
+    return shipmentMapper.toResponseDTO(saved);
+  }
+
+  @Override
+  @Transactional
+  public ShipmentResponseDTO update(UUID id, UpdateShipmentDTO dto) {
+    Shipment shipment = findEntityById(id);
+
+    if (!EDITABLE_STATES.contains(shipment.getState())) {
+      throw new ShipmentNotEditableException(
+          "Solo se pueden editar despachos en estado Pendiente o Asignado.");
+    }
+
+    if (dto.getDeliveryAddress() != null) {
+      shipment.setDeliveryAddress(dto.getDeliveryAddress());
+    }
+
+    shipment.setAddressDetail(dto.getAddressDetail());
+    shipment.setDeliveryType(dto.getDeliveryType());
+    shipment.setTrackingCode(dto.getTrackingCode());
+
+    if (dto.getCityCode() != null) {
+      City city =
+          cityRepository
+              .findById(dto.getCityCode())
+              .orElseThrow(
+                  () ->
+                      new IllegalArgumentException(
+                          "Ciudad no encontrada con código: " + dto.getCityCode()));
+      shipment.setCity(city);
+    }
+
+    String deliveryType = dto.getDeliveryType();
+
+    String historyDescription;
+
+    if ("CONDUCTOR".equals(deliveryType)) {
+      shipment.setCarrier(null);
+      if (dto.getDriverId() != null) {
+        Driver driver =
+            driverRepository
+                .findById(dto.getDriverId())
+                .orElseThrow(
+                    () ->
+                        new IllegalArgumentException(
+                            "Conductor no encontrado con id: " + dto.getDriverId()));
+        shipment.setDriver(driver);
+        historyDescription = "Pedido asignado a conductor: " + driver.getName();
+      } else {
+        shipment.setDriver(null);
+        historyDescription = "Pedido asignado a conductor";
+      }
+      shipment.setState(ShipmentState.ASSIGNED);
+    } else if ("TRANSPORTADORA".equals(deliveryType)) {
+      shipment.setDriver(null);
+      if (dto.getCarrierId() != null) {
+        Carrier carrier =
+            carrierRepository
+                .findById(dto.getCarrierId())
+                .orElseThrow(
+                    () ->
+                        new IllegalArgumentException(
+                            "Transportista no encontrado con id: " + dto.getCarrierId()));
+        shipment.setCarrier(carrier);
+        historyDescription = "Pedido asignado a transportadora: " + carrier.getName();
+      } else {
+        shipment.setCarrier(null);
+        historyDescription = "Pedido asignado a transportadora";
+      }
+      shipment.setState(ShipmentState.ASSIGNED);
+    } else if ("RETIRO".equals(deliveryType)) {
+      shipment.setCarrier(null);
+      shipment.setDriver(null);
+      shipment.setState(ShipmentState.ASSIGNED);
+      historyDescription = "Pedido marcado para recoger en tienda";
+    } else {
+      // Sin tipo de entrega definido: limpiar asignaciones
+      shipment.setCarrier(null);
+      shipment.setDriver(null);
+      shipment.setState(ShipmentState.PENDING);
+      historyDescription = "Información de despacho actualizada";
+    }
+
+    if (dto.getEstimatedDeliveryDate() != null) {
+      shipment.setEstimatedDeliveryDate(dto.getEstimatedDeliveryDate());
+    }
+
+    Shipment saved = shipmentRepository.save(shipment);
+    recordHistory(saved.getId(), historyDescription);
+    return shipmentMapper.toResponseDTO(saved);
+  }
+
+  @Override
+  @Transactional
+  public ShipmentResponseDTO updateState(UUID id, ShipmentState state) {
+    Shipment shipment = findEntityById(id);
+
+    if (shipment.getState() == ShipmentState.DELIVERED) {
+      throw new ShipmentNotEditableException("Un despacho entregado no puede cambiar de estado");
+    }
+
+    shipment.setState(state);
+    Shipment saved = shipmentRepository.save(shipment);
+
+    String historyDescription =
+        switch (state) {
+          case IN_ROUTE -> "Pedido en ruta";
+          case DELIVERED -> "Pedido entregado";
+          case DELAYED -> "Pedido marcado como retrasado";
+          default -> "Estado cambiado a: " + state.getValue();
+        };
+    recordHistory(saved.getId(), historyDescription);
+
+    if (state == ShipmentState.DELAYED) {
+      cancelAssociatedOrder(shipment);
+    }
+
+    return shipmentMapper.toResponseDTO(saved);
+  }
+
+  @Override
+  @Transactional
+  public void delayByOrderId(UUID orderId) {
+    invoiceService
+        .findEntityByOrderId(orderId)
+        .flatMap(invoice -> shipmentRepository.findByInvoiceId(invoice.getId()))
+        .ifPresent(
+            shipment -> {
+              if (shipment.getState() != ShipmentState.DELIVERED) {
+                shipment.setState(ShipmentState.DELAYED);
+                shipmentRepository.save(shipment);
+                recordHistory(
+                    shipment.getId(), "Pedido marcado como retrasado por cancelación de orden");
+              }
+            });
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Shipment findEntityById(UUID id) {
+    return shipmentRepository
+        .findById(id)
+        .orElseThrow(() -> new ShipmentNotFoundException("Despacho no encontrado con id: " + id));
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<ShipmentHistoryResponseDTO> getHistory(UUID id) {
+    if (!shipmentRepository.existsById(id)) {
+      throw new ShipmentNotFoundException("Despacho no encontrado con id: " + id);
+    }
+    return shipmentHistoryRepository.findByShipmentIdOrderByChangedAtDesc(id).stream()
+        .map(
+            h ->
+                new ShipmentHistoryResponseDTO(
+                    h.getId(), h.getChangedAt(), h.getDescription(), h.getUserEmail()))
+        .toList();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public ShipmentCountsResponseDTO getCounts() {
+    Map<String, Long> counts = new HashMap<>();
+    for (ShipmentState state : ShipmentState.values()) {
+      counts.put(state.name(), 0L);
+    }
+    shipmentRepository
+        .countGroupedByState()
+        .forEach(row -> counts.put(((ShipmentState) row[0]).name(), (Long) row[1]));
+    return new ShipmentCountsResponseDTO(counts);
+  }
+
+  private String resolveCurrentUserEmail() {
+    var auth = SecurityContextHolder.getContext().getAuthentication();
+    if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+      return "sistema";
+    }
+    return auth.getName();
+  }
+
+  private void recordHistory(UUID shipmentId, String description) {
+    ShipmentHistory entry = new ShipmentHistory();
+    entry.setShipmentId(shipmentId);
+    entry.setChangedAt(OffsetDateTime.now());
+    entry.setDescription(description);
+    entry.setUserEmail(resolveCurrentUserEmail());
+    shipmentHistoryRepository.save(entry);
+  }
+
+  private void cancelAssociatedOrder(Shipment shipment) {
+    Invoice invoice = invoiceService.findEntityById(shipment.getInvoiceId());
+    if (invoice.getSalesOrder() != null) {
+      salesOrderService.cancelOrderByDelayedShipment(invoice.getSalesOrder().getId());
+    }
+  }
+
+  private ShipmentItem toShipmentItem(UUID shipmentId, SalesOrderItem oi) {
+    var product = oi.getProduct();
+    ShipmentItem si = new ShipmentItem();
+    si.setShipmentId(shipmentId);
+    if (product != null) {
+      si.setProductId(product.getId());
+      si.setProductSku(product.getSku());
+      si.setProductName(product.getName());
+      si.setTaxPercent(product.isTaxFree() ? 0 : 19);
+    } else {
+      si.setProductName("—");
+      si.setTaxPercent(0);
+    }
+    si.setQuantity(oi.getQuantity());
+    si.setUnitPrice(oi.getUnitPrice());
+    si.setLineTotal(oi.getLineTotal());
+    return si;
+  }
+}
