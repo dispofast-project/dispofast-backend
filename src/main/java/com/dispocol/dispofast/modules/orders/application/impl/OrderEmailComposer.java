@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
 public class OrderEmailComposer {
 
   private static final String[] NOTIFICATION_EMAIL = {
-    "facturacion@dispocol.com", "mercadeo@dispocol.com", "raquintero@dispocol.com"
+    "informacion@dispocol.com", "mercadeo@dispocol.com", "raquintero@dispocol.com"
   };
   private static final BigDecimal IVA_RATE = BigDecimal.valueOf(0.19);
   private static final String PRIMARY = "#4676B8";
