@@ -2,7 +2,7 @@ spring:
   application:
     name: dispofast
   profiles:
-    active: dev
+    active: prod
   jackson:
     time-zone: UTC
     serialization:
@@ -39,7 +39,7 @@ spring:
 app:
   jwt:
     secret: ${JWT_SECRET:ihavetochangeThisSecretKeysoon1234567890}
-    expirationSeconds: 3600
+    expirationSeconds: 3600000
   minio:
     endpoint: ${STORAGE_ENDPOINT}
     access-key: ${STORAGE_ACCESS_KEY}
