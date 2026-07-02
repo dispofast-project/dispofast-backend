@@ -1,5 +1,6 @@
 package com.dispocol.dispofast.modules.pricelist.application.impl;
 
+import com.dispocol.dispofast.modules.inventory.domain.Product;
 import com.dispocol.dispofast.modules.inventory.infra.persistence.InventoryStockRepository;
 import com.dispocol.dispofast.modules.inventory.infra.persistence.ProductRepository;
 import com.dispocol.dispofast.modules.pricelist.api.dtos.CreatePriceListRequestDTO;
@@ -117,26 +118,28 @@ public class PriceListServiceImpl implements PriceListService {
         BigDecimal unitPrice = getCellNumericValue(priceCell);
         if (unitPrice == null || unitPrice.compareTo(BigDecimal.ZERO) < 0) continue;
 
-        productRepository
-            .findBySku(sku)
-            .ifPresentOrElse(
-                product -> {
-                  UUID productId = product.getId();
+        List<Product> matchingProducts = productRepository.findAllBySku(sku);
+        if (matchingProducts.isEmpty()) {
+          log.warn("Product with SKU '{}' not found, skipping", sku);
+          continue;
+        }
 
-                  PriceListItem item = itemsToSave.get(productId);
-                  if (item == null) {
-                    item = existingItems.get(productId);
-                    if (item == null) {
-                      item = new PriceListItem();
-                      item.setPriceList(priceList);
-                      item.setProduct(product);
-                    }
-                  }
+        for (Product product : matchingProducts) {
+          UUID productId = product.getId();
 
-                  item.setUnitPrice(unitPrice);
-                  itemsToSave.put(productId, item);
-                },
-                () -> log.warn("Product with SKU '{}' not found, skipping", sku));
+          PriceListItem item = itemsToSave.get(productId);
+          if (item == null) {
+            item = existingItems.get(productId);
+            if (item == null) {
+              item = new PriceListItem();
+              item.setPriceList(priceList);
+              item.setProduct(product);
+            }
+          }
+
+          item.setUnitPrice(unitPrice);
+          itemsToSave.put(productId, item);
+        }
       }
 
       priceListItemRepository.saveAll(itemsToSave.values());
