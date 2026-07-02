@@ -12,6 +12,7 @@ import com.dispocol.dispofast.modules.orders.domain.SalesOrder;
 import com.dispocol.dispofast.shared.S3.application.interfaces.S3Service;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.text.Normalizer;
 import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.UUID;
@@ -53,7 +54,7 @@ public class InvoiceServiceImpl implements InvoiceService {
   @Override
   @Transactional
   public Invoice createFromOrder(SalesOrder order, String invoiceNumber, MultipartFile file) {
-    String fileKey = order.getId() + "/" + file.getOriginalFilename();
+    String fileKey = order.getId() + "/" + sanitizeFileName(file.getOriginalFilename());
     try {
       s3Service.uploadFile(
           INVOICE_BUCKET, fileKey, file.getInputStream(), file.getContentType(), file.getSize());
@@ -144,5 +145,12 @@ public class InvoiceServiceImpl implements InvoiceService {
   private String extractFileName(String s3Key) {
     if (s3Key == null) return "factura.pdf";
     return s3Key.contains("/") ? s3Key.substring(s3Key.lastIndexOf('/') + 1) : s3Key;
+  }
+
+  private String sanitizeFileName(String fileName) {
+    if (fileName == null) return "factura.pdf";
+    String withoutDiacritics =
+        Normalizer.normalize(fileName, Normalizer.Form.NFD).replaceAll("\\p{M}", "");
+    return withoutDiacritics.replaceAll("[^a-zA-Z0-9._-]", "_");
   }
 }
