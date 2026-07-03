@@ -4,10 +4,12 @@ import com.dispocol.dispofast.modules.inventory.domain.InventoryStock;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface InventoryStockRepository extends JpaRepository<InventoryStock, UUID> {
+public interface InventoryStockRepository
+    extends JpaRepository<InventoryStock, UUID>, JpaSpecificationExecutor<InventoryStock> {
 
   Optional<InventoryStock> findByProduct_Id(UUID productId);
 }

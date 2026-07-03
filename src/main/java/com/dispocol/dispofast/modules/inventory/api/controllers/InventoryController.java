@@ -1,7 +1,9 @@
 package com.dispocol.dispofast.modules.inventory.api.controllers;
 
+import com.dispocol.dispofast.modules.inventory.api.dtos.InventoryFilterDTO;
 import com.dispocol.dispofast.modules.inventory.api.dtos.InventoryResponseDTO;
 import com.dispocol.dispofast.modules.inventory.application.interfaces.InventoryService;
+import com.dispocol.dispofast.modules.inventory.domain.StockState;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -24,8 +27,14 @@ public class InventoryController {
 
   @GetMapping
   @PreAuthorize("hasAuthority('INVENTORY_VIEW')")
-  public ResponseEntity<Page<InventoryResponseDTO>> getAllInventory(Pageable pageable) {
-    return ResponseEntity.ok(inventoryService.getInventoryStockForAllProducts(pageable));
+  public ResponseEntity<Page<InventoryResponseDTO>> getAllInventory(
+      Pageable pageable,
+      @RequestParam(required = false) String search,
+      @RequestParam(required = false) StockState state) {
+    InventoryFilterDTO filter = new InventoryFilterDTO();
+    filter.setSearch(search);
+    filter.setState(state);
+    return ResponseEntity.ok(inventoryService.getInventoryStockForAllProducts(pageable, filter));
   }
 
   @GetMapping("/product/{productId}")
