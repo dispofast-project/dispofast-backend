@@ -14,8 +14,11 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.text.Normalizer;
 import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -146,6 +149,13 @@ public class InvoiceServiceImpl implements InvoiceService {
   @Transactional(readOnly = true)
   public Optional<String> findInvoiceNumberByOrderId(UUID orderId) {
     return invoiceRepository.findBySalesOrderId(orderId).map(Invoice::getInvoiceNumber);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Map<UUID, String> findInvoiceNumbersByOrderIds(List<UUID> orderIds) {
+    return invoiceRepository.findBySalesOrder_IdIn(orderIds).stream()
+        .collect(Collectors.toMap(i -> i.getSalesOrder().getId(), Invoice::getInvoiceNumber));
   }
 
   private String extractFileName(String s3Key) {
