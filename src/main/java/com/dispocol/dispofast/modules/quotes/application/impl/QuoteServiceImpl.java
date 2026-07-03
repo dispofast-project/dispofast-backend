@@ -190,7 +190,7 @@ public class QuoteServiceImpl implements QuoteService {
         String effectiveKey = (key != null && !key.isBlank()) ? key.trim().toLowerCase() : "";
         page = quotesRepository.searchByText(text.trim(), effectiveKey, pageable);
       } else {
-        page = quotesRepository.findAll(pageable);
+        page = quotesRepository.findAllWithRelations(pageable);
       }
     } else {
       AppUser currentUser =
