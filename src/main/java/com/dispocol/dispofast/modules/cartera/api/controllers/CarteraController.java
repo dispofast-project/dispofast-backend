@@ -53,13 +53,15 @@ public class CarteraController {
       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
           LocalDate fechaInicio,
       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-          LocalDate fechaFin) {
+          LocalDate fechaFin,
+      @RequestParam(required = false) String search) {
     ArEntryFilterDTO filter = new ArEntryFilterDTO();
     filter.setClientId(clientId);
     filter.setAsesorUserId(asesorUserId);
     filter.setState(state);
     filter.setFechaInicio(fechaInicio);
     filter.setFechaFin(fechaFin);
+    filter.setSearch(search);
     return ResponseEntity.ok(arEntryService.getArEntries(pageable, filter));
   }
 
