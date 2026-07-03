@@ -154,9 +154,9 @@ public class ArEntryServiceImpl implements ArEntryService {
   }
 
   /**
-   * Matches the search text against client name (Individual first/last name or Organization
-   * legal name), invoice number, and order number, so search covers the whole dataset instead of
-   * just the currently loaded page.
+   * Matches the search text against client name (Individual first/last name or Organization legal
+   * name), invoice number, and order number, so search covers the whole dataset instead of just the
+   * currently loaded page.
    */
   private Predicate buildSearchPredicate(Root<ArEntry> root, CriteriaBuilder cb, String text) {
     String pattern = "%" + text + "%";
@@ -169,7 +169,8 @@ public class ArEntryServiceImpl implements ArEntryService {
             cb.equal(clientPath.type(), Individual.class),
             cb.or(
                 cb.like(cb.lower(cb.treat(clientPath, Individual.class).get("firstName")), pattern),
-                cb.like(cb.lower(cb.treat(clientPath, Individual.class).get("lastName")), pattern)));
+                cb.like(
+                    cb.lower(cb.treat(clientPath, Individual.class).get("lastName")), pattern)));
 
     Predicate organizationName =
         cb.and(
