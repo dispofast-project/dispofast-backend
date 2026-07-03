@@ -41,7 +41,7 @@ public class DashboardServiceImpl implements DashboardService {
         salesOrderRepository.getTotalVentasMes(today.getYear(), today.getMonthValue());
 
     BigDecimal carteraVencida =
-        arEntryRepository.getCarteraVencida(OffsetDateTime.now(ZoneOffset.UTC));
+        arEntryRepository.getCarteraVencida(OffsetDateTime.now(ZoneOffset.UTC), null);
 
     OffsetDateTime sixMonthsAgo =
         today.minusMonths(5).withDayOfMonth(1).atStartOfDay().atOffset(ZoneOffset.UTC);
