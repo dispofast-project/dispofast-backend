@@ -33,13 +33,16 @@ import com.dispocol.dispofast.modules.shipping.application.interfaces.ShipmentSe
 import com.dispocol.dispofast.shared.location.application.interfaces.LocationService;
 import com.dispocol.dispofast.shared.location.domain.City;
 import com.dispocol.dispofast.shared.params.infra.persistence.SystemParamRepository;
+import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -173,13 +176,25 @@ public class SalesOrderServiceImpl implements SalesOrderService {
   @Transactional(readOnly = true)
   public Page<SalesOrderResponseDTO> getAllSalesOrders(
       Pageable pageable, SalesOrderFilterDTO filter) {
-    return salesOrderRepository
-        .findAll(buildSpecification(filter), pageable)
-        .map(
-            order -> {
-              List<SalesOrderItem> items = salesOrderItemRepository.findByOrderId(order.getId());
-              return buildResponse(order, salesOrderItemMapper.toResponseDTOList(items));
-            });
+    Page<SalesOrder> page = salesOrderRepository.findAll(buildSpecification(filter), pageable);
+
+    List<UUID> orderIds = page.getContent().stream().map(SalesOrder::getId).toList();
+    Map<UUID, List<SalesOrderItem>> itemsByOrderId =
+        orderIds.isEmpty()
+            ? Map.of()
+            : salesOrderItemRepository.findByOrderIdInWithProduct(orderIds).stream()
+                .collect(Collectors.groupingBy(item -> item.getOrder().getId()));
+    Map<UUID, String> invoiceNumberByOrderId =
+        orderIds.isEmpty() ? Map.of() : invoiceService.findInvoiceNumbersByOrderIds(orderIds);
+
+    return page.map(
+        order -> {
+          List<SalesOrderItem> items = itemsByOrderId.getOrDefault(order.getId(), List.of());
+          SalesOrderResponseDTO response = salesOrderMapper.toResponseDTO(order);
+          response.setItems(salesOrderItemMapper.toResponseDTOList(items));
+          response.setInvoiceNumber(invoiceNumberByOrderId.get(order.getId()));
+          return response;
+        });
   }
 
   @Override
@@ -378,16 +393,16 @@ public class SalesOrderServiceImpl implements SalesOrderService {
       item.setProduct(product);
 
       BigDecimal unitPrice =
-          priceListService
-              .resolveUnitPrice(priceListId, product.getId())
-              .orElseGet(
-                  () -> {
-                    if (dto.getUnitPrice() != null) return dto.getUnitPrice();
-                    throw new IllegalArgumentException(
-                        "El producto '"
-                            + product.getSku()
-                            + "' no tiene precio configurado en la lista de precios seleccionada.");
-                  });
+          dto.getUnitPrice() != null
+              ? dto.getUnitPrice()
+              : priceListService
+                  .resolveUnitPrice(priceListId, product.getId())
+                  .orElseThrow(
+                      () ->
+                          new IllegalArgumentException(
+                              "El producto '"
+                                  + product.getSku()
+                                  + "' no tiene precio configurado en la lista de precios seleccionada."));
 
       BigDecimal itemDiscount = dto.getDiscount() != null ? dto.getDiscount() : BigDecimal.ZERO;
       BigDecimal lineTotal = dto.getQuantity().multiply(unitPrice).subtract(itemDiscount);
@@ -473,6 +488,19 @@ public class SalesOrderServiceImpl implements SalesOrderService {
   private Specification<SalesOrder> buildSpecification(SalesOrderFilterDTO filter) {
     return (root, query, cb) -> {
       List<Predicate> predicates = new ArrayList<>();
+
+      // Eagerly fetch the associations the mapper reads (client/asesor/shipmentCity/priceList/
+      // quote) to avoid one N+1 lazy-load round trip per row per association. Fetches aren't
+      // valid on the COUNT query Spring Data issues for pagination.
+      boolean isCountQuery =
+          Long.class.equals(query.getResultType()) || long.class.equals(query.getResultType());
+      if (!isCountQuery) {
+        root.fetch("client", JoinType.LEFT);
+        root.fetch("asesor", JoinType.LEFT);
+        root.fetch("shipmentCity", JoinType.LEFT);
+        root.fetch("priceList", JoinType.LEFT);
+        root.fetch("quote", JoinType.LEFT);
+      }
 
       Authentication auth = SecurityContextHolder.getContext().getAuthentication();
       boolean isAdmin =

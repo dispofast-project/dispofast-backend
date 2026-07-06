@@ -67,7 +67,7 @@ public class ProductServiceImpl implements ProductService {
   @Override
   @Transactional(readOnly = true)
   public Page<ProductResponseDTO> getAllProducts(Pageable pageable) {
-    return productRepository.findAll(pageable).map(productMapper::toProductResponseDTO);
+    return productRepository.findAllWithCategory(pageable).map(productMapper::toProductResponseDTO);
   }
 
   @Override

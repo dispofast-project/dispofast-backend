@@ -5,6 +5,8 @@ import com.dispocol.dispofast.modules.invoices.domain.Invoice;
 import com.dispocol.dispofast.modules.orders.domain.SalesOrder;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.web.multipart.MultipartFile;
@@ -42,4 +44,10 @@ public interface InvoiceService {
   Optional<Invoice> findEntityByOrderId(UUID orderId);
 
   Optional<String> findInvoiceNumberByOrderId(UUID orderId);
+
+  /**
+   * Batched version of {@link #findInvoiceNumberByOrderId} for list views, avoiding one query per
+   * order.
+   */
+  Map<UUID, String> findInvoiceNumbersByOrderIds(List<UUID> orderIds);
 }

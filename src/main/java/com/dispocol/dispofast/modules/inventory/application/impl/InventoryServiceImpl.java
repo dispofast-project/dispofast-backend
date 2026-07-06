@@ -1,5 +1,6 @@
 package com.dispocol.dispofast.modules.inventory.application.impl;
 
+import com.dispocol.dispofast.modules.inventory.api.dtos.InventoryFilterDTO;
 import com.dispocol.dispofast.modules.inventory.api.dtos.InventoryResponseDTO;
 import com.dispocol.dispofast.modules.inventory.api.mappers.InventoryMapper;
 import com.dispocol.dispofast.modules.inventory.application.interfaces.InventoryService;
@@ -10,13 +11,19 @@ import com.dispocol.dispofast.modules.inventory.infra.exceptions.InsufficientSto
 import com.dispocol.dispofast.modules.inventory.infra.exceptions.ProductNotFoundException;
 import com.dispocol.dispofast.modules.inventory.infra.persistence.InventoryStockRepository;
 import com.dispocol.dispofast.modules.inventory.infra.persistence.ProductRepository;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Predicate;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -128,13 +135,50 @@ public class InventoryServiceImpl implements InventoryService {
 
   @Override
   @Transactional(readOnly = true)
-  public Page<InventoryResponseDTO> getInventoryStockForAllProducts(Pageable pageable) {
+  public Page<InventoryResponseDTO> getInventoryStockForAllProducts(
+      Pageable pageable, InventoryFilterDTO filter) {
     Sort categoryAscending = Sort.by("product.category.name").ascending();
     Pageable sortedPageable =
         PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), categoryAscending);
     return inventoryStockRepository
-        .findAll(sortedPageable)
+        .findAll(buildSpecification(filter), sortedPageable)
         .map(inventoryMapper::toInventoryResponseDTO);
+  }
+
+  private Specification<InventoryStock> buildSpecification(InventoryFilterDTO filter) {
+    return (root, query, cb) -> {
+      List<Predicate> predicates = new ArrayList<>();
+
+      // Eagerly fetch product + category so the mapper doesn't trigger one extra
+      // query per row per association. Fetches aren't valid on the pagination
+      // COUNT query, so a plain join is used there instead.
+      boolean isCountQuery =
+          Long.class.equals(query.getResultType()) || long.class.equals(query.getResultType());
+      Join<InventoryStock, Product> productJoin;
+      if (isCountQuery) {
+        productJoin = root.join("product", JoinType.INNER);
+      } else {
+        productJoin =
+            (Join<InventoryStock, Product>) (Object) root.fetch("product", JoinType.INNER);
+        productJoin.fetch("category", JoinType.INNER);
+      }
+
+      if (filter != null) {
+        if (filter.getState() != null) {
+          predicates.add(cb.equal(root.get("state"), filter.getState()));
+        }
+        if (filter.getSearch() != null && !filter.getSearch().isBlank()) {
+          String pattern = "%" + filter.getSearch().trim().toLowerCase() + "%";
+          predicates.add(
+              cb.or(
+                  cb.like(cb.lower(productJoin.get("name")), pattern),
+                  cb.like(cb.lower(productJoin.get("sku")), pattern),
+                  cb.like(cb.lower(productJoin.get("reference")), pattern)));
+        }
+      }
+
+      return cb.and(predicates.toArray(new Predicate[0]));
+    };
   }
 
   private InventoryStock findStockOrThrow(UUID productId) {

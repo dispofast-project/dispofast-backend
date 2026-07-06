@@ -2,6 +2,7 @@ package com.dispocol.dispofast.modules.cartera.application.impl;
 
 import com.dispocol.dispofast.modules.cartera.api.dtos.ArEntryFilterDTO;
 import com.dispocol.dispofast.modules.cartera.api.dtos.ArEntryResponseDTO;
+import com.dispocol.dispofast.modules.cartera.api.dtos.CarteraStatsDTO;
 import com.dispocol.dispofast.modules.cartera.api.dtos.CreateManualArEntryRequestDTO;
 import com.dispocol.dispofast.modules.cartera.api.mappers.ArEntryMapper;
 import com.dispocol.dispofast.modules.cartera.application.interfaces.ArEntryService;
@@ -23,6 +24,8 @@ import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -52,6 +55,31 @@ public class ArEntryServiceImpl implements ArEntryService {
   public Page<ArEntryResponseDTO> getArEntries(Pageable pageable, ArEntryFilterDTO filter) {
     Specification<ArEntry> spec = buildSpecification(filter);
     return arEntryRepository.findAll(spec, pageable).map(arEntryMapper::toResponseDTO);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public CarteraStatsDTO getStats() {
+    String vendedorEmail = resolveVendedorEmail();
+    BigDecimal total = arEntryRepository.getTotalCartera(vendedorEmail);
+    BigDecimal vencida = arEntryRepository.getCarteraVencida(OffsetDateTime.now(), vendedorEmail);
+    return new CarteraStatsDTO(total, vencida);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<String> getAsesorNames() {
+    return arEntryRepository.findDistinctAsesorNames(resolveVendedorEmail());
+  }
+
+  /** Email del VENDEDOR autenticado para restringir resultados a sus clientes, o null si ADMIN. */
+  private String resolveVendedorEmail() {
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    boolean isVendedor =
+        auth != null
+            && auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_VENDEDOR"));
+    return isVendedor ? auth.getName() : null;
   }
 
   @Override
@@ -107,15 +135,29 @@ public class ArEntryServiceImpl implements ArEntryService {
       List<Predicate> predicates = new ArrayList<>();
 
       // Data-level security: VENDEDOR only sees their assigned clients
-      Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-      boolean isVendedor =
-          auth != null
-              && auth.getAuthorities().stream()
-                  .anyMatch(a -> a.getAuthority().equals("ROLE_VENDEDOR"));
-
-      if (isVendedor && auth != null) {
+      String vendedorEmail = resolveVendedorEmail();
+      if (vendedorEmail != null) {
         predicates.add(
-            cb.equal(root.get("client").get("defaultAdvisor").get("email"), auth.getName()));
+            cb.equal(root.get("client").get("defaultAdvisor").get("email"), vendedorEmail));
+      }
+
+      // Eagerly fetch the associations the mapper reads (client/asesor/order/invoice/city) to
+      // avoid one N+1 lazy-load round trip per row per association. Fetches aren't valid on the
+      // COUNT query Spring Data issues for pagination, so plain joins are used there instead —
+      // reused below for the search predicate so invoice/order aren't joined twice.
+      boolean isCountQuery =
+          Long.class.equals(query.getResultType()) || long.class.equals(query.getResultType());
+      Join<ArEntry, Invoice> invoiceJoin;
+      Join<ArEntry, SalesOrder> orderJoin;
+      if (isCountQuery) {
+        invoiceJoin = root.join("invoice", JoinType.LEFT);
+        orderJoin = root.join("order", JoinType.LEFT);
+      } else {
+        root.fetch("client", JoinType.LEFT);
+        root.fetch("asesor", JoinType.LEFT);
+        root.fetch("city", JoinType.LEFT);
+        invoiceJoin = (Join<ArEntry, Invoice>) (Object) root.fetch("invoice", JoinType.LEFT);
+        orderJoin = (Join<ArEntry, SalesOrder>) (Object) root.fetch("order", JoinType.LEFT);
       }
 
       if (filter != null) {
@@ -145,7 +187,9 @@ public class ArEntryServiceImpl implements ArEntryService {
                       .atOffset(java.time.ZoneOffset.UTC)));
         }
         if (filter.getSearch() != null && !filter.getSearch().isBlank()) {
-          predicates.add(buildSearchPredicate(root, cb, filter.getSearch().trim().toLowerCase()));
+          predicates.add(
+              buildSearchPredicate(
+                  root, cb, invoiceJoin, orderJoin, filter.getSearch().trim().toLowerCase()));
         }
       }
 
@@ -158,11 +202,14 @@ public class ArEntryServiceImpl implements ArEntryService {
    * name), invoice number, and order number, so search covers the whole dataset instead of just the
    * currently loaded page.
    */
-  private Predicate buildSearchPredicate(Root<ArEntry> root, CriteriaBuilder cb, String text) {
+  private Predicate buildSearchPredicate(
+      Root<ArEntry> root,
+      CriteriaBuilder cb,
+      Join<ArEntry, Invoice> invoiceJoin,
+      Join<ArEntry, SalesOrder> orderJoin,
+      String text) {
     String pattern = "%" + text + "%";
     Path<Client> clientPath = root.get("client");
-    Join<ArEntry, Invoice> invoiceJoin = root.join("invoice", JoinType.LEFT);
-    Join<ArEntry, SalesOrder> orderJoin = root.join("order", JoinType.LEFT);
 
     Predicate individualName =
         cb.and(

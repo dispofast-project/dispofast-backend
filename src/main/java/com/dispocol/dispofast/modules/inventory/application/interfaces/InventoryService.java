@@ -1,5 +1,6 @@
 package com.dispocol.dispofast.modules.inventory.application.interfaces;
 
+import com.dispocol.dispofast.modules.inventory.api.dtos.InventoryFilterDTO;
 import com.dispocol.dispofast.modules.inventory.api.dtos.InventoryResponseDTO;
 import com.dispocol.dispofast.modules.inventory.domain.Product;
 import java.math.BigDecimal;
@@ -38,5 +39,10 @@ public interface InventoryService {
 
   InventoryResponseDTO getStockByProductId(UUID productId);
 
-  Page<InventoryResponseDTO> getInventoryStockForAllProducts(Pageable pageable);
+  /**
+   * Retorna el inventario paginado con filtros opcionales de búsqueda (nombre, SKU o referencia del
+   * producto) y estado de stock.
+   */
+  Page<InventoryResponseDTO> getInventoryStockForAllProducts(
+      Pageable pageable, InventoryFilterDTO filter);
 }

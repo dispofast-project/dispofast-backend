@@ -2,6 +2,7 @@ package com.dispocol.dispofast.modules.cartera.api.controllers;
 
 import com.dispocol.dispofast.modules.cartera.api.dtos.ArEntryFilterDTO;
 import com.dispocol.dispofast.modules.cartera.api.dtos.ArEntryResponseDTO;
+import com.dispocol.dispofast.modules.cartera.api.dtos.CarteraStatsDTO;
 import com.dispocol.dispofast.modules.cartera.api.dtos.CreateManualArEntryRequestDTO;
 import com.dispocol.dispofast.modules.cartera.api.dtos.CreatePaymentReceiptRequestDTO;
 import com.dispocol.dispofast.modules.cartera.api.dtos.PaymentReceiptResponseDTO;
@@ -63,6 +64,24 @@ public class CarteraController {
     filter.setFechaFin(fechaFin);
     filter.setSearch(search);
     return ResponseEntity.ok(arEntryService.getArEntries(pageable, filter));
+  }
+
+  /**
+   * Totales de cartera (total y vencida) calculados en base de datos, respetando la misma
+   * visibilidad por rol que {@link #getCartera}. Reemplaza el cálculo que antes se hacía en el
+   * frontend trayendo cientos de registros completos.
+   */
+  @GetMapping("/stats")
+  @PreAuthorize("hasAuthority('ACCOUNTS_VIEW')")
+  public ResponseEntity<CarteraStatsDTO> getStats() {
+    return ResponseEntity.ok(arEntryService.getStats());
+  }
+
+  /** Nombres de asesores con entradas de cartera, para el filtro de la UI. */
+  @GetMapping("/asesores")
+  @PreAuthorize("hasAuthority('ACCOUNTS_VIEW')")
+  public ResponseEntity<List<String>> getAsesorNames() {
+    return ResponseEntity.ok(arEntryService.getAsesorNames());
   }
 
   /** Crea un registro manual de cartera (Osteosíntesis). Solo ADMIN. */

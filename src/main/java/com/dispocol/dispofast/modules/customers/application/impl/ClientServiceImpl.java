@@ -27,6 +27,7 @@ import com.dispocol.dispofast.shared.error.ResourceNotFoundException;
 import com.dispocol.dispofast.shared.location.domain.City;
 import com.dispocol.dispofast.shared.location.infra.persistence.CityRepository;
 import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.io.IOException;
@@ -62,7 +63,20 @@ public class ClientServiceImpl implements ClientService {
   @Transactional(readOnly = true)
   public Page<ClientPreviewDTO> getAllClients(
       Pageable pageable, String text, String key, Boolean isActive, String city) {
-    Specification<Client> spec = Specification.where(null);
+    // Eagerly fetch defaultAdvisor + city (the mapper reads both for every row) to avoid one
+    // N+1 lazy-load round trip per row per association. Fetches aren't valid on the pagination
+    // COUNT query. Client itself doesn't need a fetch: Hibernate already resolves its JOINED
+    // Individual/Organization subtype tables as part of the base query, not lazily.
+    Specification<Client> spec =
+        (root, query, cb) -> {
+          boolean isCountQuery =
+              Long.class.equals(query.getResultType()) || long.class.equals(query.getResultType());
+          if (!isCountQuery) {
+            root.fetch("defaultAdvisor", JoinType.INNER);
+            root.fetch("city", JoinType.INNER);
+          }
+          return cb.conjunction();
+        };
 
     if (text != null && !text.isBlank()) {
       spec = spec.and(buildSearchSpec(text.trim().toLowerCase(), key));

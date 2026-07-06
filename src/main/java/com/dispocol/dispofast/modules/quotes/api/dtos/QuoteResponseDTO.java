@@ -47,4 +47,5 @@ public class QuoteResponseDTO {
   private BigDecimal retefuenteRate;
   private BigDecimal retefuenteAmount;
   private BigDecimal totalAmount;
+  private BigDecimal freight;
 }
