@@ -393,16 +393,16 @@ public class SalesOrderServiceImpl implements SalesOrderService {
       item.setProduct(product);
 
       BigDecimal unitPrice =
-          priceListService
-              .resolveUnitPrice(priceListId, product.getId())
-              .orElseGet(
-                  () -> {
-                    if (dto.getUnitPrice() != null) return dto.getUnitPrice();
-                    throw new IllegalArgumentException(
-                        "El producto '"
-                            + product.getSku()
-                            + "' no tiene precio configurado en la lista de precios seleccionada.");
-                  });
+          dto.getUnitPrice() != null
+              ? dto.getUnitPrice()
+              : priceListService
+                  .resolveUnitPrice(priceListId, product.getId())
+                  .orElseThrow(
+                      () ->
+                          new IllegalArgumentException(
+                              "El producto '"
+                                  + product.getSku()
+                                  + "' no tiene precio configurado en la lista de precios seleccionada."));
 
       BigDecimal itemDiscount = dto.getDiscount() != null ? dto.getDiscount() : BigDecimal.ZERO;
       BigDecimal lineTotal = dto.getQuantity().multiply(unitPrice).subtract(itemDiscount);
