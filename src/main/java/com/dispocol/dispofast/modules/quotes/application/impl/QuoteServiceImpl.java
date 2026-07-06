@@ -154,6 +154,7 @@ public class QuoteServiceImpl implements QuoteService {
     quote.setRetefuenteAmount(null);
     quote.setRetefuenteRate(null);
     quote.setTotalAmount(BigDecimal.ZERO);
+    quote.setFreight(BigDecimal.ZERO);
   }
 
   @Override
@@ -279,10 +280,13 @@ public class QuoteServiceImpl implements QuoteService {
       }
     }
 
+    BigDecimal freight = quote.getFreight() != null ? quote.getFreight() : BigDecimal.ZERO;
+
     BigDecimal total =
         netBase
             .add(ivaTotal)
             .subtract(retefuenteAmount != null ? retefuenteAmount : BigDecimal.ZERO)
+            .add(freight)
             .setScale(2, RoundingMode.HALF_UP);
 
     quote.setSubtotalAmount(subtotal);

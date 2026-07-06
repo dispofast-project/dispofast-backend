@@ -111,9 +111,13 @@ public class Quotes {
   @Column(name = "retefuente_amount", precision = 18, scale = 2)
   private BigDecimal retefuenteAmount;
 
-  /** Total a pagar = subtotal - descuento comercial - otros descuentos + IVA - retefuente. */
+  /** Total a pagar = subtotal - descuento comercial - otros descuentos + IVA - retefuente + flete. */
   @Column(name = "total_amount", nullable = false, precision = 18, scale = 2)
   private BigDecimal totalAmount = BigDecimal.ZERO;
+
+  /** Flete, sumado directamente al total. */
+  @Column(name = "freight", nullable = false, precision = 18, scale = 2)
+  private BigDecimal freight = BigDecimal.ZERO;
 
   // ── Auditoría ────────────────────────────────────────────────
 

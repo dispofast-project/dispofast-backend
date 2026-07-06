@@ -33,4 +33,8 @@ public class UpdateQuoteRequestDTO {
   @DecimalMin(value = "0.0", message = "Otros descuentos no pueden ser negativos")
   @DecimalMax(value = "1.0", message = "Otros descuentos no pueden superar el 100% (1.0)")
   private BigDecimal otherDiscountsRate;
+
+  /** Flete, sumado directamente al total. */
+  @DecimalMin(value = "0.0", message = "El flete no puede ser negativo")
+  private BigDecimal freight;
 }
