@@ -4,6 +4,7 @@ import com.dispocol.dispofast.modules.quotes.domain.Quotes;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -20,7 +21,11 @@ public interface QuotesRepository extends JpaRepository<Quotes, UUID> {
    *   <li>{@code "client"} — matches against the client's identification number
    *   <li>Any other value / null — searches across all three fields
    * </ul>
+   *
+   * Fetches seller/account/prospect alongside the results, avoiding one N+1 lazy-load round trip
+   * per row per association in QuoteMapper#toPreviewResponseDTO.
    */
+  @EntityGraph(attributePaths = {"seller", "account", "prospect"})
   @Query(
       """
       SELECT q FROM Quotes q
@@ -40,8 +45,10 @@ public interface QuotesRepository extends JpaRepository<Quotes, UUID> {
   Page<Quotes> searchByText(
       @Param("text") String text, @Param("key") String key, Pageable pageable);
 
+  @EntityGraph(attributePaths = {"seller", "account", "prospect"})
   Page<Quotes> findBySellerId(UUID sellerId, Pageable pageable);
 
+  @EntityGraph(attributePaths = {"seller", "account", "prospect"})
   @Query(
       """
       SELECT q FROM Quotes q
@@ -65,4 +72,8 @@ public interface QuotesRepository extends JpaRepository<Quotes, UUID> {
       @Param("key") String key,
       @Param("sellerId") UUID sellerId,
       Pageable pageable);
+
+  @EntityGraph(attributePaths = {"seller", "account", "prospect"})
+  @Query("SELECT q FROM Quotes q")
+  Page<Quotes> findAllWithRelations(Pageable pageable);
 }

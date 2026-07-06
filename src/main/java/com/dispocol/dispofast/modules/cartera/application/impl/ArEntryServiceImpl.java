@@ -2,19 +2,30 @@ package com.dispocol.dispofast.modules.cartera.application.impl;
 
 import com.dispocol.dispofast.modules.cartera.api.dtos.ArEntryFilterDTO;
 import com.dispocol.dispofast.modules.cartera.api.dtos.ArEntryResponseDTO;
+import com.dispocol.dispofast.modules.cartera.api.dtos.CarteraStatsDTO;
 import com.dispocol.dispofast.modules.cartera.api.dtos.CreateManualArEntryRequestDTO;
 import com.dispocol.dispofast.modules.cartera.api.mappers.ArEntryMapper;
 import com.dispocol.dispofast.modules.cartera.application.interfaces.ArEntryService;
 import com.dispocol.dispofast.modules.cartera.domain.ArEntry;
 import com.dispocol.dispofast.modules.cartera.domain.ArEntrySource;
 import com.dispocol.dispofast.modules.cartera.infra.persistence.ArEntryRepository;
+import com.dispocol.dispofast.modules.customers.domain.Client;
+import com.dispocol.dispofast.modules.customers.domain.Individual;
+import com.dispocol.dispofast.modules.customers.domain.Organization;
 import com.dispocol.dispofast.modules.customers.infra.persistence.ClientRepository;
 import com.dispocol.dispofast.modules.iam.infra.persistence.UserRepository;
 import com.dispocol.dispofast.modules.invoices.application.interfaces.InvoiceService;
 import com.dispocol.dispofast.modules.invoices.domain.Invoice;
 import com.dispocol.dispofast.modules.orders.domain.SalesOrder;
 import com.dispocol.dispofast.shared.location.infra.persistence.CityRepository;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -44,6 +55,31 @@ public class ArEntryServiceImpl implements ArEntryService {
   public Page<ArEntryResponseDTO> getArEntries(Pageable pageable, ArEntryFilterDTO filter) {
     Specification<ArEntry> spec = buildSpecification(filter);
     return arEntryRepository.findAll(spec, pageable).map(arEntryMapper::toResponseDTO);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public CarteraStatsDTO getStats() {
+    String vendedorEmail = resolveVendedorEmail();
+    BigDecimal total = arEntryRepository.getTotalCartera(vendedorEmail);
+    BigDecimal vencida = arEntryRepository.getCarteraVencida(OffsetDateTime.now(), vendedorEmail);
+    return new CarteraStatsDTO(total, vencida);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<String> getAsesorNames() {
+    return arEntryRepository.findDistinctAsesorNames(resolveVendedorEmail());
+  }
+
+  /** Email del VENDEDOR autenticado para restringir resultados a sus clientes, o null si ADMIN. */
+  private String resolveVendedorEmail() {
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    boolean isVendedor =
+        auth != null
+            && auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_VENDEDOR"));
+    return isVendedor ? auth.getName() : null;
   }
 
   @Override
@@ -99,15 +135,29 @@ public class ArEntryServiceImpl implements ArEntryService {
       List<Predicate> predicates = new ArrayList<>();
 
       // Data-level security: VENDEDOR only sees their assigned clients
-      Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-      boolean isVendedor =
-          auth != null
-              && auth.getAuthorities().stream()
-                  .anyMatch(a -> a.getAuthority().equals("ROLE_VENDEDOR"));
-
-      if (isVendedor && auth != null) {
+      String vendedorEmail = resolveVendedorEmail();
+      if (vendedorEmail != null) {
         predicates.add(
-            cb.equal(root.get("client").get("defaultAdvisor").get("email"), auth.getName()));
+            cb.equal(root.get("client").get("defaultAdvisor").get("email"), vendedorEmail));
+      }
+
+      // Eagerly fetch the associations the mapper reads (client/asesor/order/invoice/city) to
+      // avoid one N+1 lazy-load round trip per row per association. Fetches aren't valid on the
+      // COUNT query Spring Data issues for pagination, so plain joins are used there instead —
+      // reused below for the search predicate so invoice/order aren't joined twice.
+      boolean isCountQuery =
+          Long.class.equals(query.getResultType()) || long.class.equals(query.getResultType());
+      Join<ArEntry, Invoice> invoiceJoin;
+      Join<ArEntry, SalesOrder> orderJoin;
+      if (isCountQuery) {
+        invoiceJoin = root.join("invoice", JoinType.LEFT);
+        orderJoin = root.join("order", JoinType.LEFT);
+      } else {
+        root.fetch("client", JoinType.LEFT);
+        root.fetch("asesor", JoinType.LEFT);
+        root.fetch("city", JoinType.LEFT);
+        invoiceJoin = (Join<ArEntry, Invoice>) (Object) root.fetch("invoice", JoinType.LEFT);
+        orderJoin = (Join<ArEntry, SalesOrder>) (Object) root.fetch("order", JoinType.LEFT);
       }
 
       if (filter != null) {
@@ -136,9 +186,47 @@ public class ArEntryServiceImpl implements ArEntryService {
                       .atStartOfDay()
                       .atOffset(java.time.ZoneOffset.UTC)));
         }
+        if (filter.getSearch() != null && !filter.getSearch().isBlank()) {
+          predicates.add(
+              buildSearchPredicate(
+                  root, cb, invoiceJoin, orderJoin, filter.getSearch().trim().toLowerCase()));
+        }
       }
 
       return cb.and(predicates.toArray(new Predicate[0]));
     };
+  }
+
+  /**
+   * Matches the search text against client name (Individual first/last name or Organization legal
+   * name), invoice number, and order number, so search covers the whole dataset instead of just the
+   * currently loaded page.
+   */
+  private Predicate buildSearchPredicate(
+      Root<ArEntry> root,
+      CriteriaBuilder cb,
+      Join<ArEntry, Invoice> invoiceJoin,
+      Join<ArEntry, SalesOrder> orderJoin,
+      String text) {
+    String pattern = "%" + text + "%";
+    Path<Client> clientPath = root.get("client");
+
+    Predicate individualName =
+        cb.and(
+            cb.equal(clientPath.type(), Individual.class),
+            cb.or(
+                cb.like(cb.lower(cb.treat(clientPath, Individual.class).get("firstName")), pattern),
+                cb.like(
+                    cb.lower(cb.treat(clientPath, Individual.class).get("lastName")), pattern)));
+
+    Predicate organizationName =
+        cb.and(
+            cb.equal(clientPath.type(), Organization.class),
+            cb.like(cb.lower(cb.treat(clientPath, Organization.class).get("legalName")), pattern));
+
+    Predicate invoiceMatch = cb.like(cb.lower(invoiceJoin.get("invoiceNumber")), pattern);
+    Predicate orderMatch = cb.like(cb.lower(orderJoin.get("orderNumber")), pattern);
+
+    return cb.or(individualName, organizationName, invoiceMatch, orderMatch);
   }
 }

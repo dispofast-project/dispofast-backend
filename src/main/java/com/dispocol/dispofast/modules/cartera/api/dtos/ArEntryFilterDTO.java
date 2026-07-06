@@ -13,4 +13,5 @@ public class ArEntryFilterDTO {
   private ArEntryState state;
   private LocalDate fechaInicio;
   private LocalDate fechaFin;
+  private String search;
 }
