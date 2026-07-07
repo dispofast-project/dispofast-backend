@@ -144,11 +144,47 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     order.setQuote(quote);
     order.setState(OrderState.PENDING);
     order.setOrderDate(OffsetDateTime.now());
-    order.setTotalValue(quote.getTotalAmount());
 
     SalesOrder savedOrder = salesOrderRepository.save(order);
 
-    return buildResponse(savedOrder, List.of());
+    // Copy the quote's items onto the order and derive totals from them, instead of trusting
+    // quote.getTotalAmount() directly: the order used to be created with zero items but that
+    // pre-computed total, so its payment summary and its (empty) items table disagreed.
+    List<CreateSalesOrderItemDTO> itemDTOs =
+        quote.getItems().stream()
+            .map(
+                quoteItem -> {
+                  CreateSalesOrderItemDTO dto = new CreateSalesOrderItemDTO();
+                  dto.setProductId(quoteItem.getProduct().getId());
+                  dto.setQuantity(quoteItem.getQuantity());
+                  dto.setUnitPrice(quoteItem.getUnitPrice());
+                  return dto;
+                })
+            .toList();
+
+    // Carry over the quote's discount rates (fractions, e.g. 0.05) as the order's percentage
+    // fields (e.g. 5), so an order created from a discounted quote keeps that discount instead
+    // of silently losing it.
+    CreateSalesOrderRequestDTO discountCarrier = new CreateSalesOrderRequestDTO();
+    if (quote.getCommercialDiscountRate() != null) {
+      discountCarrier.setDiscountRate(
+          quote.getCommercialDiscountRate().multiply(BigDecimal.valueOf(100)).intValue());
+    }
+    if (quote.getOtherDiscountsRate() != null) {
+      discountCarrier.setAdditionalDiscountRate(
+          quote.getOtherDiscountsRate().multiply(BigDecimal.valueOf(100)));
+    }
+
+    List<SalesOrderItemResponseDTO> itemResponses =
+        saveItems(itemDTOs, savedOrder, discountCarrier);
+
+    for (CreateSalesOrderItemDTO item : itemDTOs) {
+      inventoryService.reserveStock(item.getProductId(), item.getQuantity());
+    }
+
+    salesOrderRepository.save(savedOrder);
+
+    return buildResponse(savedOrder, itemResponses);
   }
 
   @Override

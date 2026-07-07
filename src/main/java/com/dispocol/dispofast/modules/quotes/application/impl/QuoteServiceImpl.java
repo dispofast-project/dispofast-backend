@@ -158,9 +158,15 @@ public class QuoteServiceImpl implements QuoteService {
   }
 
   @Override
-  @Transactional(readOnly = true)
+  @Transactional
   public QuoteResponseDTO getQuoteById(UUID id) {
-    return quoteMapper.toResponseDTO(findQuote(id));
+    // Recalculated (and persisted) on every read as a safety net: totals are also recalculated
+    // on every item add/update/remove and on updateQuote, but re-deriving them here from the
+    // current items guarantees subtotal/IVA/total shown to the user can never drift out of sync
+    // with the quote's own line items, regardless of how staleness might have crept in.
+    Quotes quote = findQuote(id);
+    recalculateQuoteTotals(quote);
+    return quoteMapper.toResponseDTO(quotesRepository.save(quote));
   }
 
   @Override
