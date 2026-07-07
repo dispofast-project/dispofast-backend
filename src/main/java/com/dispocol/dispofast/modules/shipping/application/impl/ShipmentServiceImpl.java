@@ -3,6 +3,7 @@ package com.dispocol.dispofast.modules.shipping.application.impl;
 import com.dispocol.dispofast.modules.invoices.application.interfaces.InvoiceService;
 import com.dispocol.dispofast.modules.invoices.domain.Invoice;
 import com.dispocol.dispofast.modules.orders.application.interfaces.SalesOrderService;
+import com.dispocol.dispofast.modules.orders.domain.OrderState;
 import com.dispocol.dispofast.modules.orders.domain.SalesOrderItem;
 import com.dispocol.dispofast.modules.orders.infra.persistence.SalesOrderItemRepository;
 import com.dispocol.dispofast.modules.shipping.api.dtos.ShipmentCountsResponseDTO;
@@ -275,6 +276,7 @@ public class ShipmentServiceImpl implements ShipmentService {
 
     Shipment saved = shipmentRepository.save(shipment);
     recordHistory(saved.getId(), historyDescription);
+    syncOrderState(saved);
     return shipmentMapper.toResponseDTO(saved);
   }
 
@@ -301,6 +303,8 @@ public class ShipmentServiceImpl implements ShipmentService {
 
     if (state == ShipmentState.DELAYED) {
       cancelAssociatedOrder(shipment);
+    } else {
+      syncOrderState(saved);
     }
 
     return shipmentMapper.toResponseDTO(saved);
@@ -414,6 +418,32 @@ public class ShipmentServiceImpl implements ShipmentService {
     if (invoice.getSalesOrder() != null) {
       salesOrderService.cancelOrderByDelayedShipment(invoice.getSalesOrder().getId());
     }
+  }
+
+  /**
+   * Propaga el estado del despacho al estado de la orden asociada (ver {@link
+   * #mapToOrderState}), para que la orden refleje en qué punto del despacho se encuentra en lugar
+   * de quedarse congelada en "Facturada".
+   */
+  private void syncOrderState(Shipment shipment) {
+    OrderState mapped = mapToOrderState(shipment.getState());
+    if (mapped == null) {
+      return;
+    }
+    Invoice invoice = invoiceService.findEntityById(shipment.getInvoiceId());
+    if (invoice.getSalesOrder() != null) {
+      salesOrderService.syncStateFromShipment(invoice.getSalesOrder().getId(), mapped);
+    }
+  }
+
+  private OrderState mapToOrderState(ShipmentState shipmentState) {
+    return switch (shipmentState) {
+      case PENDING -> OrderState.INVOICED;
+      case ASSIGNED -> OrderState.ASSIGNED;
+      case IN_ROUTE -> OrderState.IN_TRANSIT;
+      case DELIVERED -> OrderState.DELIVERED;
+      case DELAYED -> null;
+    };
   }
 
   private ShipmentItem toShipmentItem(UUID shipmentId, SalesOrderItem oi) {

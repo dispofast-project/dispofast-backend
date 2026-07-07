@@ -332,6 +332,28 @@ public class SalesOrderServiceImpl implements SalesOrderService {
             });
   }
 
+  @Override
+  @Transactional
+  public void syncStateFromShipment(UUID orderId, OrderState newState) {
+    salesOrderRepository
+        .findById(orderId)
+        .filter(order -> !OrderState.TERMINAL_STATES.contains(order.getState()))
+        .filter(order -> order.getState() != newState)
+        .ifPresent(
+            order -> {
+              if (newState == OrderState.DELIVERED) {
+                salesOrderItemRepository
+                    .findByOrderId(orderId)
+                    .forEach(
+                        item ->
+                            inventoryService.confirmStock(
+                                item.getProduct().getId(), item.getQuantity()));
+              }
+              order.setState(newState);
+              salesOrderRepository.save(order);
+            });
+  }
+
   private void resolveOrderReferences(
       SalesOrder order,
       UUID clientId,
