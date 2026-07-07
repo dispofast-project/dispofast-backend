@@ -186,6 +186,8 @@ public class SalesOrderServiceImpl implements SalesOrderService {
                 .collect(Collectors.groupingBy(item -> item.getOrder().getId()));
     Map<UUID, String> invoiceNumberByOrderId =
         orderIds.isEmpty() ? Map.of() : invoiceService.findInvoiceNumbersByOrderIds(orderIds);
+    Map<UUID, String> trackingCodeByOrderId =
+        orderIds.isEmpty() ? Map.of() : shipmentService.findTrackingCodesByOrderIds(orderIds);
 
     return page.map(
         order -> {
@@ -193,6 +195,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
           SalesOrderResponseDTO response = salesOrderMapper.toResponseDTO(order);
           response.setItems(salesOrderItemMapper.toResponseDTOList(items));
           response.setInvoiceNumber(invoiceNumberByOrderId.get(order.getId()));
+          response.setTrackingCode(trackingCodeByOrderId.get(order.getId()));
           return response;
         });
   }
@@ -482,6 +485,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     SalesOrderResponseDTO response = salesOrderMapper.toResponseDTO(order);
     response.setItems(items);
     invoiceService.findInvoiceNumberByOrderId(order.getId()).ifPresent(response::setInvoiceNumber);
+    shipmentService.findTrackingCodeByOrderId(order.getId()).ifPresent(response::setTrackingCode);
     return response;
   }
 

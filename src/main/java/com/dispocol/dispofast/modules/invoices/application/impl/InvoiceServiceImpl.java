@@ -158,6 +158,13 @@ public class InvoiceServiceImpl implements InvoiceService {
         .collect(Collectors.toMap(i -> i.getSalesOrder().getId(), Invoice::getInvoiceNumber));
   }
 
+  @Override
+  @Transactional(readOnly = true)
+  public Map<UUID, UUID> findInvoiceIdsByOrderIds(List<UUID> orderIds) {
+    return invoiceRepository.findBySalesOrder_IdIn(orderIds).stream()
+        .collect(Collectors.toMap(i -> i.getSalesOrder().getId(), Invoice::getId));
+  }
+
   private String extractFileName(String s3Key) {
     if (s3Key == null) return "factura.pdf";
     return s3Key.contains("/") ? s3Key.substring(s3Key.lastIndexOf('/') + 1) : s3Key;

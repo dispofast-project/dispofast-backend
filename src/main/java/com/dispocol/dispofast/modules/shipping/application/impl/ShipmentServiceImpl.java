@@ -34,8 +34,10 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
@@ -354,6 +356,40 @@ public class ShipmentServiceImpl implements ShipmentService {
         .countGroupedByState()
         .forEach(row -> counts.put(((ShipmentState) row[0]).name(), (Long) row[1]));
     return new ShipmentCountsResponseDTO(counts);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Optional<String> findTrackingCodeByOrderId(UUID orderId) {
+    return Optional.ofNullable(findTrackingCodesByOrderIds(List.of(orderId)).get(orderId));
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Map<UUID, String> findTrackingCodesByOrderIds(List<UUID> orderIds) {
+    if (orderIds.isEmpty()) {
+      return Map.of();
+    }
+
+    Map<UUID, UUID> invoiceIdByOrderId = invoiceService.findInvoiceIdsByOrderIds(orderIds);
+    if (invoiceIdByOrderId.isEmpty()) {
+      return Map.of();
+    }
+
+    Map<UUID, String> trackingCodeByInvoiceId =
+        shipmentRepository.findByInvoiceIdIn(List.copyOf(invoiceIdByOrderId.values())).stream()
+            .filter(shipment -> shipment.getTrackingCode() != null)
+            .collect(Collectors.toMap(Shipment::getInvoiceId, Shipment::getTrackingCode));
+
+    Map<UUID, String> trackingCodeByOrderId = new HashMap<>();
+    invoiceIdByOrderId.forEach(
+        (orderId, invoiceId) -> {
+          String trackingCode = trackingCodeByInvoiceId.get(invoiceId);
+          if (trackingCode != null) {
+            trackingCodeByOrderId.put(orderId, trackingCode);
+          }
+        });
+    return trackingCodeByOrderId;
   }
 
   private String resolveCurrentUserEmail() {

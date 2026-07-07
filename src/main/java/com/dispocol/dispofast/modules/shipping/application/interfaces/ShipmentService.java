@@ -8,6 +8,8 @@ import com.dispocol.dispofast.modules.shipping.domain.Shipment;
 import com.dispocol.dispofast.modules.shipping.domain.ShipmentState;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -54,4 +56,13 @@ public interface ShipmentService {
 
   /** Cuenta los despachos agrupados por estado. */
   ShipmentCountsResponseDTO getCounts();
+
+  /** Número de guía del despacho asociado a una orden, si existe. */
+  Optional<String> findTrackingCodeByOrderId(UUID orderId);
+
+  /**
+   * Batched version of {@link #findTrackingCodeByOrderId} for list views, avoiding one query per
+   * order.
+   */
+  Map<UUID, String> findTrackingCodesByOrderIds(List<UUID> orderIds);
 }
