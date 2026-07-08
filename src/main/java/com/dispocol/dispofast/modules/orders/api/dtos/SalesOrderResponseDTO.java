@@ -35,5 +35,6 @@ public class SalesOrderResponseDTO {
   private BigDecimal freight;
   private String observations;
   private String invoiceNumber;
+  private String trackingCode;
   private List<SalesOrderItemResponseDTO> items;
 }

@@ -4,6 +4,7 @@ import com.dispocol.dispofast.modules.orders.api.dtos.CreateSalesOrderRequestDTO
 import com.dispocol.dispofast.modules.orders.api.dtos.SalesOrderFilterDTO;
 import com.dispocol.dispofast.modules.orders.api.dtos.SalesOrderResponseDTO;
 import com.dispocol.dispofast.modules.orders.api.dtos.UpdateSalesOrderRequestDTO;
+import com.dispocol.dispofast.modules.orders.domain.OrderState;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -34,4 +35,12 @@ public interface SalesOrderService {
    * pasa a DELAYED; no propaga la cancelación de vuelta al despacho para evitar un ciclo.
    */
   void cancelOrderByDelayedShipment(UUID orderId);
+
+  /**
+   * Sincroniza el estado de la orden con el estado del despacho asociado (p. ej. ASSIGNED,
+   * IN_TRANSIT, DELIVERED). Llamado desde ShipmentService cada vez que cambia el estado de un
+   * despacho. No hace nada si la orden ya está en un estado terminal (DELIVERED/CANCELLED) o ya
+   * coincide con el estado solicitado.
+   */
+  void syncStateFromShipment(UUID orderId, OrderState newState);
 }
