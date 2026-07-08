@@ -2,7 +2,7 @@ spring:
   application:
     name: dispofast
   profiles:
-    active: dev
+    active: prod
   jackson:
     time-zone: UTC
     serialization:
