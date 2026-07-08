@@ -421,9 +421,9 @@ public class ShipmentServiceImpl implements ShipmentService {
   }
 
   /**
-   * Propaga el estado del despacho al estado de la orden asociada (ver {@link
-   * #mapToOrderState}), para que la orden refleje en qué punto del despacho se encuentra en lugar
-   * de quedarse congelada en "Facturada".
+   * Propaga el estado del despacho al estado de la orden asociada (ver {@link #mapToOrderState}),
+   * para que la orden refleje en qué punto del despacho se encuentra en lugar de quedarse congelada
+   * en "Facturada".
    */
   private void syncOrderState(Shipment shipment) {
     OrderState mapped = mapToOrderState(shipment.getState());
