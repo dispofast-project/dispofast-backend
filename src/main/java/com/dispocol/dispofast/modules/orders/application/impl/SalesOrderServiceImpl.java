@@ -222,6 +222,8 @@ public class SalesOrderServiceImpl implements SalesOrderService {
                 .collect(Collectors.groupingBy(item -> item.getOrder().getId()));
     Map<UUID, String> invoiceNumberByOrderId =
         orderIds.isEmpty() ? Map.of() : invoiceService.findInvoiceNumbersByOrderIds(orderIds);
+    Map<UUID, String> trackingCodeByOrderId =
+        orderIds.isEmpty() ? Map.of() : shipmentService.findTrackingCodesByOrderIds(orderIds);
 
     return page.map(
         order -> {
@@ -229,6 +231,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
           SalesOrderResponseDTO response = salesOrderMapper.toResponseDTO(order);
           response.setItems(salesOrderItemMapper.toResponseDTOList(items));
           response.setInvoiceNumber(invoiceNumberByOrderId.get(order.getId()));
+          response.setTrackingCode(trackingCodeByOrderId.get(order.getId()));
           return response;
         });
   }
@@ -361,6 +364,28 @@ public class SalesOrderServiceImpl implements SalesOrderService {
                           inventoryService.releaseStock(
                               item.getProduct().getId(), item.getQuantity()));
               order.setState(OrderState.CANCELLED);
+              salesOrderRepository.save(order);
+            });
+  }
+
+  @Override
+  @Transactional
+  public void syncStateFromShipment(UUID orderId, OrderState newState) {
+    salesOrderRepository
+        .findById(orderId)
+        .filter(order -> !OrderState.TERMINAL_STATES.contains(order.getState()))
+        .filter(order -> order.getState() != newState)
+        .ifPresent(
+            order -> {
+              if (newState == OrderState.DELIVERED) {
+                salesOrderItemRepository
+                    .findByOrderId(orderId)
+                    .forEach(
+                        item ->
+                            inventoryService.confirmStock(
+                                item.getProduct().getId(), item.getQuantity()));
+              }
+              order.setState(newState);
               salesOrderRepository.save(order);
             });
   }
@@ -518,6 +543,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     SalesOrderResponseDTO response = salesOrderMapper.toResponseDTO(order);
     response.setItems(items);
     invoiceService.findInvoiceNumberByOrderId(order.getId()).ifPresent(response::setInvoiceNumber);
+    shipmentService.findTrackingCodeByOrderId(order.getId()).ifPresent(response::setTrackingCode);
     return response;
   }
 

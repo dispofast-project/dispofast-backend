@@ -50,4 +50,7 @@ public interface InvoiceService {
    * order.
    */
   Map<UUID, String> findInvoiceNumbersByOrderIds(List<UUID> orderIds);
+
+  /** Mapa orderId -> invoiceId para las órdenes indicadas que ya tengan factura asociada. */
+  Map<UUID, UUID> findInvoiceIdsByOrderIds(List<UUID> orderIds);
 }

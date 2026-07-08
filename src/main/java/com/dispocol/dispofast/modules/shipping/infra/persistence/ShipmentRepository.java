@@ -15,6 +15,8 @@ public interface ShipmentRepository extends JpaRepository<Shipment, UUID> {
 
   Optional<Shipment> findByInvoiceId(UUID invoiceId);
 
+  List<Shipment> findByInvoiceIdIn(List<UUID> invoiceIds);
+
   List<Shipment> findByCarrierId(UUID carrierId);
 
   @Query("SELECT s.state, COUNT(s) FROM Shipment s GROUP BY s.state")

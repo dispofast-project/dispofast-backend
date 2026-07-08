@@ -3,6 +3,7 @@ package com.dispocol.dispofast.modules.shipping.application.impl;
 import com.dispocol.dispofast.modules.invoices.application.interfaces.InvoiceService;
 import com.dispocol.dispofast.modules.invoices.domain.Invoice;
 import com.dispocol.dispofast.modules.orders.application.interfaces.SalesOrderService;
+import com.dispocol.dispofast.modules.orders.domain.OrderState;
 import com.dispocol.dispofast.modules.orders.domain.SalesOrderItem;
 import com.dispocol.dispofast.modules.orders.infra.persistence.SalesOrderItemRepository;
 import com.dispocol.dispofast.modules.shipping.api.dtos.ShipmentCountsResponseDTO;
@@ -34,8 +35,10 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
@@ -273,6 +276,7 @@ public class ShipmentServiceImpl implements ShipmentService {
 
     Shipment saved = shipmentRepository.save(shipment);
     recordHistory(saved.getId(), historyDescription);
+    syncOrderState(saved);
     return shipmentMapper.toResponseDTO(saved);
   }
 
@@ -299,6 +303,8 @@ public class ShipmentServiceImpl implements ShipmentService {
 
     if (state == ShipmentState.DELAYED) {
       cancelAssociatedOrder(shipment);
+    } else {
+      syncOrderState(saved);
     }
 
     return shipmentMapper.toResponseDTO(saved);
@@ -356,6 +362,40 @@ public class ShipmentServiceImpl implements ShipmentService {
     return new ShipmentCountsResponseDTO(counts);
   }
 
+  @Override
+  @Transactional(readOnly = true)
+  public Optional<String> findTrackingCodeByOrderId(UUID orderId) {
+    return Optional.ofNullable(findTrackingCodesByOrderIds(List.of(orderId)).get(orderId));
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Map<UUID, String> findTrackingCodesByOrderIds(List<UUID> orderIds) {
+    if (orderIds.isEmpty()) {
+      return Map.of();
+    }
+
+    Map<UUID, UUID> invoiceIdByOrderId = invoiceService.findInvoiceIdsByOrderIds(orderIds);
+    if (invoiceIdByOrderId.isEmpty()) {
+      return Map.of();
+    }
+
+    Map<UUID, String> trackingCodeByInvoiceId =
+        shipmentRepository.findByInvoiceIdIn(List.copyOf(invoiceIdByOrderId.values())).stream()
+            .filter(shipment -> shipment.getTrackingCode() != null)
+            .collect(Collectors.toMap(Shipment::getInvoiceId, Shipment::getTrackingCode));
+
+    Map<UUID, String> trackingCodeByOrderId = new HashMap<>();
+    invoiceIdByOrderId.forEach(
+        (orderId, invoiceId) -> {
+          String trackingCode = trackingCodeByInvoiceId.get(invoiceId);
+          if (trackingCode != null) {
+            trackingCodeByOrderId.put(orderId, trackingCode);
+          }
+        });
+    return trackingCodeByOrderId;
+  }
+
   private String resolveCurrentUserEmail() {
     var auth = SecurityContextHolder.getContext().getAuthentication();
     if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
@@ -378,6 +418,32 @@ public class ShipmentServiceImpl implements ShipmentService {
     if (invoice.getSalesOrder() != null) {
       salesOrderService.cancelOrderByDelayedShipment(invoice.getSalesOrder().getId());
     }
+  }
+
+  /**
+   * Propaga el estado del despacho al estado de la orden asociada (ver {@link #mapToOrderState}),
+   * para que la orden refleje en qué punto del despacho se encuentra en lugar de quedarse congelada
+   * en "Facturada".
+   */
+  private void syncOrderState(Shipment shipment) {
+    OrderState mapped = mapToOrderState(shipment.getState());
+    if (mapped == null) {
+      return;
+    }
+    Invoice invoice = invoiceService.findEntityById(shipment.getInvoiceId());
+    if (invoice.getSalesOrder() != null) {
+      salesOrderService.syncStateFromShipment(invoice.getSalesOrder().getId(), mapped);
+    }
+  }
+
+  private OrderState mapToOrderState(ShipmentState shipmentState) {
+    return switch (shipmentState) {
+      case PENDING -> OrderState.INVOICED;
+      case ASSIGNED -> OrderState.ASSIGNED;
+      case IN_ROUTE -> OrderState.IN_TRANSIT;
+      case DELIVERED -> OrderState.DELIVERED;
+      case DELAYED -> null;
+    };
   }
 
   private ShipmentItem toShipmentItem(UUID shipmentId, SalesOrderItem oi) {
