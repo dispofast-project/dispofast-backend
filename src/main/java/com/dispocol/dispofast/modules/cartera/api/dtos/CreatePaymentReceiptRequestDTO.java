@@ -25,4 +25,7 @@ public class CreatePaymentReceiptRequestDTO {
   private String voucherS3Key;
 
   private String observations;
+
+  /** Porcentaje de descuento por pronto pago elegido por el cajero: 2, 3 o 5. Opcional. */
+  private Integer promptPaymentDiscountRate;
 }

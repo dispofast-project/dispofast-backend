@@ -13,15 +13,19 @@ import com.dispocol.dispofast.modules.customers.domain.Client;
 import com.dispocol.dispofast.modules.iam.domain.AppUser;
 import com.dispocol.dispofast.modules.iam.infra.persistence.UserRepository;
 import com.dispocol.dispofast.modules.invoices.domain.Invoice;
+import com.dispocol.dispofast.modules.orders.domain.SalesOrder;
+import com.dispocol.dispofast.modules.orders.infra.persistence.SalesOrderItemRepository;
 import com.dispocol.dispofast.shared.MailService.application.interfaces.MailService;
 import com.dispocol.dispofast.shared.S3.application.interfaces.S3Service;
 import com.dispocol.dispofast.shared.error.ResourceNotFoundException;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.NumberFormat;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,11 +42,13 @@ public class PaymentReceiptServiceImpl implements PaymentReceiptService {
 
   private static final String VOUCHERS_BUCKET = "dispofast-payment-vouchers";
   private static final String NOTIFICATION_EMAIL = "cartera@dispocol.com";
+  private static final Set<Integer> VALID_PROMPT_PAYMENT_RATES = Set.of(2, 3, 5);
 
   private final PaymentReceiptRepository paymentReceiptRepository;
   private final ArEntryRepository arEntryRepository;
   private final UserRepository userRepository;
   private final PaymentReceiptMapper paymentReceiptMapper;
+  private final SalesOrderItemRepository salesOrderItemRepository;
   private final S3Service s3Service;
   private final MailService mailService;
 
@@ -62,10 +68,22 @@ public class PaymentReceiptServiceImpl implements PaymentReceiptService {
     }
 
     BigDecimal balance = arEntry.getValue().subtract(arEntry.getPaidAmount());
-    if (request.getValue().compareTo(balance) > 0) {
+
+    Integer discountRate = request.getPromptPaymentDiscountRate();
+    BigDecimal discountAmount = BigDecimal.ZERO;
+    if (discountRate != null) {
+      if (!VALID_PROMPT_PAYMENT_RATES.contains(discountRate)) {
+        throw new IllegalArgumentException(
+            "El descuento por pronto pago debe ser 2%, 3% o 5%");
+      }
+      discountAmount = calculatePromptPaymentDiscount(arEntry, discountRate);
+    }
+
+    BigDecimal settledAmount = request.getValue().add(discountAmount);
+    if (settledAmount.compareTo(balance) > 0) {
       throw new IllegalArgumentException(
-          "El valor del recibo ("
-              + request.getValue()
+          "El valor del recibo más el descuento por pronto pago ("
+              + settledAmount
               + ") supera el saldo pendiente ("
               + balance
               + ")");
@@ -86,10 +104,12 @@ public class PaymentReceiptServiceImpl implements PaymentReceiptService {
     receipt.setDocumentNumber(request.getDocumentNumber());
     receipt.setVoucherS3Key(request.getVoucherS3Key());
     receipt.setObservations(request.getObservations());
+    receipt.setPromptPaymentDiscountRate(discountRate);
+    receipt.setPromptPaymentDiscountAmount(discountRate != null ? discountAmount : null);
 
     paymentReceiptRepository.save(receipt);
 
-    BigDecimal newPaidAmount = arEntry.getPaidAmount().add(request.getValue());
+    BigDecimal newPaidAmount = arEntry.getPaidAmount().add(settledAmount);
     arEntry.setPaidAmount(newPaidAmount);
     if (newPaidAmount.compareTo(arEntry.getValue()) >= 0) {
       arEntry.setState(ArEntryState.PAID);
@@ -172,11 +192,35 @@ public class PaymentReceiptServiceImpl implements PaymentReceiptService {
     return "comprobante_" + docRef + ext;
   }
 
+  /**
+   * Calcula el descuento por pronto pago como un porcentaje del subtotal antes de impuestos de la
+   * orden asociada (suma de los line totals de sus ítems, antes de IVA).
+   */
+  private BigDecimal calculatePromptPaymentDiscount(ArEntry arEntry, int discountRate) {
+    SalesOrder order = arEntry.getOrder();
+    if (order == null) {
+      throw new IllegalArgumentException(
+          "Esta cartera no tiene una orden asociada; no se puede aplicar descuento por pronto"
+              + " pago");
+    }
+    BigDecimal subtotal =
+        salesOrderItemRepository.findByOrderId(order.getId()).stream()
+            .map(item -> item.getLineTotal())
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+    return subtotal
+        .multiply(BigDecimal.valueOf(discountRate))
+        .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+  }
+
   private void sendReceiptEmail(PaymentReceipt receipt, ArEntry arEntry) {
     try {
       BigDecimal thisPayment = receipt.getValue();
+      BigDecimal discountAmount =
+          receipt.getPromptPaymentDiscountAmount() != null
+              ? receipt.getPromptPaymentDiscountAmount()
+              : BigDecimal.ZERO;
       BigDecimal newPaidAmount = arEntry.getPaidAmount();
-      BigDecimal previouslyPaid = newPaidAmount.subtract(thisPayment);
+      BigDecimal previouslyPaid = newPaidAmount.subtract(thisPayment).subtract(discountAmount);
       BigDecimal remainingBalance = arEntry.getValue().subtract(newPaidAmount);
 
       String subject =
@@ -185,7 +229,8 @@ public class PaymentReceiptServiceImpl implements PaymentReceiptService {
               + " — "
               + arEntry.getClient().getDisplayName();
       String body =
-          buildReceiptEmailHtml(receipt, arEntry, thisPayment, previouslyPaid, remainingBalance);
+          buildReceiptEmailHtml(
+              receipt, arEntry, thisPayment, discountAmount, previouslyPaid, remainingBalance);
 
       if (receipt.getVoucherS3Key() != null) {
         byte[] voucherBytes = s3Service.downloadFile(VOUCHERS_BUCKET, receipt.getVoucherS3Key());
@@ -211,6 +256,7 @@ public class PaymentReceiptServiceImpl implements PaymentReceiptService {
       PaymentReceipt receipt,
       ArEntry arEntry,
       BigDecimal thisPayment,
+      BigDecimal discountAmount,
       BigDecimal previouslyPaid,
       BigDecimal remainingBalance) {
 
@@ -232,6 +278,24 @@ public class PaymentReceiptServiceImpl implements PaymentReceiptService {
             ? "<tr><td style=\"padding:5px 0;color:#666;\">N&deg; Documento</td>"
                 + "<td style=\"padding:5px 0;color:#222;\">"
                 + esc(receipt.getDocumentNumber())
+                + "</td></tr>"
+            : "";
+
+    String discountRow =
+        receipt.getPromptPaymentDiscountRate() != null
+            ? "<tr><td style=\"padding:5px 0;color:#666;\">Descuento Pronto Pago ("
+                + receipt.getPromptPaymentDiscountRate()
+                + "%)</td>"
+                + "<td style=\"padding:5px 0;color:#2e7d32;font-weight:bold;\">- "
+                + fmt(discountAmount)
+                + "</td></tr>"
+            : "";
+
+    String discountSummaryRow =
+        discountAmount.compareTo(BigDecimal.ZERO) > 0
+            ? "<tr><td style=\"padding:6px 0;color:#666;\">Descuento Pronto Pago</td>"
+                + "<td style=\"padding:6px 0;text-align:right;color:#2e7d32;\">- "
+                + fmt(discountAmount)
                 + "</td></tr>"
             : "";
 
@@ -332,6 +396,7 @@ public class PaymentReceiptServiceImpl implements PaymentReceiptService {
         + "<td style=\"padding:5px 0;color:#1a3c5e;font-weight:bold;font-size:15px;\">"
         + fmt(thisPayment)
         + "</td></tr>"
+        + discountRow
         + "</table></div>"
         // Financial summary
         + "<div style=\"padding:22px 30px;border-bottom:1px solid #e1e6ed;\">"
@@ -350,6 +415,7 @@ public class PaymentReceiptServiceImpl implements PaymentReceiptService {
         + "<td style=\"padding:8px 0;text-align:right;color:#1a3c5e;font-weight:bold;\">- "
         + fmt(thisPayment)
         + "</td></tr>"
+        + discountSummaryRow
         + "<tr><td style=\"padding:8px 6px;background-color:"
         + balanceBg
         + ";color:"

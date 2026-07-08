@@ -25,4 +25,6 @@ public class PaymentReceiptResponseDTO {
   private String observations;
   private PaymentReceiptState state;
   private OffsetDateTime createdAt;
+  private Integer promptPaymentDiscountRate;
+  private BigDecimal promptPaymentDiscountAmount;
 }

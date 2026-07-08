@@ -58,6 +58,17 @@ public class PaymentReceipt {
   @Column(columnDefinition = "TEXT")
   private String observations;
 
+  /** Porcentaje de descuento por pronto pago aplicado (2, 3 o 5), si el cajero lo seleccionó. */
+  @Column(name = "prompt_payment_discount_rate")
+  private Integer promptPaymentDiscountRate;
+
+  /**
+   * Monto del descuento por pronto pago: se calcula sobre el subtotal antes de impuestos de la
+   * orden asociada y se suma al valor en efectivo para abonar al saldo de la cartera.
+   */
+  @Column(name = "prompt_payment_discount_amount", precision = 18, scale = 2)
+  private BigDecimal promptPaymentDiscountAmount;
+
   @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 20)
   private PaymentReceiptState state = PaymentReceiptState.ACTIVE;
