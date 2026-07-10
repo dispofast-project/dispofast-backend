@@ -27,4 +27,5 @@ public class PaymentReceiptResponseDTO {
   private OffsetDateTime createdAt;
   private Integer promptPaymentDiscountRate;
   private BigDecimal promptPaymentDiscountAmount;
+  private UUID paymentGroupId;
 }

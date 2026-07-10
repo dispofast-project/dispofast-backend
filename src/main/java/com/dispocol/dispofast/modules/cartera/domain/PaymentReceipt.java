@@ -69,6 +69,13 @@ public class PaymentReceipt {
   @Column(name = "prompt_payment_discount_amount", precision = 18, scale = 2)
   private BigDecimal promptPaymentDiscountAmount;
 
+  /**
+   * Agrupa varios recibos creados a partir de un mismo pago aplicado a varias facturas del mismo
+   * cliente. Null para recibos de una sola factura.
+   */
+  @Column(name = "payment_group_id")
+  private UUID paymentGroupId;
+
   @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 20)
   private PaymentReceiptState state = PaymentReceiptState.ACTIVE;

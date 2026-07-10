@@ -4,7 +4,9 @@ import com.dispocol.dispofast.modules.cartera.api.dtos.ArEntryFilterDTO;
 import com.dispocol.dispofast.modules.cartera.api.dtos.ArEntryResponseDTO;
 import com.dispocol.dispofast.modules.cartera.api.dtos.CarteraStatsDTO;
 import com.dispocol.dispofast.modules.cartera.api.dtos.CreateManualArEntryRequestDTO;
+import com.dispocol.dispofast.modules.cartera.api.dtos.CreateMultiInvoicePaymentRequestDTO;
 import com.dispocol.dispofast.modules.cartera.api.dtos.CreatePaymentReceiptRequestDTO;
+import com.dispocol.dispofast.modules.cartera.api.dtos.MultiInvoicePaymentResponseDTO;
 import com.dispocol.dispofast.modules.cartera.api.dtos.PaymentReceiptResponseDTO;
 import com.dispocol.dispofast.modules.cartera.application.interfaces.ArEntryService;
 import com.dispocol.dispofast.modules.cartera.application.interfaces.PaymentReceiptService;
@@ -100,6 +102,18 @@ public class CarteraController {
       @PathVariable UUID arEntryId, @Valid @RequestBody CreatePaymentReceiptRequestDTO request) {
     return ResponseEntity.status(HttpStatus.CREATED)
         .body(paymentReceiptService.createReceipt(arEntryId, request));
+  }
+
+  /**
+   * Registra un solo pago del cliente repartido entre varias de sus facturas pendientes
+   * (transaccional: o se aplican todas las asignaciones, o ninguna).
+   */
+  @PostMapping("/pagos-multiples")
+  @PreAuthorize("hasAuthority('ACCOUNTS_VIEW')")
+  public ResponseEntity<MultiInvoicePaymentResponseDTO> createMultiInvoicePayment(
+      @Valid @RequestBody CreateMultiInvoicePaymentRequestDTO request) {
+    return ResponseEntity.status(HttpStatus.CREATED)
+        .body(paymentReceiptService.createMultiInvoicePayment(request));
   }
 
   /** Lista los recibos de caja de una entrada de cartera. */
