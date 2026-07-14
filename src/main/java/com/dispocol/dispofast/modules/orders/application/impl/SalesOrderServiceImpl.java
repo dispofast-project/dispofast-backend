@@ -489,9 +489,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
             ? order.getAdditionalDiscountRate()
             : BigDecimal.ZERO;
     BigDecimal additionalDiscountAmount =
-        subtotal
-            .multiply(addDiscountPct)
-            .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+        subtotal.multiply(addDiscountPct).divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
 
     BigDecimal freight = order.getFreight() != null ? order.getFreight() : BigDecimal.ZERO;
 
