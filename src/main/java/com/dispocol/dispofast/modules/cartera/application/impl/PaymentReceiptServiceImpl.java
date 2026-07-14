@@ -493,6 +493,10 @@ public class PaymentReceiptServiceImpl implements PaymentReceiptService {
                 + fmt(totalDiscount)
                 + "</td></tr>"
             : "")
+        + "<tr style=\"border-top:1px solid #d0d5dd;\"><td style=\"padding:8px 0;color:#1a3c5e;font-weight:bold;font-size:15px;\">Total Pagado</td>"
+        + "<td style=\"padding:8px 0;color:#1a3c5e;font-weight:bold;font-size:15px;\">"
+        + fmt(totalCash.add(totalDiscount))
+        + "</td></tr>"
         + "</table></div>"
         + "<div style=\"padding:22px 30px;border-bottom:1px solid #e1e6ed;\">"
         + "<h2 style=\"color:#1a3c5e;margin:0 0 14px;font-size:14px;text-transform:uppercase;letter-spacing:0.5px;\">Facturas Cubiertas</h2>"
@@ -656,6 +660,12 @@ public class PaymentReceiptServiceImpl implements PaymentReceiptService {
         + fmt(thisPayment)
         + "</td></tr>"
         + discountRow
+        + (discountAmount.compareTo(BigDecimal.ZERO) > 0
+            ? "<tr style=\"border-top:1px solid #d0d5dd;\"><td style=\"padding:8px 0;color:#1a3c5e;font-weight:bold;font-size:15px;\">Total Pagado</td>"
+                + "<td style=\"padding:8px 0;color:#1a3c5e;font-weight:bold;font-size:15px;\">"
+                + fmt(thisPayment.add(discountAmount))
+                + "</td></tr>"
+            : "")
         + "</table></div>"
         // Financial summary
         + "<div style=\"padding:22px 30px;border-bottom:1px solid #e1e6ed;\">"
