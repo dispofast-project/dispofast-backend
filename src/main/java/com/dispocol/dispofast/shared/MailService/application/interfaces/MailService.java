@@ -14,5 +14,6 @@ public interface MailService {
       String attachmentName,
       String attachmentType);
 
-  void sendWithAttachments(String[] to, String subject, String body, List<MailAttachment> attachments);
+  void sendWithAttachments(
+      String[] to, String subject, String body, List<MailAttachment> attachments);
 }

@@ -162,9 +162,9 @@ public class PaymentReceiptServiceImpl implements PaymentReceiptService {
   }
 
   /**
-   * Valida y aplica un monto (más su descuento por pronto pago, si aplica) al saldo de una
-   * factura, creando el recibo correspondiente. Compartido entre el pago de una sola factura y el
-   * pago combinado de varias.
+   * Valida y aplica un monto (más su descuento por pronto pago, si aplica) al saldo de una factura,
+   * creando el recibo correspondiente. Compartido entre el pago de una sola factura y el pago
+   * combinado de varias.
    */
   private PaymentReceipt applyReceiptToEntry(
       ArEntry arEntry,
@@ -181,7 +181,9 @@ public class PaymentReceiptServiceImpl implements PaymentReceiptService {
     if (arEntry.getState() == ArEntryState.PAID) {
       throw new IllegalStateException(
           "La factura "
-              + (arEntry.getInvoice() != null ? arEntry.getInvoice().getInvoiceNumber() : arEntry.getId())
+              + (arEntry.getInvoice() != null
+                  ? arEntry.getInvoice().getInvoiceNumber()
+                  : arEntry.getId())
               + " ya se encuentra pagada");
     }
 
@@ -199,7 +201,9 @@ public class PaymentReceiptServiceImpl implements PaymentReceiptService {
     if (settledAmount.compareTo(balance) > 0) {
       throw new IllegalArgumentException(
           "El valor asignado a la factura "
-              + (arEntry.getInvoice() != null ? arEntry.getInvoice().getInvoiceNumber() : arEntry.getId())
+              + (arEntry.getInvoice() != null
+                  ? arEntry.getInvoice().getInvoiceNumber()
+                  : arEntry.getId())
               + " más el descuento por pronto pago ("
               + settledAmount
               + ") supera su saldo pendiente ("
@@ -373,7 +377,8 @@ public class PaymentReceiptServiceImpl implements PaymentReceiptService {
   private void sendMultiInvoiceReceiptEmail(List<PaymentReceipt> receipts, List<ArEntry> entries) {
     try {
       Client client = entries.get(0).getClient();
-      String groupCode = receipts.get(0).getPaymentGroupId().toString().replace("-", "").substring(0, 13);
+      String groupCode =
+          receipts.get(0).getPaymentGroupId().toString().replace("-", "").substring(0, 13);
 
       String subject = "Pago combinado #" + groupCode + " — " + client.getDisplayName();
       String body = buildMultiInvoiceEmailHtml(receipts, entries, client, groupCode);
@@ -386,12 +391,15 @@ public class PaymentReceiptServiceImpl implements PaymentReceiptService {
           String ext = getExtension(voucherKey);
           attachments.add(
               new MailAttachment(
-                  voucherBytes, "comprobante_" + receipt.getReceiptCode() + ext, resolveContentType(ext)));
+                  voucherBytes,
+                  "comprobante_" + receipt.getReceiptCode() + ext,
+                  resolveContentType(ext)));
         }
       }
 
       if (!attachments.isEmpty()) {
-        mailService.sendWithAttachments(new String[] {NOTIFICATION_EMAIL}, subject, body, attachments);
+        mailService.sendWithAttachments(
+            new String[] {NOTIFICATION_EMAIL}, subject, body, attachments);
       } else {
         mailService.send(new String[] {NOTIFICATION_EMAIL}, subject, body);
       }
@@ -410,7 +418,11 @@ public class PaymentReceiptServiceImpl implements PaymentReceiptService {
         receipts.stream().map(PaymentReceipt::getValue).reduce(BigDecimal.ZERO, BigDecimal::add);
     BigDecimal totalDiscount =
         receipts.stream()
-            .map(r -> r.getPromptPaymentDiscountAmount() != null ? r.getPromptPaymentDiscountAmount() : BigDecimal.ZERO)
+            .map(
+                r ->
+                    r.getPromptPaymentDiscountAmount() != null
+                        ? r.getPromptPaymentDiscountAmount()
+                        : BigDecimal.ZERO)
             .reduce(BigDecimal.ZERO, BigDecimal::add);
 
     StringBuilder rows = new StringBuilder();
@@ -427,15 +439,21 @@ public class PaymentReceiptServiceImpl implements PaymentReceiptService {
               : BigDecimal.ZERO;
       String appliedLabel =
           discount.compareTo(BigDecimal.ZERO) > 0
-              ? fmt(receipt.getValue()) + " + " + fmt(discount) + " (pronto pago "
-                  + receipt.getPromptPaymentDiscountRate() + "%)"
+              ? fmt(receipt.getValue())
+                  + " + "
+                  + fmt(discount)
+                  + " (pronto pago "
+                  + receipt.getPromptPaymentDiscountRate()
+                  + "%)"
               : fmt(receipt.getValue());
 
       rows.append("<tr><td style=\"padding:6px 0;border-bottom:1px solid #eee;color:#222;\">")
           .append(invoiceNumber)
-          .append("</td><td style=\"padding:6px 0;border-bottom:1px solid #eee;color:#666;text-align:right;\">")
+          .append(
+              "</td><td style=\"padding:6px 0;border-bottom:1px solid #eee;color:#666;text-align:right;\">")
           .append(appliedLabel)
-          .append("</td><td style=\"padding:6px 0;border-bottom:1px solid #eee;text-align:right;font-weight:bold;color:")
+          .append(
+              "</td><td style=\"padding:6px 0;border-bottom:1px solid #eee;text-align:right;font-weight:bold;color:")
           .append(paid ? "#2e7d32" : "#1a3c5e")
           .append("\">")
           .append(paid ? "PAGADA" : fmt(remaining))

@@ -16,7 +16,8 @@ public interface PaymentReceiptService {
    * Registra un solo pago del cliente repartido entre varias de sus facturas pendientes, de forma
    * atómica: o se aplican todas las asignaciones o ninguna.
    */
-  MultiInvoicePaymentResponseDTO createMultiInvoicePayment(CreateMultiInvoicePaymentRequestDTO request);
+  MultiInvoicePaymentResponseDTO createMultiInvoicePayment(
+      CreateMultiInvoicePaymentRequestDTO request);
 
   List<PaymentReceiptResponseDTO> getReceiptsByArEntry(UUID arEntryId);
 
