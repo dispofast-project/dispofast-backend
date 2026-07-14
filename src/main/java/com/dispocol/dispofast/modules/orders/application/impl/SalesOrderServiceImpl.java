@@ -98,8 +98,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
         request.getQuoteId());
 
     SalesOrder savedOrder = salesOrderRepository.save(order);
-    List<SalesOrderItemResponseDTO> itemResponses =
-        saveItems(request.getItems(), savedOrder, request);
+    List<SalesOrderItemResponseDTO> itemResponses = saveItems(request.getItems(), savedOrder);
 
     // Reserve stock for each item
     for (CreateSalesOrderItemDTO item : request.getItems()) {
@@ -165,18 +164,16 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     // Carry over the quote's discount rates (fractions, e.g. 0.05) as the order's percentage
     // fields (e.g. 5), so an order created from a discounted quote keeps that discount instead
     // of silently losing it.
-    CreateSalesOrderRequestDTO discountCarrier = new CreateSalesOrderRequestDTO();
     if (quote.getCommercialDiscountRate() != null) {
-      discountCarrier.setDiscountRate(
+      savedOrder.setDiscountRate(
           quote.getCommercialDiscountRate().multiply(BigDecimal.valueOf(100)).intValue());
     }
     if (quote.getOtherDiscountsRate() != null) {
-      discountCarrier.setAdditionalDiscountRate(
+      savedOrder.setAdditionalDiscountRate(
           quote.getOtherDiscountsRate().multiply(BigDecimal.valueOf(100)));
     }
 
-    List<SalesOrderItemResponseDTO> itemResponses =
-        saveItems(itemDTOs, savedOrder, discountCarrier);
+    List<SalesOrderItemResponseDTO> itemResponses = saveItems(itemDTOs, savedOrder);
 
     for (CreateSalesOrderItemDTO item : itemDTOs) {
       inventoryService.reserveStock(item.getProductId(), item.getQuantity());
@@ -286,7 +283,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
           item -> inventoryService.releaseStock(item.getProduct().getId(), item.getQuantity()));
 
       salesOrderItemRepository.deleteByOrderId(id);
-      itemResponses = saveItems(request.getItems(), order, null);
+      itemResponses = saveItems(request.getItems(), order);
 
       // Reserve stock for the new items
       request
@@ -422,9 +419,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
   private static final BigDecimal IVA = BigDecimal.valueOf(0.19);
 
   private List<SalesOrderItemResponseDTO> saveItems(
-      List<CreateSalesOrderItemDTO> itemDTOs,
-      SalesOrder order,
-      CreateSalesOrderRequestDTO request) {
+      List<CreateSalesOrderItemDTO> itemDTOs, SalesOrder order) {
     if (itemDTOs == null || itemDTOs.isEmpty()) {
       order.setTotalValue(BigDecimal.ZERO);
       return List.of();
@@ -478,30 +473,27 @@ public class SalesOrderServiceImpl implements SalesOrderService {
       items.add(item);
     }
 
-    // Apply commercial discounts (only when request is available, e.g. on create)
-    BigDecimal discountAmount = BigDecimal.ZERO;
-    BigDecimal additionalDiscountAmount = BigDecimal.ZERO;
+    // Apply commercial discounts/freight already set on the order entity — populated from the
+    // create request on creation, or from the update request's mapped fields when editing, so
+    // this reflects the order's current discount/freight regardless of the call path.
     BigDecimal retefuente = BigDecimal.ZERO;
-    BigDecimal freight = BigDecimal.ZERO;
 
-    if (request != null) {
-      int discountPct = request.getDiscountRate() != null ? request.getDiscountRate() : 0;
-      discountAmount =
-          subtotal
-              .multiply(BigDecimal.valueOf(discountPct))
-              .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+    int discountPct = order.getDiscountRate() != null ? order.getDiscountRate() : 0;
+    BigDecimal discountAmount =
+        subtotal
+            .multiply(BigDecimal.valueOf(discountPct))
+            .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
 
-      BigDecimal addDiscountPct =
-          request.getAdditionalDiscountRate() != null
-              ? request.getAdditionalDiscountRate()
-              : BigDecimal.ZERO;
-      additionalDiscountAmount =
-          subtotal
-              .multiply(addDiscountPct)
-              .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+    BigDecimal addDiscountPct =
+        order.getAdditionalDiscountRate() != null
+            ? order.getAdditionalDiscountRate()
+            : BigDecimal.ZERO;
+    BigDecimal additionalDiscountAmount =
+        subtotal
+            .multiply(addDiscountPct)
+            .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
 
-      freight = request.getFreight() != null ? request.getFreight() : BigDecimal.ZERO;
-    }
+    BigDecimal freight = order.getFreight() != null ? order.getFreight() : BigDecimal.ZERO;
 
     // Retefuente: calculada en el backend según params configurables
     BigDecimal retefuenteRate =
