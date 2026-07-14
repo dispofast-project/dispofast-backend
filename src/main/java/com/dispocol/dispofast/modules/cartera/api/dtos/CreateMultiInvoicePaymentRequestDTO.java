@@ -24,8 +24,6 @@ public class CreateMultiInvoicePaymentRequestDTO {
 
   private String documentNumber;
 
-  private String voucherS3Key;
-
   private String observations;
 
   @NotEmpty(message = "Debe seleccionar al menos una factura")

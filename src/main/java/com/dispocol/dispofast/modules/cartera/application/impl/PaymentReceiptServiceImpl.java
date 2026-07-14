@@ -19,6 +19,7 @@ import com.dispocol.dispofast.modules.iam.infra.persistence.UserRepository;
 import com.dispocol.dispofast.modules.invoices.domain.Invoice;
 import com.dispocol.dispofast.modules.orders.domain.SalesOrder;
 import com.dispocol.dispofast.modules.orders.infra.persistence.SalesOrderItemRepository;
+import com.dispocol.dispofast.shared.MailService.application.interfaces.MailAttachment;
 import com.dispocol.dispofast.shared.MailService.application.interfaces.MailService;
 import com.dispocol.dispofast.shared.S3.application.interfaces.S3Service;
 import com.dispocol.dispofast.shared.error.ResourceNotFoundException;
@@ -131,7 +132,7 @@ public class PaymentReceiptServiceImpl implements PaymentReceiptService {
               request.getPaymentDate(),
               request.getPaymentMethod(),
               request.getDocumentNumber(),
-              request.getVoucherS3Key(),
+              allocation.getVoucherS3Key(),
               request.getObservations(),
               createdBy,
               paymentGroupId);
@@ -377,17 +378,20 @@ public class PaymentReceiptServiceImpl implements PaymentReceiptService {
       String subject = "Pago combinado #" + groupCode + " — " + client.getDisplayName();
       String body = buildMultiInvoiceEmailHtml(receipts, entries, client, groupCode);
 
-      String voucherKey = receipts.get(0).getVoucherS3Key();
-      if (voucherKey != null) {
-        byte[] voucherBytes = s3Service.downloadFile(VOUCHERS_BUCKET, voucherKey);
-        String ext = getExtension(voucherKey);
-        mailService.sendWithAttchment(
-            new String[] {NOTIFICATION_EMAIL},
-            subject,
-            body,
-            voucherBytes,
-            "comprobante_" + groupCode + ext,
-            resolveContentType(ext));
+      List<MailAttachment> attachments = new ArrayList<>();
+      for (PaymentReceipt receipt : receipts) {
+        String voucherKey = receipt.getVoucherS3Key();
+        if (voucherKey != null) {
+          byte[] voucherBytes = s3Service.downloadFile(VOUCHERS_BUCKET, voucherKey);
+          String ext = getExtension(voucherKey);
+          attachments.add(
+              new MailAttachment(
+                  voucherBytes, "comprobante_" + receipt.getReceiptCode() + ext, resolveContentType(ext)));
+        }
+      }
+
+      if (!attachments.isEmpty()) {
+        mailService.sendWithAttachments(new String[] {NOTIFICATION_EMAIL}, subject, body, attachments);
       } else {
         mailService.send(new String[] {NOTIFICATION_EMAIL}, subject, body);
       }

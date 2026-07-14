@@ -1,7 +1,9 @@
 package com.dispocol.dispofast.shared.MailService.application.impl;
 
+import com.dispocol.dispofast.shared.MailService.application.interfaces.MailAttachment;
 import com.dispocol.dispofast.shared.MailService.application.interfaces.MailService;
 import jakarta.mail.internet.MimeMessage;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -71,6 +73,38 @@ public class MailServiceImpl implements MailService {
     } catch (Exception e) {
       log.error("Error al enviar el correo electrónico con adjunto a: {}", to, e);
       throw new RuntimeException("Error al enviar el correo electrónico con adjunto", e);
+    }
+  }
+
+  @Override
+  public void sendWithAttachments(
+      String[] to, String subject, String body, List<MailAttachment> attachments) {
+    try {
+      MimeMessage message = javaMailSender.createMimeMessage();
+      MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+      helper.setFrom(from);
+      helper.setTo(to);
+      helper.setSubject(subject);
+      helper.setText(body, true);
+
+      for (MailAttachment attachment : attachments) {
+        if (attachment.content() != null && attachment.content().length > 0) {
+          ByteArrayResource byteArrayResource = new ByteArrayResource(attachment.content());
+          if (attachment.contentType() != null && !attachment.contentType().isBlank()) {
+            helper.addAttachment(attachment.name(), byteArrayResource, attachment.contentType());
+          } else {
+            helper.addAttachment(attachment.name(), byteArrayResource);
+          }
+        }
+      }
+
+      javaMailSender.send(message);
+      log.info(
+          "Correo con {} adjunto(s) enviado exitosamente a: {}", attachments.size(), (Object) to);
+    } catch (Exception e) {
+      log.error("Error al enviar el correo electrónico con adjuntos a: {}", to, e);
+      throw new RuntimeException("Error al enviar el correo electrónico con adjuntos", e);
     }
   }
 }

@@ -2,6 +2,7 @@ package com.dispocol.dispofast.modules.cartera.api.dtos;
 
 import com.dispocol.dispofast.modules.cartera.domain.PaymentMethod;
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -22,6 +23,7 @@ public class CreatePaymentReceiptRequestDTO {
 
   private String documentNumber;
 
+  @NotBlank(message = "El comprobante de pago es obligatorio")
   private String voucherS3Key;
 
   private String observations;

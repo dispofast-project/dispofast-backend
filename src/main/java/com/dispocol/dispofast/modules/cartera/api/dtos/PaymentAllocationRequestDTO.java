@@ -1,6 +1,7 @@
 package com.dispocol.dispofast.modules.cartera.api.dtos;
 
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -19,4 +20,8 @@ public class PaymentAllocationRequestDTO {
 
   /** Porcentaje de descuento por pronto pago elegido para esta factura: 2, 3 o 5. Opcional. */
   private Integer promptPaymentDiscountRate;
+
+  /** Comprobante de este pago específico. Cada factura pagada debe tener el suyo. */
+  @NotBlank(message = "El comprobante de pago es obligatorio")
+  private String voucherS3Key;
 }
