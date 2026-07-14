@@ -37,5 +37,7 @@ public class UpdateSalesOrderRequestDTO {
 
   private BigDecimal additionalDiscountRate;
 
+  private BigDecimal freight;
+
   @Valid private List<CreateSalesOrderItemDTO> items;
 }
