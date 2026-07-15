@@ -22,8 +22,6 @@ public class CreateMultiInvoicePaymentRequestDTO {
   @NotNull(message = "El método de pago es obligatorio")
   private PaymentMethod paymentMethod;
 
-  private String documentNumber;
-
   private String observations;
 
   @NotEmpty(message = "Debe seleccionar al menos una factura")
