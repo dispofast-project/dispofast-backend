@@ -131,7 +131,7 @@ public class PaymentReceiptServiceImpl implements PaymentReceiptService {
               allocation.getPromptPaymentDiscountRate(),
               request.getPaymentDate(),
               request.getPaymentMethod(),
-              request.getDocumentNumber(),
+              allocation.getDocumentNumber(),
               allocation.getVoucherS3Key(),
               request.getObservations(),
               createdBy,
@@ -446,12 +446,17 @@ public class PaymentReceiptServiceImpl implements PaymentReceiptService {
                   + receipt.getPromptPaymentDiscountRate()
                   + "%)"
               : fmt(receipt.getValue());
+      String docNumber =
+          receipt.getDocumentNumber() != null ? esc(receipt.getDocumentNumber()) : "—";
 
       rows.append("<tr><td style=\"padding:6px 0;border-bottom:1px solid #eee;color:#222;\">")
           .append(invoiceNumber)
           .append(
               "</td><td style=\"padding:6px 0;border-bottom:1px solid #eee;color:#666;text-align:right;\">")
           .append(appliedLabel)
+          .append(
+              "</td><td style=\"padding:6px 0;border-bottom:1px solid #eee;color:#666;text-align:right;\">")
+          .append(docNumber)
           .append(
               "</td><td style=\"padding:6px 0;border-bottom:1px solid #eee;text-align:right;font-weight:bold;color:")
           .append(paid ? "#2e7d32" : "#1a3c5e")
@@ -464,14 +469,6 @@ public class PaymentReceiptServiceImpl implements PaymentReceiptService {
         first.getPaymentMethod().name().equalsIgnoreCase("TRANSFERENCIA")
             ? "Transferencia Bancaria"
             : "Caja";
-
-    String docNumberRow =
-        first.getDocumentNumber() != null
-            ? "<tr><td style=\"padding:5px 0;color:#666;\">N&deg; Documento</td>"
-                + "<td style=\"padding:5px 0;color:#222;\">"
-                + esc(first.getDocumentNumber())
-                + "</td></tr>"
-            : "";
 
     return "<!DOCTYPE html><html lang=\"es\"><head><meta charset=\"UTF-8\"/></head>"
         + "<body style=\"margin:0;padding:0;background-color:#f0f2f5;font-family:Arial,Helvetica,sans-serif;\">"
@@ -502,7 +499,6 @@ public class PaymentReceiptServiceImpl implements PaymentReceiptService {
         + "<tr><td style=\"padding:5px 0;color:#666;\">Forma de Pago</td><td style=\"padding:5px 0;color:#222;\">"
         + paymentMethodDisplay
         + "</td></tr>"
-        + docNumberRow
         + "<tr><td style=\"padding:5px 0;color:#666;\">Efectivo Recibido</td><td style=\"padding:5px 0;color:#1a3c5e;font-weight:bold;\">"
         + fmt(totalCash)
         + "</td></tr>"
@@ -521,6 +517,7 @@ public class PaymentReceiptServiceImpl implements PaymentReceiptService {
         + "<table style=\"width:100%;border-collapse:collapse;font-size:13px;\">"
         + "<tr><th style=\"text-align:left;color:#666;padding-bottom:6px;border-bottom:2px solid #d0d5dd;\">Factura</th>"
         + "<th style=\"text-align:right;color:#666;padding-bottom:6px;border-bottom:2px solid #d0d5dd;\">Aplicado</th>"
+        + "<th style=\"text-align:right;color:#666;padding-bottom:6px;border-bottom:2px solid #d0d5dd;\">N&deg; Documento</th>"
         + "<th style=\"text-align:right;color:#666;padding-bottom:6px;border-bottom:2px solid #d0d5dd;\">Saldo Resultante</th></tr>"
         + rows
         + "</table></div>"

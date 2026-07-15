@@ -24,4 +24,7 @@ public class PaymentAllocationRequestDTO {
   /** Comprobante de este pago específico. Cada factura pagada debe tener el suyo. */
   @NotBlank(message = "El comprobante de pago es obligatorio")
   private String voucherS3Key;
+
+  /** Número de documento de este pago específico (opcional). */
+  private String documentNumber;
 }
