@@ -1,6 +1,7 @@
 package com.dispocol.dispofast.modules.customers.api.dtos;
 
 import com.dispocol.dispofast.modules.customers.domain.LegalEntityType;
+import com.dispocol.dispofast.modules.customers.domain.RetefuenteType;
 import com.dispocol.dispofast.modules.iam.api.dtos.UserPreview;
 import com.dispocol.dispofast.modules.pricelist.api.dtos.PriceListResponseDTO;
 import com.dispocol.dispofast.shared.location.api.dto.CityDTO;
@@ -22,7 +23,7 @@ public class ClientResponseDTO {
   private String email;
   private String phone;
   private Boolean isActive;
-  private Boolean retefuenteApplies;
+  private RetefuenteType retefuenteType;
   private String address;
   private UserPreview defaultAdvisor;
   private CityDTO city;

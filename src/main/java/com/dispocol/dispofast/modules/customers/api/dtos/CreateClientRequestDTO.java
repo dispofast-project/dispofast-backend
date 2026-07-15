@@ -1,6 +1,7 @@
 package com.dispocol.dispofast.modules.customers.api.dtos;
 
 import com.dispocol.dispofast.modules.customers.domain.LegalEntityType;
+import com.dispocol.dispofast.modules.customers.domain.RetefuenteType;
 import com.dispocol.dispofast.shared.location.domain.LocationZone;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -44,7 +45,9 @@ public abstract class CreateClientRequestDTO {
 
   @Builder.Default private Boolean isActive = true;
 
-  @Builder.Default private Boolean retefuenteApplies = false;
+  @NotNull(message = "El tipo de retención en la fuente es requerido")
+  @Builder.Default
+  private RetefuenteType retefuenteType = RetefuenteType.NO_APLICA;
 
   @NotBlank(message = "La dirección es requerida")
   private String address;

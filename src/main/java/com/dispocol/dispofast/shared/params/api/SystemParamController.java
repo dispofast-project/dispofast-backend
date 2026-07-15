@@ -19,7 +19,11 @@ public class SystemParamController {
   private final SystemParamRepository systemParamRepository;
 
   private static final List<String> PUBLIC_KEYS =
-      List.of("IVA", "RETEFUENTE_RATE", "RETEFUENTE_THRESHOLD");
+      List.of(
+          "IVA",
+          "RETEFUENTE_RATE_PERSONA_JURIDICA",
+          "RETEFUENTE_RATE_PERSONA_NATURAL",
+          "RETEFUENTE_THRESHOLD");
 
   /** Devuelve los parámetros del sistema necesarios para cálculos en el frontend. */
   @GetMapping("/public")
@@ -31,8 +35,9 @@ public class SystemParamController {
 
     // Fallbacks si algún param no existe en BD
     params.putIfAbsent("IVA", new BigDecimal("0.1900"));
-    params.putIfAbsent("RETEFUENTE_RATE", new BigDecimal("0.0250"));
-    params.putIfAbsent("RETEFUENTE_THRESHOLD", new BigDecimal("540000.0000"));
+    params.putIfAbsent("RETEFUENTE_RATE_PERSONA_JURIDICA", new BigDecimal("0.0250"));
+    params.putIfAbsent("RETEFUENTE_RATE_PERSONA_NATURAL", new BigDecimal("0.0350"));
+    params.putIfAbsent("RETEFUENTE_THRESHOLD", new BigDecimal("524000.0000"));
 
     return ResponseEntity.ok(params);
   }
