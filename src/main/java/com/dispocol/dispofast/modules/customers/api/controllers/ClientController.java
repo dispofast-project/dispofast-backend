@@ -3,6 +3,7 @@ package com.dispocol.dispofast.modules.customers.api.controllers;
 import com.dispocol.dispofast.modules.customers.api.dtos.ClientPreviewDTO;
 import com.dispocol.dispofast.modules.customers.api.dtos.ClientResponseDTO;
 import com.dispocol.dispofast.modules.customers.api.dtos.CreateClientRequestDTO;
+import com.dispocol.dispofast.modules.customers.api.dtos.PriceHistoryEntryDTO;
 import com.dispocol.dispofast.modules.customers.application.interfaces.ClientService;
 import com.dispocol.dispofast.modules.iam.infra.persistence.UserRepository;
 import com.dispocol.dispofast.shared.error.ResourceNotFoundException;
@@ -71,5 +72,12 @@ public class ClientController {
       @Valid @RequestPart("clientData") CreateClientRequestDTO request,
       @RequestPart(value = "documents", required = false) List<MultipartFile> documents) {
     return ResponseEntity.ok(clientService.updateClient(id, request, documents));
+  }
+
+  @GetMapping("/{clientId}/products/{productId}/price-history")
+  @PreAuthorize("hasAuthority('CUSTOMERS_VIEW')")
+  public ResponseEntity<List<PriceHistoryEntryDTO>> getPriceHistory(
+      @PathVariable UUID clientId, @PathVariable UUID productId) {
+    return ResponseEntity.ok(clientService.getPriceHistory(clientId, productId));
   }
 }

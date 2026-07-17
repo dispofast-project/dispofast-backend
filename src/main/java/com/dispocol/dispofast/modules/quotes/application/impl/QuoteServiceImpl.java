@@ -2,8 +2,8 @@ package com.dispocol.dispofast.modules.quotes.application.impl;
 
 import com.dispocol.dispofast.modules.customers.domain.Client;
 import com.dispocol.dispofast.modules.customers.domain.ClientType;
-import com.dispocol.dispofast.modules.customers.domain.Individual;
 import com.dispocol.dispofast.modules.customers.domain.LegalEntityType;
+import com.dispocol.dispofast.modules.customers.domain.RetefuenteType;
 import com.dispocol.dispofast.modules.customers.infra.persistence.ClientRepository;
 import com.dispocol.dispofast.modules.customers.infra.persistence.ClientTypeRepository;
 import com.dispocol.dispofast.modules.iam.domain.AppUser;
@@ -89,12 +89,9 @@ public class QuoteServiceImpl implements QuoteService {
             : BigDecimal.ZERO;
     quote.setCommercialDiscountRate(commRate);
 
-    if (!(client instanceof Individual) && Boolean.TRUE.equals(client.getRetefuenteApplies())) {
-      BigDecimal retefuenteRate =
-          systemParamRepository
-              .findByClave("RETEFUENTE_RATE")
-              .map(p -> p.getValor())
-              .orElse(new BigDecimal("0.0250"));
+    if (client.getRetefuenteType() != null
+        && client.getRetefuenteType() != RetefuenteType.NO_APLICA) {
+      BigDecimal retefuenteRate = retefuenteRateFor(client.getRetefuenteType());
       quote.setRetefuenteRate(retefuenteRate);
       quote.setRetefuenteAmount(BigDecimal.ZERO);
     }
@@ -256,28 +253,23 @@ public class QuoteServiceImpl implements QuoteService {
 
     BigDecimal netBase = subtotal.subtract(commDiscountAmount).subtract(otherDiscAmount);
 
-    // Determinar dinámicamente si aplica retefuente según el cliente actual.
-    // Solo aplica a personas jurídicas con la bandera retefuenteApplies activa.
+    // Determinar dinámicamente si aplica retefuente según el tipo configurado en el cliente actual.
     Client client = quote.getAccount();
-    boolean clientAppliesRetefuente =
-        client != null
-            && !(client instanceof Individual)
-            && Boolean.TRUE.equals(client.getRetefuenteApplies());
+    RetefuenteType retefuenteType =
+        client != null && client.getRetefuenteType() != null
+            ? client.getRetefuenteType()
+            : RetefuenteType.NO_APLICA;
 
     BigDecimal retefuenteRate = null;
     BigDecimal retefuenteAmount = null;
-    if (clientAppliesRetefuente) {
-      retefuenteRate =
-          systemParamRepository
-              .findByClave("RETEFUENTE_RATE")
-              .map(p -> p.getValor())
-              .orElse(new BigDecimal("0.0250"));
+    if (retefuenteType != RetefuenteType.NO_APLICA) {
+      retefuenteRate = retefuenteRateFor(retefuenteType);
 
       BigDecimal retefuenteThreshold =
           systemParamRepository
               .findByClave("RETEFUENTE_THRESHOLD")
               .map(p -> p.getValor())
-              .orElse(new BigDecimal("540000"));
+              .orElse(new BigDecimal("524000"));
 
       if (netBase.compareTo(retefuenteThreshold) > 0) {
         retefuenteAmount = netBase.multiply(retefuenteRate).setScale(2, RoundingMode.HALF_UP);
@@ -302,6 +294,22 @@ public class QuoteServiceImpl implements QuoteService {
     quote.setRetefuenteRate(retefuenteRate);
     quote.setRetefuenteAmount(retefuenteAmount);
     quote.setTotalAmount(total);
+  }
+
+  private BigDecimal retefuenteRateFor(RetefuenteType retefuenteType) {
+    return switch (retefuenteType) {
+      case PERSONA_JURIDICA ->
+          systemParamRepository
+              .findByClave("RETEFUENTE_RATE_PERSONA_JURIDICA")
+              .map(p -> p.getValor())
+              .orElse(new BigDecimal("0.0250"));
+      case PERSONA_NATURAL ->
+          systemParamRepository
+              .findByClave("RETEFUENTE_RATE_PERSONA_NATURAL")
+              .map(p -> p.getValor())
+              .orElse(new BigDecimal("0.0350"));
+      case NO_APLICA -> BigDecimal.ZERO;
+    };
   }
 
   private Quotes findQuote(UUID id) {

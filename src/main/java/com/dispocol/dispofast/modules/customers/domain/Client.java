@@ -50,8 +50,9 @@ public abstract class Client {
   @Column(name = "is_active", nullable = false)
   private Boolean isActive = true;
 
-  @Column(name = "retefuente_applies", nullable = false)
-  private Boolean retefuenteApplies = false;
+  @Enumerated(EnumType.STRING)
+  @Column(name = "retefuente_type", nullable = false)
+  private RetefuenteType retefuenteType = RetefuenteType.NO_APLICA;
 
   @Column(name = "address", nullable = false)
   private String address;

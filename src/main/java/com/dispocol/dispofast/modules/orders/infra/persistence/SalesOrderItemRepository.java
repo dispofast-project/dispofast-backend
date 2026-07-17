@@ -25,4 +25,11 @@ public interface SalesOrderItemRepository extends JpaRepository<SalesOrderItem, 
           + "GROUP BY i.product.id, i.product.name "
           + "ORDER BY SUM(i.quantity) DESC")
   List<Object[]> getTopProducts(Pageable pageable);
+
+  @Query(
+      "SELECT i FROM SalesOrderItem i JOIN FETCH i.order o "
+          + "WHERE o.client.id = :clientId AND i.product.id = :productId "
+          + "ORDER BY o.orderDate DESC")
+  List<SalesOrderItem> findByClientIdAndProductId(
+      @Param("clientId") UUID clientId, @Param("productId") UUID productId);
 }

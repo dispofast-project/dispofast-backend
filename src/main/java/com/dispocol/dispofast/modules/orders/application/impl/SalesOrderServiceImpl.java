@@ -1,6 +1,7 @@
 package com.dispocol.dispofast.modules.orders.application.impl;
 
 import com.dispocol.dispofast.modules.cartera.application.interfaces.ArEntryService;
+import com.dispocol.dispofast.modules.customers.domain.RetefuenteType;
 import com.dispocol.dispofast.modules.customers.infra.persistence.ClientRepository;
 import com.dispocol.dispofast.modules.iam.infra.persistence.UserRepository;
 import com.dispocol.dispofast.modules.inventory.application.interfaces.InventoryService;
@@ -493,21 +494,33 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 
     BigDecimal freight = order.getFreight() != null ? order.getFreight() : BigDecimal.ZERO;
 
-    // Retefuente: calculada en el backend según params configurables
+    // Retefuente: calculada en el backend según params configurables y el tipo de retención del
+    // cliente
+    RetefuenteType retefuenteType =
+        order.getClient() != null
+            ? order.getClient().getRetefuenteType()
+            : RetefuenteType.NO_APLICA;
     BigDecimal retefuenteRate =
-        systemParamRepository
-            .findByClave("RETEFUENTE_RATE")
-            .map(p -> p.getValor())
-            .orElse(new BigDecimal("0.0250"));
+        switch (retefuenteType) {
+          case PERSONA_JURIDICA ->
+              systemParamRepository
+                  .findByClave("RETEFUENTE_RATE_PERSONA_JURIDICA")
+                  .map(p -> p.getValor())
+                  .orElse(new BigDecimal("0.0250"));
+          case PERSONA_NATURAL ->
+              systemParamRepository
+                  .findByClave("RETEFUENTE_RATE_PERSONA_NATURAL")
+                  .map(p -> p.getValor())
+                  .orElse(new BigDecimal("0.0350"));
+          case NO_APLICA -> BigDecimal.ZERO;
+        };
     BigDecimal retefuenteThreshold =
         systemParamRepository
             .findByClave("RETEFUENTE_THRESHOLD")
             .map(p -> p.getValor())
-            .orElse(new BigDecimal("540000"));
+            .orElse(new BigDecimal("524000"));
 
-    boolean clientAppliesRetefuente =
-        order.getClient() != null && Boolean.TRUE.equals(order.getClient().getRetefuenteApplies());
-    if (clientAppliesRetefuente && subtotal.compareTo(retefuenteThreshold) > 0) {
+    if (retefuenteType != RetefuenteType.NO_APLICA && subtotal.compareTo(retefuenteThreshold) > 0) {
       retefuente = subtotal.multiply(retefuenteRate).setScale(2, RoundingMode.HALF_UP);
     }
 
