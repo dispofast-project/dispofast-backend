@@ -5,6 +5,7 @@ import com.dispocol.dispofast.modules.customers.api.dtos.ClientResponseDTO;
 import com.dispocol.dispofast.modules.customers.api.dtos.CreateClientRequestDTO;
 import com.dispocol.dispofast.modules.customers.api.dtos.CreateIndividualRequestDTO;
 import com.dispocol.dispofast.modules.customers.api.dtos.CreateOrganizationRequestDTO;
+import com.dispocol.dispofast.modules.customers.api.dtos.PriceHistoryEntryDTO;
 import com.dispocol.dispofast.modules.customers.api.mappers.ClientMapper;
 import com.dispocol.dispofast.modules.customers.application.interfaces.ClientService;
 import com.dispocol.dispofast.modules.customers.domain.Client;
@@ -16,8 +17,10 @@ import com.dispocol.dispofast.modules.customers.infra.persistence.ClientReposito
 import com.dispocol.dispofast.modules.customers.infra.persistence.ClientTypeRepository;
 import com.dispocol.dispofast.modules.iam.domain.AppUser;
 import com.dispocol.dispofast.modules.iam.infra.persistence.UserRepository;
+import com.dispocol.dispofast.modules.orders.infra.persistence.SalesOrderItemRepository;
 import com.dispocol.dispofast.modules.pricelist.domain.PriceList;
 import com.dispocol.dispofast.modules.pricelist.infra.persistence.PriceListRepository;
+import com.dispocol.dispofast.modules.quotes.infra.persistence.QuoteItemRepository;
 import com.dispocol.dispofast.shared.MediaAsset.domain.MediaAsset;
 import com.dispocol.dispofast.shared.MediaAsset.domain.MediaAssetType;
 import com.dispocol.dispofast.shared.MediaAsset.persistence.MediaAssetRepository;
@@ -32,8 +35,10 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -56,6 +61,8 @@ public class ClientServiceImpl implements ClientService {
   private final PriceListRepository priceListRepository;
   private final MediaAssetRepository mediaAssetRepository;
   private final S3Service s3Service;
+  private final SalesOrderItemRepository salesOrderItemRepository;
+  private final QuoteItemRepository quoteItemRepository;
 
   private static final String LEGAL_DOCS_BUCKET = "dispofast-legal-documents";
 
@@ -354,6 +361,40 @@ public class ClientServiceImpl implements ClientService {
                 () -> new ResourceNotFoundException("El documento solicitado no fue encontrado."));
 
     return s3Service.downloadFile(LEGAL_DOCS_BUCKET, doc.getFileAttachment().getStoragePath());
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<PriceHistoryEntryDTO> getPriceHistory(UUID clientId, UUID productId) {
+    List<PriceHistoryEntryDTO> orderEntries =
+        salesOrderItemRepository.findByClientIdAndProductId(clientId, productId).stream()
+            .map(
+                item ->
+                    PriceHistoryEntryDTO.builder()
+                        .source("ORDER")
+                        .documentNumber(item.getOrder().getOrderNumber())
+                        .date(item.getOrder().getOrderDate())
+                        .quantity(item.getQuantity())
+                        .unitPrice(item.getUnitPrice())
+                        .build())
+            .toList();
+
+    List<PriceHistoryEntryDTO> quoteEntries =
+        quoteItemRepository.findByAccountIdAndProductId(clientId, productId).stream()
+            .map(
+                item ->
+                    PriceHistoryEntryDTO.builder()
+                        .source("QUOTE")
+                        .documentNumber(item.getQuote().getNumber())
+                        .date(item.getQuote().getCreatedAt())
+                        .quantity(item.getQuantity())
+                        .unitPrice(item.getUnitPrice())
+                        .build())
+            .toList();
+
+    return Stream.concat(orderEntries.stream(), quoteEntries.stream())
+        .sorted(Comparator.comparing(PriceHistoryEntryDTO::getDate).reversed())
+        .toList();
   }
 
   private Specification<Client> buildSearchSpec(String text, String key) {
