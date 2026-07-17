@@ -494,9 +494,12 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 
     BigDecimal freight = order.getFreight() != null ? order.getFreight() : BigDecimal.ZERO;
 
-    // Retefuente: calculada en el backend según params configurables y el tipo de retención del cliente
+    // Retefuente: calculada en el backend según params configurables y el tipo de retención del
+    // cliente
     RetefuenteType retefuenteType =
-        order.getClient() != null ? order.getClient().getRetefuenteType() : RetefuenteType.NO_APLICA;
+        order.getClient() != null
+            ? order.getClient().getRetefuenteType()
+            : RetefuenteType.NO_APLICA;
     BigDecimal retefuenteRate =
         switch (retefuenteType) {
           case PERSONA_JURIDICA ->
@@ -517,8 +520,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
             .map(p -> p.getValor())
             .orElse(new BigDecimal("524000"));
 
-    if (retefuenteType != RetefuenteType.NO_APLICA
-        && subtotal.compareTo(retefuenteThreshold) > 0) {
+    if (retefuenteType != RetefuenteType.NO_APLICA && subtotal.compareTo(retefuenteThreshold) > 0) {
       retefuente = subtotal.multiply(retefuenteRate).setScale(2, RoundingMode.HALF_UP);
     }
 
