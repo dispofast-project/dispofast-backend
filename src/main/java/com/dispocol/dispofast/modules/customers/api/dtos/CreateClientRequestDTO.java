@@ -57,7 +57,6 @@ public abstract class CreateClientRequestDTO {
   @NotBlank(message = "La ciudad es requerida")
   private String cityCode;
 
-  @NotNull(message = "La zona es requerida")
   private LocationZone zone;
 
   @NotNull(message = "El descuento por defecto es requerido")
