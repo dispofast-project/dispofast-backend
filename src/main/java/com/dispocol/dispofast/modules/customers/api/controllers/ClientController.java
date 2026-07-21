@@ -66,7 +66,7 @@ public class ClientController {
   }
 
   @PutMapping("/{id}")
-  @PreAuthorize("hasAuthority('CUSTOMERS_UPDATE')")
+  @PreAuthorize("hasAuthority('CUSTOMERS_EDIT')")
   public ResponseEntity<ClientResponseDTO> updateClient(
       @PathVariable UUID id,
       @Valid @RequestPart("clientData") CreateClientRequestDTO request,
