@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.core.AuthenticationException;
@@ -47,6 +48,19 @@ public class GlobalExceptionHandler {
             errors,
             request.getRequestURI());
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+  }
+
+  @ExceptionHandler(HttpMessageNotReadableException.class)
+  public ResponseEntity<GlobalErrorResponse> handleMessageNotReadable(
+      HttpMessageNotReadableException ex, HttpServletRequest request) {
+    Throwable rootCause = ex.getMostSpecificCause();
+    String message =
+        rootCause instanceof IllegalArgumentException
+            ? rootCause.getMessage()
+            : "El cuerpo de la solicitud contiene datos inválidos.";
+    log.warn("Malformed request body: {}", message);
+    return buildErrorResponseEntity(
+        message, "InvalidRequestBody", request, HttpStatus.BAD_REQUEST);
   }
 
   @ExceptionHandler(IllegalArgumentException.class)
