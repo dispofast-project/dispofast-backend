@@ -1,5 +1,6 @@
 package com.dispocol.dispofast.modules.quotes.api.dtos;
 
+import com.dispocol.dispofast.modules.customers.domain.RetefuenteType;
 import com.dispocol.dispofast.modules.quotes.domain.OfferValidity;
 import com.dispocol.dispofast.modules.quotes.domain.PaymentCondition;
 import com.dispocol.dispofast.modules.quotes.domain.QuoteStatus;
@@ -37,4 +38,7 @@ public class UpdateQuoteRequestDTO {
   /** Flete, sumado directamente al total. */
   @DecimalMin(value = "0.0", message = "El flete no puede ser negativo")
   private BigDecimal freight;
+
+  /** Anulación opcional del tipo de retefuente para esta cotización específica. */
+  private RetefuenteType retefuenteTypeOverride;
 }
