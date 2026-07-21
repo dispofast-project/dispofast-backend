@@ -23,6 +23,10 @@ public enum LocationZone {
 
   @JsonCreator
   public static LocationZone fromValue(String value) {
+    if (value == null || value.isBlank()) {
+      return null;
+    }
+
     String cleanValue = value.toLowerCase().replace("zona ", "").trim();
 
     for (LocationZone zone : values()) {
