@@ -59,8 +59,7 @@ public class GlobalExceptionHandler {
             ? rootCause.getMessage()
             : "El cuerpo de la solicitud contiene datos inválidos.";
     log.warn("Malformed request body: {}", message);
-    return buildErrorResponseEntity(
-        message, "InvalidRequestBody", request, HttpStatus.BAD_REQUEST);
+    return buildErrorResponseEntity(message, "InvalidRequestBody", request, HttpStatus.BAD_REQUEST);
   }
 
   @ExceptionHandler(IllegalArgumentException.class)
