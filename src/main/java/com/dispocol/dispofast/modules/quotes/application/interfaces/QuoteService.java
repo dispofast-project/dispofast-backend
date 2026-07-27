@@ -1,5 +1,6 @@
 package com.dispocol.dispofast.modules.quotes.application.interfaces;
 
+import com.dispocol.dispofast.modules.customers.api.dtos.CreateClientRequestDTO;
 import com.dispocol.dispofast.modules.quotes.api.dtos.ChangeQuoteStatusRequestDTO;
 import com.dispocol.dispofast.modules.quotes.api.dtos.CreateQuoteRequestDTO;
 import com.dispocol.dispofast.modules.quotes.api.dtos.QuotePreviewResponseDTO;
@@ -20,4 +21,6 @@ public interface QuoteService {
   QuoteResponseDTO changeStatus(UUID id, ChangeQuoteStatusRequestDTO dto);
 
   Page<QuotePreviewResponseDTO> getAllQuotes(String text, String key, Pageable pageable);
+
+  QuoteResponseDTO completeProspectClient(UUID quoteId, CreateClientRequestDTO request);
 }

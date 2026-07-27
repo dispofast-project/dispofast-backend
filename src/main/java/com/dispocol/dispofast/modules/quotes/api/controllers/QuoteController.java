@@ -1,5 +1,6 @@
 package com.dispocol.dispofast.modules.quotes.api.controllers;
 
+import com.dispocol.dispofast.modules.customers.api.dtos.CreateClientRequestDTO;
 import com.dispocol.dispofast.modules.quotes.api.dtos.ChangeQuoteStatusRequestDTO;
 import com.dispocol.dispofast.modules.quotes.api.dtos.CreateQuoteRequestDTO;
 import com.dispocol.dispofast.modules.quotes.api.dtos.QuotePreviewResponseDTO;
@@ -13,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -52,5 +54,12 @@ public class QuoteController {
       @RequestParam(required = false) String key,
       Pageable pageable) {
     return ResponseEntity.ok(quoteService.getAllQuotes(text, key, pageable));
+  }
+
+  @PostMapping("/{id}/complete-prospect")
+  @PreAuthorize("hasAuthority('CUSTOMERS_CREATE')")
+  public ResponseEntity<QuoteResponseDTO> completeProspectClient(
+      @PathVariable UUID id, @Valid @RequestBody CreateClientRequestDTO request) {
+    return ResponseEntity.ok(quoteService.completeProspectClient(id, request));
   }
 }

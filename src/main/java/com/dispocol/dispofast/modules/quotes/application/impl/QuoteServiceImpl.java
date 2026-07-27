@@ -1,5 +1,8 @@
 package com.dispocol.dispofast.modules.quotes.application.impl;
 
+import com.dispocol.dispofast.modules.customers.api.dtos.ClientResponseDTO;
+import com.dispocol.dispofast.modules.customers.api.dtos.CreateClientRequestDTO;
+import com.dispocol.dispofast.modules.customers.application.interfaces.ClientService;
 import com.dispocol.dispofast.modules.customers.domain.Client;
 import com.dispocol.dispofast.modules.customers.domain.ClientType;
 import com.dispocol.dispofast.modules.customers.domain.LegalEntityType;
@@ -50,6 +53,7 @@ public class QuoteServiceImpl implements QuoteService {
   private final UserRepository userRepository;
   private final SystemParamRepository systemParamRepository;
   private final ClientTypeRepository clientTypeRepository;
+  private final ClientService clientService;
 
   @Override
   @Transactional
@@ -318,5 +322,37 @@ public class QuoteServiceImpl implements QuoteService {
     return quotesRepository
         .findById(id)
         .orElseThrow(() -> new ResourceNotFoundException("Quote not found with id: " + id));
+  }
+
+  @Override
+  @Transactional
+  public QuoteResponseDTO completeProspectClient(UUID quoteId, CreateClientRequestDTO request) {
+    Quotes quote = findQuote(quoteId);
+
+    if (quote.getAccount() != null) {
+      throw new IllegalStateException("Esta cotización ya tiene un cliente asociado.");
+    }
+    if (quote.getProspect() == null) {
+      throw new IllegalStateException("Esta cotización no tiene un prospecto para completar.");
+    }
+
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    AppUser currentUser =
+        userRepository
+            .findByEmailIgnoreCase(auth.getName())
+            .orElseThrow(() -> new ResourceNotFoundException("User not found: " + auth.getName()));
+
+    ClientResponseDTO createdClient = clientService.createClient(request, null, currentUser);
+    Client client =
+        clientRepository
+            .findById(createdClient.getId())
+            .orElseThrow(
+                () -> new ResourceNotFoundException("Cliente recién creado no encontrado."));
+
+    quote.setAccount(client);
+    quote.setCity(client.getCity());
+    quote.setZone(client.getZone());
+
+    return quoteMapper.toResponseDTO(quotesRepository.save(quote));
   }
 }

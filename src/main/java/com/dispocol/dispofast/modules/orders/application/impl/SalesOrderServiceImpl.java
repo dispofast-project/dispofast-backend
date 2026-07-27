@@ -130,6 +130,11 @@ public class SalesOrderServiceImpl implements SalesOrderService {
           "Solo se pueden crear órdenes a partir de cotizaciones aceptadas.");
     }
 
+    if (quote.getAccount() == null) {
+      throw new InvalidOrderStateException(
+          "Debe completarse el cliente del prospecto antes de generar la orden.");
+    }
+
     if (salesOrderRepository.existsByQuoteId(quoteId)) {
       throw new SalesOrderAlreadyExistsException(
           "Ya existe una orden generada para esta cotización.");
