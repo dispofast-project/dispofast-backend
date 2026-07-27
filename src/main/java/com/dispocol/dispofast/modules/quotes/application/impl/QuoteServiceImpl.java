@@ -253,12 +253,14 @@ public class QuoteServiceImpl implements QuoteService {
 
     BigDecimal netBase = subtotal.subtract(commDiscountAmount).subtract(otherDiscAmount);
 
-    // Determinar dinámicamente si aplica retefuente según el tipo configurado en el cliente actual.
+    // El override de la cotización tiene prioridad sobre el tipo configurado en el cliente.
     Client client = quote.getAccount();
     RetefuenteType retefuenteType =
-        client != null && client.getRetefuenteType() != null
-            ? client.getRetefuenteType()
-            : RetefuenteType.NO_APLICA;
+        quote.getRetefuenteTypeOverride() != null
+            ? quote.getRetefuenteTypeOverride()
+            : (client != null && client.getRetefuenteType() != null
+                ? client.getRetefuenteType()
+                : RetefuenteType.NO_APLICA);
 
     BigDecimal retefuenteRate = null;
     BigDecimal retefuenteAmount = null;
