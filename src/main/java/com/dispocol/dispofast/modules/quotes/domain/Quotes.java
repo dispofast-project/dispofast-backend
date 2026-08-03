@@ -1,6 +1,7 @@
 package com.dispocol.dispofast.modules.quotes.domain;
 
 import com.dispocol.dispofast.modules.customers.domain.Client;
+import com.dispocol.dispofast.modules.customers.domain.RetefuenteType;
 import com.dispocol.dispofast.modules.iam.domain.AppUser;
 import com.dispocol.dispofast.modules.pricelist.domain.PriceList;
 import com.dispocol.dispofast.shared.location.domain.City;
@@ -110,6 +111,13 @@ public class Quotes {
   /** Monto de retefuente (null para personas naturales). */
   @Column(name = "retefuente_amount", precision = 18, scale = 2)
   private BigDecimal retefuenteAmount;
+
+  /**
+   * Anulación opcional del tipo de retefuente a nivel de cotización; null = usar el del cliente.
+   */
+  @Enumerated(EnumType.STRING)
+  @Column(name = "retefuente_type_override")
+  private RetefuenteType retefuenteTypeOverride;
 
   /**
    * Total a pagar = subtotal - descuento comercial - otros descuentos + IVA - retefuente + flete.

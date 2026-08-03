@@ -1,6 +1,7 @@
 package com.dispocol.dispofast.modules.quotes.api.dtos;
 
 import com.dispocol.dispofast.modules.customers.api.dtos.ClientResponseDTO;
+import com.dispocol.dispofast.modules.customers.domain.RetefuenteType;
 import com.dispocol.dispofast.modules.pricelist.api.dtos.PriceListResponseDTO;
 import com.dispocol.dispofast.modules.quotes.domain.OfferValidity;
 import com.dispocol.dispofast.modules.quotes.domain.PaymentCondition;
@@ -46,6 +47,7 @@ public class QuoteResponseDTO {
   private BigDecimal ivaAmount;
   private BigDecimal retefuenteRate;
   private BigDecimal retefuenteAmount;
+  private RetefuenteType retefuenteTypeOverride;
   private BigDecimal totalAmount;
   private BigDecimal freight;
 }
