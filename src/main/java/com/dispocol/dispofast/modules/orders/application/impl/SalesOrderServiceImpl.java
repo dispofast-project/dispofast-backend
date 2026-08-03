@@ -18,6 +18,7 @@ import com.dispocol.dispofast.modules.orders.api.mappers.SalesOrderItemMapper;
 import com.dispocol.dispofast.modules.orders.api.mappers.SalesOrderMapper;
 import com.dispocol.dispofast.modules.orders.application.interfaces.SalesOrderService;
 import com.dispocol.dispofast.modules.orders.domain.OrderState;
+import com.dispocol.dispofast.modules.orders.domain.PaymentCondition;
 import com.dispocol.dispofast.modules.orders.domain.SalesOrder;
 import com.dispocol.dispofast.modules.orders.domain.SalesOrderItem;
 import com.dispocol.dispofast.modules.orders.infra.exceptions.InvalidOrderStateException;
@@ -141,6 +142,10 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     order.setAsesor(quote.getSeller());
     order.setPriceList(quote.getPriceList());
     order.setShipmentCity(quote.getCity());
+    order.setShipmentAddress(quote.getShipmentAddress());
+    if (quote.getPaymentCondition() != null) {
+      order.setPaymentCondition(PaymentCondition.valueOf(quote.getPaymentCondition().name()));
+    }
     order.setQuote(quote);
     order.setState(OrderState.PENDING);
     order.setOrderDate(OffsetDateTime.now());

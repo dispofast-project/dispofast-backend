@@ -24,6 +24,7 @@ public class UpdateQuoteRequestDTO {
   private UUID priceListId;
   private PaymentCondition paymentCondition;
   private OfferValidity offerValidity;
+  private String shipmentAddress;
 
   /** Tasa del descuento comercial en forma decimal (ej. 0.15 = 15%). Rango válido: [0, 1]. */
   @DecimalMin(value = "0.0", message = "El descuento comercial no puede ser negativo")

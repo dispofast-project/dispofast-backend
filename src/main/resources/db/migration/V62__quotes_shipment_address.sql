@@ -1,0 +1,1 @@
+ALTER TABLE quotes ADD COLUMN IF NOT EXISTS shipment_address TEXT NULL;
