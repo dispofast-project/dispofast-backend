@@ -20,6 +20,10 @@ spring:
     enabled: true
     baseline-on-migrate: true
     baseline-version: 38
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
   mail:
     host: ${MAIL_HOST:business40.web-hosting.com}
     port: ${MAIL_PORT:587}
