@@ -18,6 +18,7 @@ import com.dispocol.dispofast.modules.orders.api.mappers.SalesOrderItemMapper;
 import com.dispocol.dispofast.modules.orders.api.mappers.SalesOrderMapper;
 import com.dispocol.dispofast.modules.orders.application.interfaces.SalesOrderService;
 import com.dispocol.dispofast.modules.orders.domain.OrderState;
+import com.dispocol.dispofast.modules.orders.domain.PaymentCondition;
 import com.dispocol.dispofast.modules.orders.domain.SalesOrder;
 import com.dispocol.dispofast.modules.orders.domain.SalesOrderItem;
 import com.dispocol.dispofast.modules.orders.infra.exceptions.InvalidOrderStateException;
@@ -141,6 +142,10 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     order.setAsesor(quote.getSeller());
     order.setPriceList(quote.getPriceList());
     order.setShipmentCity(quote.getCity());
+    order.setShipmentAddress(quote.getShipmentAddress());
+    if (quote.getPaymentCondition() != null) {
+      order.setPaymentCondition(PaymentCondition.valueOf(quote.getPaymentCondition().name()));
+    }
     order.setQuote(quote);
     order.setState(OrderState.PENDING);
     order.setOrderDate(OffsetDateTime.now());
@@ -173,6 +178,10 @@ public class SalesOrderServiceImpl implements SalesOrderService {
       savedOrder.setAdditionalDiscountRate(
           quote.getOtherDiscountsRate().multiply(BigDecimal.valueOf(100)));
     }
+    // Carry over the quote's freight too — saveItems() reads order.getFreight() to compute
+    // totalValue, and without this it silently defaulted to zero for every quote-to-order
+    // conversion, dropping the freight from the order's total.
+    savedOrder.setFreight(quote.getFreight());
 
     List<SalesOrderItemResponseDTO> itemResponses = saveItems(itemDTOs, savedOrder);
 
@@ -492,6 +501,11 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     BigDecimal additionalDiscountAmount =
         subtotal.multiply(addDiscountPct).divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
 
+    // Base neta tras descuentos — la retefuente se calcula sobre esto, no sobre el subtotal
+    // bruto, igual que en Quotes.recalculateQuoteTotals, para que una orden generada desde una
+    // cotización con descuentos no termine con una retefuente (y por tanto un total) distinta.
+    BigDecimal netBase = subtotal.subtract(discountAmount).subtract(additionalDiscountAmount);
+
     BigDecimal freight = order.getFreight() != null ? order.getFreight() : BigDecimal.ZERO;
 
     // Retefuente: calculada en el backend según params configurables y el tipo de retención del
@@ -520,8 +534,8 @@ public class SalesOrderServiceImpl implements SalesOrderService {
             .map(p -> p.getValor())
             .orElse(new BigDecimal("524000"));
 
-    if (retefuenteType != RetefuenteType.NO_APLICA && subtotal.compareTo(retefuenteThreshold) > 0) {
-      retefuente = subtotal.multiply(retefuenteRate).setScale(2, RoundingMode.HALF_UP);
+    if (retefuenteType != RetefuenteType.NO_APLICA && netBase.compareTo(retefuenteThreshold) > 0) {
+      retefuente = netBase.multiply(retefuenteRate).setScale(2, RoundingMode.HALF_UP);
     }
 
     BigDecimal totalValue =
