@@ -27,6 +27,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 @Slf4j
 @ControllerAdvice
@@ -201,6 +202,17 @@ public class GlobalExceptionHandler {
         "AccessDeniedException",
         request,
         HttpStatus.FORBIDDEN);
+  }
+
+  @ExceptionHandler(MaxUploadSizeExceededException.class)
+  public ResponseEntity<GlobalErrorResponse> handleMaxUploadSizeExceeded(
+      MaxUploadSizeExceededException ex, HttpServletRequest request) {
+    log.warn("Uploaded file exceeds max size: {}", ex.getMessage());
+    return buildErrorResponseEntity(
+        "El archivo supera el tamaño máximo permitido (10MB).",
+        "MaxUploadSizeExceededException",
+        request,
+        HttpStatus.PAYLOAD_TOO_LARGE);
   }
 
   @ExceptionHandler(Exception.class)

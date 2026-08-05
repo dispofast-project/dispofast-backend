@@ -67,6 +67,9 @@ public class Quotes {
   @JoinColumn(name = "price_list_id", nullable = false)
   private PriceList priceList;
 
+  @Column(name = "shipment_address", columnDefinition = "text")
+  private String shipmentAddress;
+
   @OneToMany(
       mappedBy = "quote",
       cascade = CascadeType.ALL,

@@ -32,6 +32,7 @@ public class QuoteResponseDTO {
   private UUID sellerId;
   private String sellerName;
   private CityDTO location;
+  private String shipmentAddress;
   private PriceListResponseDTO priceList;
   private List<QuoteItemResponseDTO> items;
   private OffsetDateTime createdAt;
