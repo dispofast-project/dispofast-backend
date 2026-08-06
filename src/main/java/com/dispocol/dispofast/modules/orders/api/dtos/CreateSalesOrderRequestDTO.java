@@ -16,10 +16,6 @@ import lombok.Data;
 @Data
 public class CreateSalesOrderRequestDTO {
 
-  @NotBlank(message = "El número de orden es obligatorio")
-  @Size(max = 20, message = "El número de orden no puede superar los 20 caracteres")
-  private String orderNumber;
-
   @NotNull(message = "El cliente es obligatorio")
   private UUID clientId;
 
