@@ -80,11 +80,11 @@ public class SalesOrderServiceImpl implements SalesOrderService {
   @Override
   @Transactional
   public SalesOrderResponseDTO createSalesOrder(CreateSalesOrderRequestDTO request) {
-    if (salesOrderRepository.existsByOrderNumber(request.getOrderNumber())) {
-      throw new SalesOrderAlreadyExistsException("Ya existe una orden con ese número de pedido.");
-    }
-
     SalesOrder order = salesOrderMapper.toEntity(request);
+    // Igual que las cotizaciones (QuoteServiceImpl): el número lo genera el backend, nunca el
+    // cliente. Antes el frontend mandaba un número propio con muy poco espacio de valores
+    // (ORD-<año>-<3 dígitos>), lo que producía colisiones frecuentes entre órdenes.
+    order.setOrderNumber("ORD-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
     order.setState(OrderState.PENDING);
 
     if (order.getOrderDate() == null) {
