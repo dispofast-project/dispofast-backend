@@ -73,10 +73,6 @@ public class ClientServiceImpl implements ClientService {
   @Transactional(readOnly = true)
   public Page<ClientPreviewDTO> getAllClients(
       Pageable pageable, String text, String key, Boolean isActive, String city) {
-    // Eagerly fetch defaultAdvisor + city (the mapper reads both for every row) to avoid one
-    // N+1 lazy-load round trip per row per association. Fetches aren't valid on the pagination
-    // COUNT query. Client itself doesn't need a fetch: Hibernate already resolves its JOINED
-    // Individual/Organization subtype tables as part of the base query, not lazily.
     Specification<Client> spec =
         (root, query, cb) -> {
           boolean isCountQuery =
