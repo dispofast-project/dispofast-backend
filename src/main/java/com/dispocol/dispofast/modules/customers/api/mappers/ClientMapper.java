@@ -22,6 +22,7 @@ import org.mapstruct.MappingTarget;
 public interface ClientMapper {
 
   @Mapping(target = "name", ignore = true)
+  @Mapping(target = "clientType", ignore = true)
   ClientPreviewDTO toPreviewDTO(Client client);
 
   default ClientResponseDTO toResponseDTO(Client client) {
@@ -82,6 +83,8 @@ public interface ClientMapper {
     } else if (client instanceof Organization organization) {
       dto.setName(organization.getLegalName());
     }
+
+    dto.setClientType(client.getClientType().getName());
   }
 
   @AfterMapping
