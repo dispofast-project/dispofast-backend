@@ -621,13 +621,15 @@ public class SalesOrderServiceImpl implements SalesOrderService {
   // Client usa herencia JOINED (Individual: firstName/lastName, Organization: legalName), sin
   // columna "name" propia — mismo patrón que ClientServiceImpl.buildNamePredicate, aplicado aquí
   // sobre el join sales_order -> client en vez de sobre el root.
-  private Predicate buildClientNamePredicate(Path<Client> clientPath, CriteriaBuilder cb, String pattern) {
+  private Predicate buildClientNamePredicate(
+      Path<Client> clientPath, CriteriaBuilder cb, String pattern) {
     Predicate individualName =
         cb.and(
             cb.equal(clientPath.type(), Individual.class),
             cb.or(
                 cb.like(cb.lower(cb.treat(clientPath, Individual.class).get("firstName")), pattern),
-                cb.like(cb.lower(cb.treat(clientPath, Individual.class).get("lastName")), pattern)));
+                cb.like(
+                    cb.lower(cb.treat(clientPath, Individual.class).get("lastName")), pattern)));
 
     Predicate orgName =
         cb.and(
