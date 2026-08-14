@@ -1,6 +1,9 @@
 package com.dispocol.dispofast.modules.orders.application.impl;
 
 import com.dispocol.dispofast.modules.cartera.application.interfaces.ArEntryService;
+import com.dispocol.dispofast.modules.customers.domain.Client;
+import com.dispocol.dispofast.modules.customers.domain.Individual;
+import com.dispocol.dispofast.modules.customers.domain.Organization;
 import com.dispocol.dispofast.modules.customers.domain.RetefuenteType;
 import com.dispocol.dispofast.modules.customers.infra.persistence.ClientRepository;
 import com.dispocol.dispofast.modules.iam.infra.persistence.UserRepository;
@@ -35,7 +38,9 @@ import com.dispocol.dispofast.modules.shipping.application.interfaces.ShipmentSe
 import com.dispocol.dispofast.shared.location.application.interfaces.LocationService;
 import com.dispocol.dispofast.shared.location.domain.City;
 import com.dispocol.dispofast.shared.params.infra.persistence.SystemParamRepository;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -603,8 +608,32 @@ public class SalesOrderServiceImpl implements SalesOrderService {
                 cb.lower(root.get("orderNumber")),
                 "%" + filter.getOrderNumber().toLowerCase() + "%"));
       }
+      if (filter.getClientName() != null && !filter.getClientName().isBlank()) {
+        predicates.add(
+            buildClientNamePredicate(
+                root.get("client"), cb, "%" + filter.getClientName().toLowerCase() + "%"));
+      }
 
       return cb.and(predicates.toArray(new Predicate[0]));
     };
+  }
+
+  // Client usa herencia JOINED (Individual: firstName/lastName, Organization: legalName), sin
+  // columna "name" propia — mismo patrón que ClientServiceImpl.buildNamePredicate, aplicado aquí
+  // sobre el join sales_order -> client en vez de sobre el root.
+  private Predicate buildClientNamePredicate(Path<Client> clientPath, CriteriaBuilder cb, String pattern) {
+    Predicate individualName =
+        cb.and(
+            cb.equal(clientPath.type(), Individual.class),
+            cb.or(
+                cb.like(cb.lower(cb.treat(clientPath, Individual.class).get("firstName")), pattern),
+                cb.like(cb.lower(cb.treat(clientPath, Individual.class).get("lastName")), pattern)));
+
+    Predicate orgName =
+        cb.and(
+            cb.equal(clientPath.type(), Organization.class),
+            cb.like(cb.lower(cb.treat(clientPath, Organization.class).get("legalName")), pattern));
+
+    return cb.or(individualName, orgName);
   }
 }
