@@ -372,7 +372,8 @@ public class ClientServiceImpl implements ClientService {
     Client client =
         clientRepository
             .findById(clientId)
-            .orElseThrow(() -> new ResourceNotFoundException("No se encontró el cliente solicitado."));
+            .orElseThrow(
+                () -> new ResourceNotFoundException("No se encontró el cliente solicitado."));
 
     OffsetDateTime periodStart =
         OffsetDateTime.now().withDayOfMonth(1).minusMonths(1).truncatedTo(ChronoUnit.DAYS);

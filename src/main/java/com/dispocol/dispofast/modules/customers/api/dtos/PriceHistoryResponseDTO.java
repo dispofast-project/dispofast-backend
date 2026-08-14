@@ -13,6 +13,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class PriceHistoryResponseDTO {
   private List<PriceHistoryEntryDTO> entries;
-  /** Precio vigente del producto en la lista de precios del cliente; null si no está en la lista. */
+
+  /**
+   * Precio vigente del producto en la lista de precios del cliente; null si no está en la lista.
+   */
   private BigDecimal currentListPrice;
 }
