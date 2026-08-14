@@ -6,6 +6,7 @@ import com.dispocol.dispofast.modules.customers.api.dtos.CreateClientRequestDTO;
 import com.dispocol.dispofast.modules.customers.api.dtos.CreateIndividualRequestDTO;
 import com.dispocol.dispofast.modules.customers.api.dtos.CreateOrganizationRequestDTO;
 import com.dispocol.dispofast.modules.customers.api.dtos.PriceHistoryEntryDTO;
+import com.dispocol.dispofast.modules.customers.api.dtos.PriceHistoryResponseDTO;
 import com.dispocol.dispofast.modules.customers.api.mappers.ClientMapper;
 import com.dispocol.dispofast.modules.customers.application.interfaces.ClientService;
 import com.dispocol.dispofast.modules.customers.domain.Client;
@@ -18,9 +19,9 @@ import com.dispocol.dispofast.modules.customers.infra.persistence.ClientTypeRepo
 import com.dispocol.dispofast.modules.iam.domain.AppUser;
 import com.dispocol.dispofast.modules.iam.infra.persistence.UserRepository;
 import com.dispocol.dispofast.modules.orders.infra.persistence.SalesOrderItemRepository;
+import com.dispocol.dispofast.modules.pricelist.application.interfaces.PriceListService;
 import com.dispocol.dispofast.modules.pricelist.domain.PriceList;
 import com.dispocol.dispofast.modules.pricelist.infra.persistence.PriceListRepository;
-import com.dispocol.dispofast.modules.quotes.infra.persistence.QuoteItemRepository;
 import com.dispocol.dispofast.shared.MediaAsset.domain.MediaAsset;
 import com.dispocol.dispofast.shared.MediaAsset.domain.MediaAssetType;
 import com.dispocol.dispofast.shared.MediaAsset.persistence.MediaAssetRepository;
@@ -34,11 +35,13 @@ import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -59,10 +62,10 @@ public class ClientServiceImpl implements ClientService {
   private final UserRepository userRepository;
   private final ClientTypeRepository clientTypeRepository;
   private final PriceListRepository priceListRepository;
+  private final PriceListService priceListService;
   private final MediaAssetRepository mediaAssetRepository;
   private final S3Service s3Service;
   private final SalesOrderItemRepository salesOrderItemRepository;
-  private final QuoteItemRepository quoteItemRepository;
 
   private static final String LEGAL_DOCS_BUCKET = "dispofast-legal-documents";
 
@@ -365,9 +368,25 @@ public class ClientServiceImpl implements ClientService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<PriceHistoryEntryDTO> getPriceHistory(UUID clientId, UUID productId) {
-    List<PriceHistoryEntryDTO> orderEntries =
-        salesOrderItemRepository.findByClientIdAndProductId(clientId, productId).stream()
+  public PriceHistoryResponseDTO getPriceHistory(UUID clientId, UUID productId) {
+    Client client =
+        clientRepository
+            .findById(clientId)
+            .orElseThrow(
+                () -> new ResourceNotFoundException("No se encontró el cliente solicitado."));
+
+    OffsetDateTime periodStart =
+        OffsetDateTime.now().withDayOfMonth(1).minusMonths(1).truncatedTo(ChronoUnit.DAYS);
+
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    boolean isAdmin =
+        auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+    String advisorEmail = isAdmin ? null : auth.getName();
+
+    List<PriceHistoryEntryDTO> entries =
+        salesOrderItemRepository
+            .findByClientIdAndProductId(clientId, productId, periodStart, advisorEmail)
+            .stream()
             .map(
                 item ->
                     PriceHistoryEntryDTO.builder()
@@ -377,24 +396,16 @@ public class ClientServiceImpl implements ClientService {
                         .quantity(item.getQuantity())
                         .unitPrice(item.getUnitPrice())
                         .build())
+            .sorted(Comparator.comparing(PriceHistoryEntryDTO::getDate).reversed())
             .toList();
 
-    List<PriceHistoryEntryDTO> quoteEntries =
-        quoteItemRepository.findByAccountIdAndProductId(clientId, productId).stream()
-            .map(
-                item ->
-                    PriceHistoryEntryDTO.builder()
-                        .source("QUOTE")
-                        .documentNumber(item.getQuote().getNumber())
-                        .date(item.getQuote().getCreatedAt())
-                        .quantity(item.getQuantity())
-                        .unitPrice(item.getUnitPrice())
-                        .build())
-            .toList();
+    BigDecimal currentListPrice =
+        priceListService.resolveUnitPrice(client.getPriceList().getId(), productId).orElse(null);
 
-    return Stream.concat(orderEntries.stream(), quoteEntries.stream())
-        .sorted(Comparator.comparing(PriceHistoryEntryDTO::getDate).reversed())
-        .toList();
+    return PriceHistoryResponseDTO.builder()
+        .entries(entries)
+        .currentListPrice(currentListPrice)
+        .build();
   }
 
   private Specification<Client> buildSearchSpec(String text, String key) {

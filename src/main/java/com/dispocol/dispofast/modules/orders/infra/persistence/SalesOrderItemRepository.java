@@ -1,6 +1,7 @@
 package com.dispocol.dispofast.modules.orders.infra.persistence;
 
 import com.dispocol.dispofast.modules.orders.domain.SalesOrderItem;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.data.domain.Pageable;
@@ -29,7 +30,12 @@ public interface SalesOrderItemRepository extends JpaRepository<SalesOrderItem, 
   @Query(
       "SELECT i FROM SalesOrderItem i JOIN FETCH i.order o "
           + "WHERE o.client.id = :clientId AND i.product.id = :productId "
+          + "AND o.orderDate >= :periodStart "
+          + "AND (:advisorEmail IS NULL OR o.asesor.email = :advisorEmail) "
           + "ORDER BY o.orderDate DESC")
   List<SalesOrderItem> findByClientIdAndProductId(
-      @Param("clientId") UUID clientId, @Param("productId") UUID productId);
+      @Param("clientId") UUID clientId,
+      @Param("productId") UUID productId,
+      @Param("periodStart") OffsetDateTime periodStart,
+      @Param("advisorEmail") String advisorEmail);
 }
