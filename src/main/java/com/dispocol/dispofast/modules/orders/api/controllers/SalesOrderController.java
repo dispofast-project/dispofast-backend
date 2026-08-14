@@ -67,12 +67,14 @@ public class SalesOrderController {
       @RequestParam(required = false) OrderState state,
       @RequestParam(required = false) UUID clientId,
       @RequestParam(required = false) UUID asesorUserId,
-      @RequestParam(required = false) String orderNumber) {
+      @RequestParam(required = false) String orderNumber,
+      @RequestParam(required = false) String clientName) {
     SalesOrderFilterDTO filter = new SalesOrderFilterDTO();
     filter.setState(state);
     filter.setClientId(clientId);
     filter.setAsesorUserId(asesorUserId);
     filter.setOrderNumber(orderNumber);
+    filter.setClientName(clientName);
     return ResponseEntity.ok(salesOrderService.getAllSalesOrders(pageable, filter));
   }
 
