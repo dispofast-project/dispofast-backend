@@ -16,6 +16,7 @@ import lombok.NoArgsConstructor;
 public class ClientPreviewDTO {
   private UUID id;
   private LegalEntityType legalEntityType;
+  private String clientType;
   private String name;
   private String identificationNumber;
   private Boolean isActive;

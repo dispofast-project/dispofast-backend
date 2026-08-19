@@ -11,4 +11,5 @@ public class SalesOrderFilterDTO {
   private UUID clientId;
   private UUID asesorUserId;
   private String orderNumber;
+  private String clientName;
 }

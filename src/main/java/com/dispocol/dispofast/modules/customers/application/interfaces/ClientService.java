@@ -3,7 +3,7 @@ package com.dispocol.dispofast.modules.customers.application.interfaces;
 import com.dispocol.dispofast.modules.customers.api.dtos.ClientPreviewDTO;
 import com.dispocol.dispofast.modules.customers.api.dtos.ClientResponseDTO;
 import com.dispocol.dispofast.modules.customers.api.dtos.CreateClientRequestDTO;
-import com.dispocol.dispofast.modules.customers.api.dtos.PriceHistoryEntryDTO;
+import com.dispocol.dispofast.modules.customers.api.dtos.PriceHistoryResponseDTO;
 import com.dispocol.dispofast.modules.iam.domain.AppUser;
 import java.util.List;
 import java.util.UUID;
@@ -25,5 +25,5 @@ public interface ClientService {
 
   byte[] getLegalDocument(UUID clientId, UUID documentId);
 
-  List<PriceHistoryEntryDTO> getPriceHistory(UUID clientId, UUID productId);
+  PriceHistoryResponseDTO getPriceHistory(UUID clientId, UUID productId);
 }
