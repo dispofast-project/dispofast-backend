@@ -1,0 +1,38 @@
+package com.dispocol.dispofast.modules.purchases.api.dtos;
+
+import com.dispocol.dispofast.modules.customers.domain.RetefuenteType;
+import com.dispocol.dispofast.modules.purchases.domain.PaymentCondition;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import java.math.BigDecimal;
+import java.util.UUID;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class UpdatePurchaseOrderRequestDTO {
+  private UUID buyerId;
+  private PaymentCondition paymentCondition;
+
+  /** Tasa del descuento comercial en forma decimal (ej. 0.15 = 15%). Rango válido: [0, 1]. */
+  @DecimalMin(value = "0.0", message = "El descuento comercial no puede ser negativo")
+  @DecimalMax(value = "1.0", message = "El descuento comercial no puede superar el 100% (1.0)")
+  private BigDecimal commercialDiscountRate;
+
+  /** Tasa de otros descuentos en forma decimal (ej. 0.05 = 5%). Rango válido: [0, 1]. */
+  @DecimalMin(value = "0.0", message = "Otros descuentos no pueden ser negativos")
+  @DecimalMax(value = "1.0", message = "Otros descuentos no pueden superar el 100% (1.0)")
+  private BigDecimal otherDiscountsRate;
+
+  /** Flete, sumado directamente al total. */
+  @DecimalMin(value = "0.0", message = "El flete no puede ser negativo")
+  private BigDecimal freight;
+
+  /** Anulación opcional del tipo de retefuente para esta orden de compra específica. */
+  private RetefuenteType retefuenteTypeOverride;
+}
