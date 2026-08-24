@@ -51,4 +51,5 @@ public class QuoteResponseDTO {
   private RetefuenteType retefuenteTypeOverride;
   private BigDecimal totalAmount;
   private BigDecimal freight;
+  private boolean backorder;
 }

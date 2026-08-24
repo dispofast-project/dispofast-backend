@@ -25,4 +25,5 @@ public class QuotePreviewResponseDTO {
   private OffsetDateTime createdAt;
   private BigDecimal total;
   private OfferValidity offerValidity;
+  private boolean backorder;
 }

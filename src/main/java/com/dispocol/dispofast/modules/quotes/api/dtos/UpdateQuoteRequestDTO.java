@@ -42,4 +42,7 @@ public class UpdateQuoteRequestDTO {
 
   /** Anulación opcional del tipo de retefuente para esta cotización específica. */
   private RetefuenteType retefuenteTypeOverride;
+
+  /** Marca manual: la cotización incluye producto sin stock disponible actualmente. */
+  private Boolean backorder;
 }
