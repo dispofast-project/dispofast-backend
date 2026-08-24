@@ -1,6 +1,5 @@
 package com.dispocol.dispofast.modules.purchases.api.dtos;
 
-import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -18,8 +17,8 @@ public class AddPurchaseOrderItemRequestDTO {
   private BigDecimal quantity;
 
   /**
-   * Costo pactado con el proveedor. Siempre requerido — no existe una lista de precios de compra.
+   * Costo pactado con el proveedor. Opcional — si no se envía, el ítem queda en 0 y se puede
+   * completar después.
    */
-  @NotNull(message = "El precio unitario es requerido")
   private BigDecimal unitPrice;
 }

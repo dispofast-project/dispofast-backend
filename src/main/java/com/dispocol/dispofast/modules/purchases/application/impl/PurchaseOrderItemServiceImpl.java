@@ -48,7 +48,13 @@ public class PurchaseOrderItemServiceImpl implements PurchaseOrderItemService {
                   recalculateItemAmounts(existing);
                   return existing;
                 })
-            .orElseGet(() -> buildItem(order, product, dto.getQuantity(), dto.getUnitPrice()));
+            .orElseGet(
+                () ->
+                    buildItem(
+                        order,
+                        product,
+                        dto.getQuantity(),
+                        dto.getUnitPrice() != null ? dto.getUnitPrice() : BigDecimal.ZERO));
 
     PurchaseOrderItem saved = purchaseOrderItemRepository.save(item);
 
