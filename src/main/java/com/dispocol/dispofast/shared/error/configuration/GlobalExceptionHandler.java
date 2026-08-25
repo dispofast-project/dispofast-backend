@@ -1,5 +1,6 @@
 package com.dispocol.dispofast.shared.error.configuration;
 
+import com.dispocol.dispofast.modules.iam.infra.exceptions.InsufficientAllocationException;
 import com.dispocol.dispofast.modules.iam.infra.exceptions.PermissionNotFoundException;
 import com.dispocol.dispofast.modules.iam.infra.exceptions.RoleNotFoundException;
 import com.dispocol.dispofast.modules.iam.infra.exceptions.UserAlreadyExistsException;
@@ -144,6 +145,13 @@ public class GlobalExceptionHandler {
   public ResponseEntity<GlobalErrorResponse> handleInsufficientStock(
       InsufficientStockException ex, HttpServletRequest request) {
     log.warn("Stock insuficiente: {}", ex.getMessage());
+    return buildErrorResponseEntity(ex, request, HttpStatus.UNPROCESSABLE_ENTITY);
+  }
+
+  @ExceptionHandler(InsufficientAllocationException.class)
+  public ResponseEntity<GlobalErrorResponse> handleInsufficientAllocation(
+      InsufficientAllocationException ex, HttpServletRequest request) {
+    log.warn("Cupo de inventario insuficiente: {}", ex.getMessage());
     return buildErrorResponseEntity(ex, request, HttpStatus.UNPROCESSABLE_ENTITY);
   }
 
