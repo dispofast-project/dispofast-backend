@@ -6,6 +6,7 @@ import com.dispocol.dispofast.modules.customers.domain.Individual;
 import com.dispocol.dispofast.modules.customers.domain.Organization;
 import com.dispocol.dispofast.modules.customers.domain.RetefuenteType;
 import com.dispocol.dispofast.modules.customers.infra.persistence.ClientRepository;
+import com.dispocol.dispofast.modules.iam.application.interfaces.UserProductAllocationService;
 import com.dispocol.dispofast.modules.iam.infra.persistence.UserRepository;
 import com.dispocol.dispofast.modules.inventory.application.interfaces.InventoryService;
 import com.dispocol.dispofast.modules.inventory.infra.persistence.ProductRepository;
@@ -75,6 +76,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
   private final UserRepository userRepository;
   private final ProductRepository productRepository;
   private final InventoryService inventoryService;
+  private final UserProductAllocationService userProductAllocationService;
   private final PriceListService priceListService;
   private final ArEntryService arEntryService;
   private final SystemParamRepository systemParamRepository;
@@ -109,6 +111,8 @@ public class SalesOrderServiceImpl implements SalesOrderService {
 
     // Reserve stock for each item
     for (CreateSalesOrderItemDTO item : request.getItems()) {
+      userProductAllocationService.reserveAllocation(
+          order.getAsesor().getId(), item.getProductId(), item.getQuantity());
       inventoryService.reserveStock(item.getProductId(), item.getQuantity());
     }
 
@@ -191,6 +195,8 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     List<SalesOrderItemResponseDTO> itemResponses = saveItems(itemDTOs, savedOrder);
 
     for (CreateSalesOrderItemDTO item : itemDTOs) {
+      userProductAllocationService.reserveAllocation(
+          savedOrder.getAsesor().getId(), item.getProductId(), item.getQuantity());
       inventoryService.reserveStock(item.getProductId(), item.getQuantity());
     }
 
@@ -285,7 +291,11 @@ public class SalesOrderServiceImpl implements SalesOrderService {
             item -> inventoryService.confirmStock(item.getProduct().getId(), item.getQuantity()));
       } else if (requestedState == OrderState.CANCELLED) {
         currentItems.forEach(
-            item -> inventoryService.releaseStock(item.getProduct().getId(), item.getQuantity()));
+            item -> {
+              userProductAllocationService.releaseAllocation(
+                  order.getAsesor().getId(), item.getProduct().getId(), item.getQuantity());
+              inventoryService.releaseStock(item.getProduct().getId(), item.getQuantity());
+            });
         shipmentService.delayByOrderId(id);
       }
 
@@ -295,7 +305,11 @@ public class SalesOrderServiceImpl implements SalesOrderService {
       // Release reserved stock for the old items before replacing them
       List<SalesOrderItem> oldItems = salesOrderItemRepository.findByOrderId(id);
       oldItems.forEach(
-          item -> inventoryService.releaseStock(item.getProduct().getId(), item.getQuantity()));
+          item -> {
+            userProductAllocationService.releaseAllocation(
+                order.getAsesor().getId(), item.getProduct().getId(), item.getQuantity());
+            inventoryService.releaseStock(item.getProduct().getId(), item.getQuantity());
+          });
 
       salesOrderItemRepository.deleteByOrderId(id);
       itemResponses = saveItems(request.getItems(), order);
@@ -303,7 +317,12 @@ public class SalesOrderServiceImpl implements SalesOrderService {
       // Reserve stock for the new items
       request
           .getItems()
-          .forEach(dto -> inventoryService.reserveStock(dto.getProductId(), dto.getQuantity()));
+          .forEach(
+              dto -> {
+                userProductAllocationService.reserveAllocation(
+                    order.getAsesor().getId(), dto.getProductId(), dto.getQuantity());
+                inventoryService.reserveStock(dto.getProductId(), dto.getQuantity());
+              });
     } else {
       itemResponses =
           salesOrderItemMapper.toResponseDTOList(salesOrderItemRepository.findByOrderId(id));
@@ -355,7 +374,11 @@ public class SalesOrderServiceImpl implements SalesOrderService {
     // Release reserved stock before deleting
     List<SalesOrderItem> items = salesOrderItemRepository.findByOrderId(id);
     items.forEach(
-        item -> inventoryService.releaseStock(item.getProduct().getId(), item.getQuantity()));
+        item -> {
+          userProductAllocationService.releaseAllocation(
+              order.getAsesor().getId(), item.getProduct().getId(), item.getQuantity());
+          inventoryService.releaseStock(item.getProduct().getId(), item.getQuantity());
+        });
 
     salesOrderItemRepository.deleteByOrderId(id);
     salesOrderRepository.delete(order);
@@ -372,9 +395,14 @@ public class SalesOrderServiceImpl implements SalesOrderService {
               salesOrderItemRepository
                   .findByOrderId(orderId)
                   .forEach(
-                      item ->
-                          inventoryService.releaseStock(
-                              item.getProduct().getId(), item.getQuantity()));
+                      item -> {
+                        userProductAllocationService.releaseAllocation(
+                            order.getAsesor().getId(),
+                            item.getProduct().getId(),
+                            item.getQuantity());
+                        inventoryService.releaseStock(
+                            item.getProduct().getId(), item.getQuantity());
+                      });
               order.setState(OrderState.CANCELLED);
               salesOrderRepository.save(order);
             });
