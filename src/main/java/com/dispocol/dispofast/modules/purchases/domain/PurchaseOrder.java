@@ -1,11 +1,8 @@
-package com.dispocol.dispofast.modules.quotes.domain;
+package com.dispocol.dispofast.modules.purchases.domain;
 
 import com.dispocol.dispofast.modules.customers.domain.Client;
 import com.dispocol.dispofast.modules.customers.domain.RetefuenteType;
 import com.dispocol.dispofast.modules.iam.domain.AppUser;
-import com.dispocol.dispofast.modules.pricelist.domain.PriceList;
-import com.dispocol.dispofast.shared.location.domain.City;
-import com.dispocol.dispofast.shared.location.domain.LocationZone;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -19,67 +16,38 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
-@Table(name = "quotes")
+@Table(name = "purchase_orders")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Quotes {
+public class PurchaseOrder {
   @Id @GeneratedValue private UUID id;
 
   @Column(nullable = false, unique = true, length = 255)
   private String number;
 
   @Enumerated(EnumType.STRING)
-  @Column(name = "status", nullable = false)
-  private QuoteStatus status;
-
-  @Enumerated(EnumType.STRING)
   @Column(name = "payment_condition")
   private PaymentCondition paymentCondition;
 
-  @Enumerated(EnumType.STRING)
-  @Column(name = "offer_validity")
-  private OfferValidity offerValidity;
-
   // ── Relaciones ───────────────────────────────────────────────
 
+  /** Proveedor — siempre un cliente ya registrado, nunca un prospecto. */
   @ManyToOne
-  @JoinColumn(name = "account_id", nullable = true)
-  private Client account;
+  @JoinColumn(name = "supplier_id", nullable = false)
+  private Client supplier;
 
-  @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
-  @JoinColumn(name = "prospect_id", nullable = true)
-  private Prospect prospect;
-
+  /** Usuario que gestiona la orden de compra (equivalente al seller de una cotización). */
   @ManyToOne
-  @JoinColumn(name = "seller_id", nullable = false)
-  private AppUser seller;
-
-  @ManyToOne
-  @JoinColumn(name = "city_id", nullable = true)
-  private City city;
-
-  @Enumerated(EnumType.STRING)
-  @Column(name = "location_zone")
-  private LocationZone zone;
-
-  @ManyToOne
-  @JoinColumn(name = "price_list_id", nullable = false)
-  private PriceList priceList;
-
-  @Column(name = "shipment_address", columnDefinition = "text")
-  private String shipmentAddress;
-
-  /** Marca manual: la cotización incluye producto sin stock disponible actualmente. */
-  @Column(name = "backorder", nullable = false)
-  private boolean backorder = false;
+  @JoinColumn(name = "buyer_id", nullable = false)
+  private AppUser buyer;
 
   @OneToMany(
-      mappedBy = "quote",
+      mappedBy = "purchaseOrder",
       cascade = CascadeType.ALL,
       orphanRemoval = true,
       fetch = FetchType.LAZY)
-  private List<QuoteItem> items = new ArrayList<>();
+  private List<PurchaseOrderItem> items = new ArrayList<>();
 
   // ── Campos financieros ───────────────────────────────────────
 
@@ -87,7 +55,7 @@ public class Quotes {
   @Column(name = "subtotal_amount", nullable = false, precision = 18, scale = 2)
   private BigDecimal subtotalAmount = BigDecimal.ZERO;
 
-  /** Tasa del descuento comercial (ej. 0.15 = 15%). Editable por cotización. */
+  /** Tasa del descuento comercial pactado con el proveedor (ej. 0.15 = 15%). */
   @Column(name = "commercial_discount_rate", nullable = false, precision = 7, scale = 4)
   private BigDecimal commercialDiscountRate = BigDecimal.ZERO;
 
@@ -111,17 +79,15 @@ public class Quotes {
   @Column(name = "iva_amount", nullable = false, precision = 18, scale = 2)
   private BigDecimal ivaAmount = BigDecimal.ZERO;
 
-  /** Tasa de retefuente (null para personas naturales). */
+  /** Tasa de retefuente que la empresa retiene al pagarle al proveedor (null = no aplica). */
   @Column(name = "retefuente_rate", precision = 7, scale = 4)
   private BigDecimal retefuenteRate;
 
-  /** Monto de retefuente (null para personas naturales). */
+  /** Monto de retefuente retenido al proveedor (null = no aplica). */
   @Column(name = "retefuente_amount", precision = 18, scale = 2)
   private BigDecimal retefuenteAmount;
 
-  /**
-   * Anulación opcional del tipo de retefuente a nivel de cotización; null = usar el del cliente.
-   */
+  /** Anulación opcional del tipo de retefuente a nivel de orden; null = usar el del proveedor. */
   @Enumerated(EnumType.STRING)
   @Column(name = "retefuente_type_override")
   private RetefuenteType retefuenteTypeOverride;

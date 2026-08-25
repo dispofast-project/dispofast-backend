@@ -1,9 +1,7 @@
-package com.dispocol.dispofast.modules.quotes.api.dtos;
+package com.dispocol.dispofast.modules.purchases.api.dtos;
 
 import com.dispocol.dispofast.modules.customers.domain.RetefuenteType;
-import com.dispocol.dispofast.modules.quotes.domain.OfferValidity;
-import com.dispocol.dispofast.modules.quotes.domain.PaymentCondition;
-import com.dispocol.dispofast.modules.quotes.domain.QuoteStatus;
+import com.dispocol.dispofast.modules.purchases.domain.PaymentCondition;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import java.math.BigDecimal;
@@ -17,14 +15,9 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class UpdateQuoteRequestDTO {
-  private QuoteStatus status;
-  private UUID sellerId;
-  private String locationId;
-  private UUID priceListId;
+public class UpdatePurchaseOrderRequestDTO {
+  private UUID buyerId;
   private PaymentCondition paymentCondition;
-  private OfferValidity offerValidity;
-  private String shipmentAddress;
 
   /** Tasa del descuento comercial en forma decimal (ej. 0.15 = 15%). Rango válido: [0, 1]. */
   @DecimalMin(value = "0.0", message = "El descuento comercial no puede ser negativo")
@@ -40,9 +33,6 @@ public class UpdateQuoteRequestDTO {
   @DecimalMin(value = "0.0", message = "El flete no puede ser negativo")
   private BigDecimal freight;
 
-  /** Anulación opcional del tipo de retefuente para esta cotización específica. */
+  /** Anulación opcional del tipo de retefuente para esta orden de compra específica. */
   private RetefuenteType retefuenteTypeOverride;
-
-  /** Marca manual: la cotización incluye producto sin stock disponible actualmente. */
-  private Boolean backorder;
 }

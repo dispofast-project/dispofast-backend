@@ -1,12 +1,8 @@
-package com.dispocol.dispofast.modules.quotes.api.dtos;
+package com.dispocol.dispofast.modules.purchases.api.dtos;
 
 import com.dispocol.dispofast.modules.customers.api.dtos.ClientResponseDTO;
 import com.dispocol.dispofast.modules.customers.domain.RetefuenteType;
-import com.dispocol.dispofast.modules.pricelist.api.dtos.PriceListResponseDTO;
-import com.dispocol.dispofast.modules.quotes.domain.OfferValidity;
-import com.dispocol.dispofast.modules.quotes.domain.PaymentCondition;
-import com.dispocol.dispofast.modules.quotes.domain.QuoteStatus;
-import com.dispocol.dispofast.shared.location.api.dto.CityDTO;
+import com.dispocol.dispofast.modules.purchases.domain.PaymentCondition;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -20,21 +16,15 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class QuoteResponseDTO {
+public class PurchaseOrderResponseDTO {
 
   private UUID id;
   private String number;
-  private QuoteStatus status;
   private PaymentCondition paymentCondition;
-  private OfferValidity offerValidity;
-  private ClientResponseDTO account;
-  private ProspectDTO prospect;
-  private UUID sellerId;
-  private String sellerName;
-  private CityDTO location;
-  private String shipmentAddress;
-  private PriceListResponseDTO priceList;
-  private List<QuoteItemResponseDTO> items;
+  private ClientResponseDTO supplier;
+  private UUID buyerId;
+  private String buyerName;
+  private List<PurchaseOrderItemResponseDTO> items;
   private OffsetDateTime createdAt;
   private OffsetDateTime updatedAt;
 
@@ -51,5 +41,4 @@ public class QuoteResponseDTO {
   private RetefuenteType retefuenteTypeOverride;
   private BigDecimal totalAmount;
   private BigDecimal freight;
-  private boolean backorder;
 }

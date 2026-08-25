@@ -1,8 +1,6 @@
-package com.dispocol.dispofast.modules.quotes.api.dtos;
+package com.dispocol.dispofast.modules.purchases.api.dtos;
 
 import com.dispocol.dispofast.modules.iam.api.dtos.UserPreview;
-import com.dispocol.dispofast.modules.quotes.domain.OfferValidity;
-import com.dispocol.dispofast.modules.quotes.domain.QuoteStatus;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -15,15 +13,11 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class QuotePreviewResponseDTO {
+public class PurchaseOrderPreviewResponseDTO {
   private UUID id;
   private String number;
-  private QuoteStatus status;
-  private String accountName;
-  private boolean prospect;
-  private UserPreview seller;
+  private String supplierName;
+  private UserPreview buyer;
   private OffsetDateTime createdAt;
   private BigDecimal total;
-  private OfferValidity offerValidity;
-  private boolean backorder;
 }
