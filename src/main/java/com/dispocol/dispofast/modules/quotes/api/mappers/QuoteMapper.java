@@ -36,6 +36,7 @@ public interface QuoteMapper {
   @Mapping(target = "id", ignore = true)
   @Mapping(target = "createdAt", ignore = true)
   @Mapping(target = "updatedAt", ignore = true)
+  @Mapping(target = "backorder", ignore = true)
   Quotes toEntity(CreateQuoteRequestDTO createQuoteRequestDTO);
 
   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)

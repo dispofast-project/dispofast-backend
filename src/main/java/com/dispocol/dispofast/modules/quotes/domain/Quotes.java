@@ -70,6 +70,10 @@ public class Quotes {
   @Column(name = "shipment_address", columnDefinition = "text")
   private String shipmentAddress;
 
+  /** Marca manual: la cotización incluye producto sin stock disponible actualmente. */
+  @Column(name = "backorder", nullable = false)
+  private boolean backorder = false;
+
   @OneToMany(
       mappedBy = "quote",
       cascade = CascadeType.ALL,
