@@ -71,7 +71,7 @@ public class MailServiceImpl implements MailService {
       javaMailSender.send(message);
       log.info("Correo con adjunto [{}] enviado exitosamente a: {}", attachmentName, (Object) to);
     } catch (Exception e) {
-      log.error("Error al enviar el correo electrónico con adjunto a: {}", to, e);
+      log.error("Error al enviar el correo electrónico con adjunto a: {}", (Object) to, e);
       throw new RuntimeException("Error al enviar el correo electrónico con adjunto", e);
     }
   }
@@ -103,7 +103,7 @@ public class MailServiceImpl implements MailService {
       log.info(
           "Correo con {} adjunto(s) enviado exitosamente a: {}", attachments.size(), (Object) to);
     } catch (Exception e) {
-      log.error("Error al enviar el correo electrónico con adjuntos a: {}", to, e);
+      log.error("Error al enviar el correo electrónico con adjuntos a: {}", (Object) to, e);
       throw new RuntimeException("Error al enviar el correo electrónico con adjuntos", e);
     }
   }

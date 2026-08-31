@@ -354,23 +354,51 @@ public class PaymentReceiptServiceImpl implements PaymentReceiptService {
           buildReceiptEmailHtml(
               receipt, arEntry, thisPayment, discountAmount, previouslyPaid, remainingBalance);
 
+      byte[] voucherBytes = null;
+      String voucherFilename = null;
       if (receipt.getVoucherS3Key() != null) {
-        byte[] voucherBytes = s3Service.downloadFile(VOUCHERS_BUCKET, receipt.getVoucherS3Key());
-        String ext = getExtension(receipt.getVoucherS3Key());
-        String filename = "comprobante_" + receipt.getReceiptCode() + ext;
-        mailService.sendWithAttchment(
-            new String[] {NOTIFICATION_EMAIL},
-            subject,
-            body,
-            voucherBytes,
-            filename,
-            resolveContentType(ext));
-      } else {
-        mailService.send(new String[] {NOTIFICATION_EMAIL}, subject, body);
+        try {
+          voucherBytes = s3Service.downloadFile(VOUCHERS_BUCKET, receipt.getVoucherS3Key());
+          voucherFilename =
+              "comprobante_" + receipt.getReceiptCode() + getExtension(receipt.getVoucherS3Key());
+        } catch (Exception e) {
+          log.error(
+              "Error al descargar el voucher del recibo {} desde S3 (bucket={}, key={}); se"
+                  + " enviará el correo sin el adjunto",
+              receipt.getReceiptCode(),
+              VOUCHERS_BUCKET,
+              receipt.getVoucherS3Key(),
+              e);
+        }
+      }
+
+      try {
+        if (voucherBytes != null) {
+          String ext = getExtension(receipt.getVoucherS3Key());
+          mailService.sendWithAttchment(
+              new String[] {NOTIFICATION_EMAIL},
+              subject,
+              body,
+              voucherBytes,
+              voucherFilename,
+              resolveContentType(ext));
+        } else {
+          mailService.send(new String[] {NOTIFICATION_EMAIL}, subject, body);
+        }
+      } catch (Exception e) {
+        log.error(
+            "Error al enviar el correo del recibo {} a {}: {}",
+            receipt.getReceiptCode(),
+            NOTIFICATION_EMAIL,
+            e.getMessage(),
+            e);
       }
     } catch (Exception e) {
       log.error(
-          "Error al enviar correo del recibo {}: {}", receipt.getReceiptCode(), e.getMessage(), e);
+          "Error al preparar el correo del recibo {}: {}",
+          receipt.getReceiptCode(),
+          e.getMessage(),
+          e);
     }
   }
 
@@ -387,24 +415,42 @@ public class PaymentReceiptServiceImpl implements PaymentReceiptService {
       for (PaymentReceipt receipt : receipts) {
         String voucherKey = receipt.getVoucherS3Key();
         if (voucherKey != null) {
-          byte[] voucherBytes = s3Service.downloadFile(VOUCHERS_BUCKET, voucherKey);
-          String ext = getExtension(voucherKey);
-          attachments.add(
-              new MailAttachment(
-                  voucherBytes,
-                  "comprobante_" + receipt.getReceiptCode() + ext,
-                  resolveContentType(ext)));
+          try {
+            byte[] voucherBytes = s3Service.downloadFile(VOUCHERS_BUCKET, voucherKey);
+            String ext = getExtension(voucherKey);
+            attachments.add(
+                new MailAttachment(
+                    voucherBytes,
+                    "comprobante_" + receipt.getReceiptCode() + ext,
+                    resolveContentType(ext)));
+          } catch (Exception e) {
+            log.error(
+                "Error al descargar el voucher del recibo {} desde S3 (bucket={}, key={}); se"
+                    + " omitirá ese adjunto",
+                receipt.getReceiptCode(),
+                VOUCHERS_BUCKET,
+                voucherKey,
+                e);
+          }
         }
       }
 
-      if (!attachments.isEmpty()) {
-        mailService.sendWithAttachments(
-            new String[] {NOTIFICATION_EMAIL}, subject, body, attachments);
-      } else {
-        mailService.send(new String[] {NOTIFICATION_EMAIL}, subject, body);
+      try {
+        if (!attachments.isEmpty()) {
+          mailService.sendWithAttachments(
+              new String[] {NOTIFICATION_EMAIL}, subject, body, attachments);
+        } else {
+          mailService.send(new String[] {NOTIFICATION_EMAIL}, subject, body);
+        }
+      } catch (Exception e) {
+        log.error(
+            "Error al enviar el correo del pago combinado a {}: {}",
+            NOTIFICATION_EMAIL,
+            e.getMessage(),
+            e);
       }
     } catch (Exception e) {
-      log.error("Error al enviar correo del pago combinado: {}", e.getMessage(), e);
+      log.error("Error al preparar el correo del pago combinado: {}", e.getMessage(), e);
     }
   }
 
